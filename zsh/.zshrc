@@ -25,6 +25,7 @@ zplug "lib/directories", from:oh-my-zsh # Provides the directory stack
 zplug "lib/history", from:oh-my-zsh # Provides history management
 zplug "lib/completion", from:oh-my-zsh # Provides completion of dot directories
 zplug "lib/theme-and-appearance", from:oh-my-zsh # Provides auto cd, and some other appearance things
+zplug "romkatv/powerlevel10k", as:theme, depth:1
 
 # Syntax highlighting bundle.
 zplug "zsh-users/zsh-syntax-highlighting"
