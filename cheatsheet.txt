@@ -1,0 +1,49 @@
+
+=============================
+NVIM Hotkeys
+=============================
+Go to declaration of function
+    Ctrl+r+j 
+
+Open file
+    space + z 
+
+Open file in vertical mode
+    space + z + ctrl + v
+
+Open file in horizontal mode
+    space + z + ctrl + x
+
+Delete word
+    dw
+
+Format
+    space + f
+
+Remove intellisense for copilot
+    ctrl + e
+
+Expand pane vertically
+    ctrl + w + _
+
+Expand pane horizontally
+    ctrl + w + |
+
+Equalize Panes
+    ctrl + w + =
+
+=============================
+TMUX ACTIONS
+=============================
+New tmux window
+    Ctrl + b + c
+
+Move to next tmux window
+    Ctrl + b + n
+
+Move to previous tmux window
+    Ctrl + b + p
+
+Move to tmux window 1
+    Ctrl + b + 1
+
