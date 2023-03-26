@@ -5,14 +5,14 @@ First, ensure that all dependencies are installed:
 sudo apt install git curl stow unzip
 ```
 
-Now, you can run `setup.sh`. In the root of the directory, run
+Clone the repo to your home directory, and setup the dotfiles:
 ```bash
+git clone https://github.com/dlrobson/dotfiles.git
+cd dotfiles
 ./setup.sh
 ```
 
-## Installing Neovim and its dependencies
-
-Install the unstable version of neovim
+Install the unstable version of neovim. neovim was for some reason needed for `fzf`
 ```bash
 sudo add-apt-repository ppa:neovim-ppa/unstable && sudo apt dist-upgrade
 ```
@@ -36,6 +36,14 @@ chmod 755 ~/.cargo/bin/rust-analyzer
 Ensure that clangd is in path. *This argument may be different*. You may need to install clangd through apt or other means
 ```bash
 sudo ln -s clangd-14 clangd
+```
+## Errors:
+
+### With Ctrl-R: `unknown option: --scheme=history`
+
+Something was wrong with the installed version of fzf. Try:
+```bash
+sudo apt remove fzf
 ```
 
 **TODO**: clang-tidy
