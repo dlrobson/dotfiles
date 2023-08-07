@@ -10,11 +10,10 @@ if [ ! -d ~/.tmux/plugins/tpm ]; then
 	git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 fi
 
-# If zgen is not installed, install it
-if [ ! -d ${HOME}/.zgen/zgen.zsh ]; then
-	git clone https://github.com/tarjoilija/zgen.git "${HOME}/.zgen"
+# If zgenom is not installed, install it
+if [ ! -d ${HOME}/.zgenom/zgenom.zsh ]; then
+	git clone https://github.com/jandamm/zgenom.git "${HOME}/.zgenom"
 fi
-
 
 # Set up all of the configs:
 cd ${base}/stow
@@ -24,5 +23,5 @@ cd ${base}/stow
 # it easy to add configurations for new applications
 # without having to modify this script.
 for app in */; do
-	stow --override="(.*?)" -t ${HOME} $app
+	stow -t ${HOME} $app
 done;
