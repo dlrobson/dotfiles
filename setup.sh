@@ -11,7 +11,7 @@ if [ ! -d ~/.tmux/plugins/tpm ]; then
 fi
 
 # If zgenom is not installed, install it
-if [ ! -d ${HOME}/.zgenom/zgenom.zsh ]; then
+if [ ! -d ~/.zgenom ]; then
 	git clone https://github.com/jandamm/zgenom.git "${HOME}/.zgenom"
 fi
 
