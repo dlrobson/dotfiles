@@ -23,7 +23,9 @@ RUN passwd --delete ubuntu
 
 # Install dependencies
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends stow git ca-certificates curl zsh tmux  && \
+    apt-get install -y --no-install-recommends stow git ca-certificates curl zsh tmux && \
+    # Other useful packages
+    less htop && \
     apt-get autoremove -y && \
     apt-get purge -y --auto-remove && \
     apt-get clean
