@@ -1,8 +1,9 @@
 #!/bin/sh
 
 # This script sets up symlinks to all the dotfiles
-# in the user's home directory.
-base=${HOME}/dotfiles
+# in the user's home directory. Set base to be the location of this
+# script, and it will set up all the symlinks
+base=$(dirname $(readlink -f $0))
 
 # Set up tmux plugin manager:
 mkdir -p ~/.tmux/plugins
