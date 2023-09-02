@@ -8,11 +8,12 @@ ARG USERNAME=ubuntu
 
 USER root
 
-# If the UID is not 1000, run a usermod command to change the UID. Also, print
-# a warning message.
-RUN if [ ${UID} -ne 1000 ]; then \
+# If the UID is not equal to the specified UID, run a usermod command to change
+# the UID.
+RUN if [ $(id -u ${USERNAME}) -ne ${UID} ]; then \
     usermod -u ${UID} ${USERNAME} && \
-    echo "uid updated to ${UID}"; \
+    echo "UID updated to ${UID}"; \
+    else echo "User ${USERNAME} already has UID ${UID}"; \
     fi
 
 # Install dependencies
@@ -21,7 +22,7 @@ RUN apt-get update && \
     # Required packages
     stow git ca-certificates curl zsh tmux \
     # Other useful packages
-    less htop && \
+    less htop ssh && \
     apt-get autoremove -y && \
     apt-get purge -y --auto-remove && \
     apt-get clean
