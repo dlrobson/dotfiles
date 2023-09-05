@@ -21,8 +21,10 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     # Required packages
     stow git ca-certificates curl zsh tmux \
+    # devcontainer required
+    ssh \
     # Other useful packages
-    less htop ssh && \
+    less htop  && \
     apt-get autoremove -y && \
     apt-get purge -y --auto-remove && \
     apt-get clean
