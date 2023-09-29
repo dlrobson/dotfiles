@@ -39,6 +39,7 @@ fi
 # Increase history file sizes, so we can store all history
 export HISTSIZE=1000000000
 export SAVEHIST=1000000000
+export TERM=xterm-256color
 
 # Set fzf to use ag if ag is available. It's faster
 if type ag > /dev/null; then
