@@ -9,6 +9,16 @@ fi
 # Load the SSH agent environment variables
 eval `cat $HOME/.ssh/ssh-agent`
 
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/bin" ] ; then
+    PATH="$HOME/bin:$PATH"
+fi
+
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/.local/bin" ] ; then
+    PATH="$HOME/.local/bin:$PATH"
+fi
+
 # List of common private key filenames to check
 common_key_filenames=("id_rsa" "id_dsa" "id_ecdsa" "id_ed25519")
 key_added=false
