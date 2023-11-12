@@ -1,5 +1,5 @@
 # Source the common file
-source $HOME/.common.sh
+source $HOME/.zsh-common.sh
 
 # Update the path to include the local bin directories
 update_path

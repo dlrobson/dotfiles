@@ -41,7 +41,7 @@ function initialize_zgenom() {
 }
 
 function main() {
-  source $HOME/.common.sh
+  source $HOME/.zsh-common.sh
 
   update_path
 

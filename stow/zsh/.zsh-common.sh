@@ -48,7 +48,3 @@ function update_path() {
     PATH="$HOME/.local/bin:$PATH"
   fi
 }
-
-update_path
-
-setup_ssh_agent

@@ -5,12 +5,6 @@
 # script, and it will set up all the symlinks
 base=$(dirname $(readlink -f $0))
 
-# # Set up tmux plugin manager:
-# mkdir -p ~/.tmux/plugins
-# if [ ! -d ~/.tmux/plugins/tpm ]; then
-# 	git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-# fi
-
 # If zgenom is not installed, install it
 if [ ! -d ~/.zgenom ]; then
 	git clone https://github.com/jandamm/zgenom.git "${HOME}/.zgenom"
