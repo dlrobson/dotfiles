@@ -11,14 +11,12 @@ USER root
 # Install dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    # sudo for convenience
-    sudo \
     # Required packages
     stow git ca-certificates curl zsh tmux \
     # devcontainer required
     ssh \
     # Other useful packages
-    less htop  && \
+    sudo less htop  && \
     apt-get autoremove -y && \
     apt-get purge -y --auto-remove && \
     apt-get clean
@@ -36,13 +34,13 @@ RUN if ! id -u ${USERNAME} > /dev/null 2>&1; then \
     else echo "User ${USERNAME} already has UID ${UID}"; \
     fi
 
+# Set the user's default shell
+RUN chsh -s /bin/zsh ${USERNAME}
 
 ENV HOME /home/${USERNAME}
 WORKDIR $HOME
 
 USER ${USERNAME}
-
-ENV TERM xterm-256color
 
 # Copy the repo into the image
 RUN mkdir dotfiles
@@ -53,5 +51,17 @@ RUN /bin/zsh $HOME/dotfiles/setup.sh
 
 # This sources the zshrc file and then exits
 RUN echo exit | script -qec zsh /dev/null
+
+# Start a new tmux session in detached mode, source the tmux configuration
+# file, and then kill the server. 
+# `tmux new-session -d -s tmp` starts a new tmux session in detached mode
+# (i.e., not visible to the user) with the name 'tmp'.
+# `"tmux source-file ~/.tmux.conf; tmux kill-server"` is the command that is
+# run in the new tmux session.
+# `tmux source-file ~/.tmux.conf` sources (loads) the tmux configuration file.
+# `tmux kill-server` then kills the tmux server, ending the session.
+# This sequence is used to ensure that the tmux configuration file is correctly
+# loaded in a tmux session environment.
+RUN tmux new-session -d -s tmp "tmux source-file ~/.tmux.conf; tmux kill-server"
 
 CMD ["/bin/zsh"]
