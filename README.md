@@ -15,6 +15,10 @@ cd dotfiles
 
 See [here](https://github.com/romkatv/powerlevel10k#meslo-nerd-font-patched-for-powerlevel10k) for instructions on how to install the font.
 
+## DockerHub Image
+
+The docker image is available on [DockerHub](https://hub.docker.com/repository/docker/dlrobson/dotfiles).
+
 ## Create a Dev Image with the dotfiles baked in
 
 Run:
@@ -24,5 +28,5 @@ docker build --progress=plain \
     --build-arg GID=$(id -g) \
     --build-arg USERNAME=<username> \
     --build-arg BASE_IMAGE=<base-image> \
-    -t build-env:dan -f <path-to-dockerfile> <path-to-repo>
+    -t docker.io/dlrobson/dotfiles -f <path-to-dockerfile> <path-to-repo>
 ```
