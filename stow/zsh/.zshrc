@@ -40,8 +40,14 @@ function initialize_zgenom() {
   fi
 }
 
+function define_aliases() {
+  alias clean-branches="git fetch --all --prune && git branch -D $(git branch -vv | grep ': gone]'|  grep -v "\*" | awk '{ print $1; }')"
+}
+
 function main() {
   source $HOME/.zsh-common.sh
+
+  define_aliases
 
   update_path
 
