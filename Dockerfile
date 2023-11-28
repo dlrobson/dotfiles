@@ -16,7 +16,7 @@ RUN apt-get update && \
     # devcontainer required
     ssh \
     # Other useful packages
-    sudo less htop  && \
+    sudo less htop && \
     apt-get autoremove -y && \
     apt-get purge -y --auto-remove && \
     apt-get clean
