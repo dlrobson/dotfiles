@@ -1,0 +1,29 @@
+name: Build Images
+
+on:
+  push:
+    branches:
+      - master
+
+# This stops any running jobs when a new commit is pushed
+# Reference: https://stackoverflow.com/a/72408109
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_image:
+    uses: ./.github/actions/reusable_build_image.yml
+    with:
+      base-image: ubuntu:latest
+      image-name: ghcr.io/dlrobson/dotfiles/base
+    secrets:
+      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+
+  rust_build_image:
+    uses: ./.github/actions/reusable_build_image.yml
+    with:
+      base-image: rust:slim
+      image-name: ghcr.io/dlrobson/dotfiles/rust
+    secrets:
+      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
