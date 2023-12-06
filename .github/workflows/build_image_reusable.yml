@@ -40,8 +40,7 @@ jobs:
       # version_info job and used in the build_image jobs
       - name: Generate Tag
         id: version_info
-        run: |
-          echo "CONTAINER_TAG=$(date +%Y-%m)" >> $GITHUB_ENV
+        run: echo "CONTAINER_TAG=$(date +%Y-%m)" >> $GITHUB_OUTPUT
 
       - name: Build and Push Image
         uses: docker/build-push-action@v5
