@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+  pull_request:
 
 # This stops any running jobs when a new commit is pushed
 # Reference: https://stackoverflow.com/a/72408109
