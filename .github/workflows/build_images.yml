@@ -25,7 +25,7 @@ jobs:
             image-name: ghcr.io/dlrobson/dotfiles/rust
     uses: ./.github/workflows/build_image_reusable.yml
     with:
-      base-image: ${{ matrix.run_parameters.build-image }}
-      image-name: ${{ matrix.run_parameters.image-name }}
+      base-image: ${{ matrix.build-image }}
+      image-name: ${{ matrix.image-name }}
     secrets:
       GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
