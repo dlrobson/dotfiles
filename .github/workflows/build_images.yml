@@ -13,17 +13,24 @@ concurrency:
 
 jobs:
   build_image:
+    name: Build and Publish Images
+    strategy:
+      fail-fast: false
+      matrix:
+        run_parameters:
+          [
+            {
+              build-image: ubuntu:latest,
+              image-name: ghcr.io/dlrobson/dotfiles/base,
+            },
+            {
+              build-image: rust:slim,
+              image-name: ghcr.io/dlrobson/dotfiles/rust,
+            },
+          ]
     uses: ./.github/actions/reusable_build_image.yml
     with:
-      base-image: ubuntu:latest
-      image-name: ghcr.io/dlrobson/dotfiles/base
-    secrets:
-      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-
-  rust_build_image:
-    uses: ./.github/actions/reusable_build_image.yml
-    with:
-      base-image: rust:slim
-      image-name: ghcr.io/dlrobson/dotfiles/rust
+      base-image: ${{ matrix.run_parameters.build-image }}
+      image-name: ${{ matrix.run_parameters.image-name }}
     secrets:
       GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
