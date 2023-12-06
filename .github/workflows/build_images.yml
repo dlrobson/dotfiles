@@ -20,9 +20,9 @@ jobs:
       matrix:
         include:
           - build-image: ubuntu:latest
-            image-name: "ghcr.io/dlrobson/dotfiles/base"
+            image-name: ghcr.io/dlrobson/dotfiles/base
           - build-image: rust:slim
-            image-name: "ghcr.io/dlrobson/dotfiles/rust"
+            image-name: ghcr.io/dlrobson/dotfiles/rust
     uses: ./.github/workflows/build_image_reusable.yml
     with:
       base-image: ${{ matrix.run_parameters.build-image }}

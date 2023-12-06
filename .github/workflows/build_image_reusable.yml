@@ -53,8 +53,8 @@ jobs:
             BASE_IMAGE=${{ inputs.base-image }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ghcr.io/dlrobson/dotfiles/${{ inputs.image-name }}:latest
-            ghcr.io/dlrobson/dotfiles/${{ inputs.image-name }}:${{ steps.version_info.outputs.CONTAINER_TAG }}
+            ${{ inputs.image-name }}:latest
+            ${{ inputs.image-name }}:${{ steps.version_info.outputs.CONTAINER_TAG }}
           # labels: |
           #   org.opencontainers.image.source=
           platforms: linux/amd64,linux/arm64
