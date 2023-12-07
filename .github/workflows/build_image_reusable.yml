@@ -25,15 +25,19 @@ jobs:
       # This will allow us to store older images and easily identify when they were built.
       # I don't need finer granularity than this for my use case. This will be set in the
       # version_info job and used in the build_image jobs
+      - name: Generate Tag
+        id: version_info
+        run: echo "CONTAINER_TAG=$(date +%Y-%m)" >> $GITHUB_OUTPUT
+
       - name: Docker metadata
         id: metadata
         uses: docker/metadata-action@v5
         with:
           images: ${{ inputs.image-name }}
           tags: |
-            type=schedule,enable=true,pattern={{date 'YYYY-MM'}}
-          flavor: |
-            latest=true
+            type=semver,pattern={{date 'YYYY-MM'}}
+          labels: |
+            org.opencontainers.image.version=${{ steps.version_info.outputs.CONTAINER_TAG }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
