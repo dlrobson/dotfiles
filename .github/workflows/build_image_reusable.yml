@@ -38,6 +38,11 @@ jobs:
             latest
             ${{ steps.version_info.outputs.CONTAINER_TAG }}
           labels: |
+            version=${{ steps.version_info.outputs.CONTAINER_TAG }}
+            org.opencontainers.image.version=${{ steps.version_info.outputs.CONTAINER_TAG }}
+            org.opencontainers.image.licenses=MIT
+          annotations: |
+            version=${{ steps.version_info.outputs.CONTAINER_TAG }}
             org.opencontainers.image.version=${{ steps.version_info.outputs.CONTAINER_TAG }}
             org.opencontainers.image.licenses=MIT
 
@@ -63,6 +68,8 @@ jobs:
             GID=1000
             BASE_IMAGE=${{ inputs.base-image }}
           push: ${{ github.event_name != 'pull_request' }}
+          annotations: |
+            ${{ steps.metadata.outputs.annotations }}
           tags: |
             ${{ steps.metadata.outputs.tags }}
           # TODO(dan): Add a label for the base image's sha256 digest
