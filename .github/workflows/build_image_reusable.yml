@@ -34,15 +34,15 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ inputs.image-name }}
+          flavor: |
+            latest=false
           tags: |
             latest
             ${{ steps.version_info.outputs.CONTAINER_TAG }}
           labels: |
-            version=${{ steps.version_info.outputs.CONTAINER_TAG }}
             org.opencontainers.image.version=${{ steps.version_info.outputs.CONTAINER_TAG }}
             org.opencontainers.image.licenses=MIT
           annotations: |
-            version=${{ steps.version_info.outputs.CONTAINER_TAG }}
             org.opencontainers.image.version=${{ steps.version_info.outputs.CONTAINER_TAG }}
             org.opencontainers.image.licenses=MIT
 
