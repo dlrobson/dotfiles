@@ -9,6 +9,9 @@ on:
       image-name:
         required: true
         type: string
+      software-version:
+        required: true
+        type: string
     secrets:
       GHCR_TOKEN:
         required: true
@@ -21,14 +24,6 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v4
 
-      # We will use the date and month as the tag for the image in the format YYYY-MM.
-      # This will allow us to store older images and easily identify when they were built.
-      # I don't need finer granularity than this for my use case. This will be set in the
-      # version_info job and used in the build_image jobs
-      - name: Generate Tag
-        id: version_info
-        run: echo "CONTAINER_TAG=$(date +%Y-%m)" >> $GITHUB_OUTPUT
-
       - name: Docker metadata
         id: metadata
         uses: docker/metadata-action@v5
@@ -36,13 +31,13 @@ jobs:
           images: ${{ inputs.image-name }}
           tags: |
             latest
-            ${{ steps.version_info.outputs.CONTAINER_TAG }}
+            ${{ inputs.software-version }}
           labels: |
-            org.opencontainers.image.version=${{ steps.version_info.outputs.CONTAINER_TAG }}
+            org.opencontainers.image.version=${{ inputs.software-version }}
             org.opencontainers.image.licenses=MIT
           # TODO(dan): Add a label for the base image's sha256 digest
           annotations: |
-            org.opencontainers.image.version=${{ steps.version_info.outputs.CONTAINER_TAG }}
+            org.opencontainers.image.version=${{ inputs.software-version }}
             org.opencontainers.image.licenses=MIT
 
       - name: Set up QEMU

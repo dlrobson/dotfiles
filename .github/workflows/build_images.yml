@@ -13,19 +13,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  version_info:
+    name: Generate Version Info
+    runs-on: ubuntu-latest
+    outputs:
+      software_version: ${{ steps.version_info.outputs.software_version }}
+    steps:
+      # We will use the date and month as the tag for the image in the format YYYY-MM.
+      # This will allow us to store older images and easily identify when they were built.
+      # I don't need finer granularity than this for my use case. This will be set in the
+      # version_info job and used in the build_image jobs
+      - id: version_info
+        run: echo "software_version=$(date +%Y-%m)" >> $GITHUB_OUTPUT
+
   build_image:
     name: Build and Publish Images
+    needs: version_info
     strategy:
       fail-fast: false
       matrix:
         include:
           - build-image: ubuntu:latest
             image-name: ghcr.io/dlrobson/dotfiles/base
+            software-version: ${{ needs.version_info.outputs.software_version }}
           - build-image: rust:slim
             image-name: ghcr.io/dlrobson/dotfiles/rust
+            software-version: ${{ needs.version_info.outputs.software_version }}
     uses: ./.github/workflows/build_image_reusable.yml
     with:
       base-image: ${{ matrix.build-image }}
       image-name: ${{ matrix.image-name }}
+      software-version: ${{ matrix.software-version }}
     secrets:
       GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
