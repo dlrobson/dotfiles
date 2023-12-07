@@ -34,14 +34,13 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ inputs.image-name }}
-          flavor: |
-            latest=false
           tags: |
             latest
             ${{ steps.version_info.outputs.CONTAINER_TAG }}
           labels: |
             org.opencontainers.image.version=${{ steps.version_info.outputs.CONTAINER_TAG }}
             org.opencontainers.image.licenses=MIT
+          # TODO(dan): Add a label for the base image's sha256 digest
           annotations: |
             org.opencontainers.image.version=${{ steps.version_info.outputs.CONTAINER_TAG }}
             org.opencontainers.image.licenses=MIT
@@ -72,7 +71,6 @@ jobs:
             ${{ steps.metadata.outputs.annotations }}
           tags: |
             ${{ steps.metadata.outputs.tags }}
-          # TODO(dan): Add a label for the base image's sha256 digest
           labels: |
             ${{ steps.metadata.outputs.labels }}
           platforms: linux/amd64,linux/arm64
