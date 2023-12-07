@@ -21,6 +21,20 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v4
 
+      # We will use the date and month as the tag for the image in the format YYYY-MM.
+      # This will allow us to store older images and easily identify when they were built.
+      # I don't need finer granularity than this for my use case. This will be set in the
+      # version_info job and used in the build_image jobs
+      - name: Docker metadata
+        id: metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ inputs.image-name }}
+          tags: |
+            type=schedule,pattern={{date 'YYYY-MM'}}
+          flavor: |
+            latest=auto
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -34,14 +48,6 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GHCR_TOKEN }}
 
-      # We will use the date and month as the tag for the image in the format YYYY-MM.
-      # This will allow us to store older images and easily identify when they were built.
-      # I don't need finer granularity than this for my use case. This will be set in the
-      # version_info job and used in the build_image jobs
-      - name: Generate Tag
-        id: version_info
-        run: echo "CONTAINER_TAG=$(date +%Y-%m)" >> $GITHUB_OUTPUT
-
       - name: Build and Push Image
         uses: docker/build-push-action@v5
         with:
@@ -52,8 +58,9 @@ jobs:
             BASE_IMAGE=${{ inputs.base-image }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ${{ inputs.image-name }}:latest
-            ${{ inputs.image-name }}:${{ steps.version_info.outputs.CONTAINER_TAG }}
-          # labels: |
-          #   org.opencontainers.image.source=
+            ${{ steps.metadata.outputs.tags }}
+          # TODO(dan): Add a label for the base image's sha256 digest
+          # TODO(dan): Perhaps add a description of the base image
+          labels: |
+            ${{ steps.metadata.outputs.labels }}
           platforms: linux/amd64,linux/arm64
