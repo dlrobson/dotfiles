@@ -35,7 +35,7 @@ jobs:
           labels: |
             org.opencontainers.image.version=${{ inputs.software-version }}
             org.opencontainers.image.licenses=MIT
-          # TODO(dan): Add a label for the base image's sha256 digest
+            base_image=$(docker image inspect --format='{{index .RepoDigests 0}}' ${{ inputs.base-image }})
           annotations: |
             org.opencontainers.image.version=${{ inputs.software-version }}
             org.opencontainers.image.licenses=MIT
