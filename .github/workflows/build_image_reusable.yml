@@ -21,6 +21,9 @@ jobs:
     name: Build and Publish Image
     runs-on: ubuntu-latest
     steps:
+      - name: Pull base image
+        run: docker pull ${{ inputs.base-image }}
+
       - id: base_image_sha
         run: echo "base_image_sha=$(docker image inspect --format='{{index .RepoDigests 0}}' ${{ inputs.base-image }})" >> $GITHUB_OUTPUT
 
