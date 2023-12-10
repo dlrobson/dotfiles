@@ -82,7 +82,7 @@ jobs:
         with:
           github-token: ${{ secrets.GHCR_TOKEN }}
           script: |
-            # Convert '/' to '%2F' in image name
+            // Convert any slashes in the image name to %2F
             const imageName = "${{ inputs.image-name }}".replace(/\//g, '%2F');
             const response = await github.request("GET /users/dlrobson/packages/container/" + imageName + "/versions",
               { per_page: 100 
