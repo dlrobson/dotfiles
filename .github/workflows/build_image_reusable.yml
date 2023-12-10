@@ -75,9 +75,9 @@ jobs:
           labels: |
             ${{ steps.metadata.outputs.labels }}
           platforms: linux/amd64,linux/arm64
-          env:
-            # https://github.com/orgs/community/discussions/45969#discussion-4811503
-            BUILDX_NO_DEFAULT_ATTESTATIONS: 1
+        env:
+          # https://github.com/orgs/community/discussions/45969#discussion-4811503
+          BUILDX_NO_DEFAULT_ATTESTATIONS: 1
 
       # Source: https://github.com/orgs/community/discussions/26716#discussioncomment-3253034
       - name: Delete untagged versions
