@@ -82,13 +82,15 @@ jobs:
         with:
           github-token: ${{ secrets.GHCR_TOKEN }}
           script: |
-            const response = await github.request("GET /dlrobson/packages/container/${{ inputs.image-name }}/versions",
+            # Convert '/' to '%2F' in image name
+            const imageName = "${{ inputs.image-name }}".replace(/\//g, '%2F');
+            const response = await github.request("GET /users/dlrobson/packages/container/" + imageName + "/versions",
               { per_page: 100 
             });
             for(version of response.data) {
                 if (version.metadata.container.tags.length == 0) {
                     console.log("delete " + version.id)
-                    const deleteResponse = await github.request("DELETE /dlrobson/packages/container${{ inputs.image-name }}/versions/" + version.id, { });
+                    const deleteResponse = await github.request("DELETE /users/dlrobson/packages/container/" + imageName + "/versions/" + version.id, { });
                     console.log("status " + deleteResponse.status)
                 }
             }
