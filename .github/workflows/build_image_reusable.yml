@@ -107,15 +107,15 @@ jobs:
     #       platforms: linux/amd64,linux/arm64
 
 
-      - name: Delete all containers from package without tags
-        uses: Chizkiyahu/delete-untagged-ghcr-action@v3
-        with:
-          token: ${{ github.GHCR_TOKEN }}
-          repository_owner: ${{ github.repository_owner }}
-          repository: ${{ github.repository }}
-          untagged_only: true
-          owner_type: user
-          except_untagged_multiplatform: true
+    - name: Delete all containers from package without tags
+      uses: Chizkiyahu/delete-untagged-ghcr-action@v3
+      with:
+        token: ${{ github.GHCR_TOKEN }}
+        repository_owner: ${{ github.repository_owner }}
+        repository: ${{ github.repository }}
+        untagged_only: true
+        owner_type: user
+        except_untagged_multiplatform: true
 
       # # Source: https://github.com/orgs/community/discussions/26716#discussioncomment-3253034
       # - name: Delete untagged versions
