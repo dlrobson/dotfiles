@@ -70,7 +70,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           annotations: |
             ${{ steps.metadata.outputs.annotations }}
-          tags: |w
+          tags: |
             ${{ steps.metadata.outputs.tags }}
           labels: |
             ${{ steps.metadata.outputs.labels }}
