@@ -34,10 +34,10 @@ jobs:
       matrix:
         include:
           - build-image: ubuntu:latest
-            image-name: ghcr.io/dlrobson/dotfiles/base
+            image-name: dotfiles/base
             software-version: ${{ needs.version_info.outputs.software_version }}
           - build-image: rust:slim
-            image-name: ghcr.io/dlrobson/dotfiles/rust
+            image-name: dotfiles/rust
             software-version: ${{ needs.version_info.outputs.software_version }}
     uses: ./.github/workflows/build_image_reusable.yml
     with:
