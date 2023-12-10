@@ -34,7 +34,7 @@ jobs:
         id: metadata
         uses: docker/metadata-action@v5
         with:
-          images: ${{ inputs.image-name }}
+          images: ghcr.io/dlrobson/${{ inputs.image-name }}
           tags: |
             latest
             ${{ inputs.software-version }}
@@ -75,3 +75,20 @@ jobs:
           labels: |
             ${{ steps.metadata.outputs.labels }}
           platforms: linux/amd64,linux/arm64
+
+      # Source: https://github.com/orgs/community/discussions/26716#discussioncomment-3253034
+      - name: Delete untagged versions
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{ secrets.GHCR_TOKEN }}
+          script: |
+            const response = await github.request("GET /dlrobson/packages/container/package/${{ inputs.image-name }}/versions",
+              { per_page: 100 
+            });
+            for(version of response.data) {
+                if (version.metadata.container.tags.length == 0) {
+                    console.log("delete " + version.id)
+                    const deleteResponse = await github.request("DELETE /dlrobson/packages/container/package${{ inputs.image-name }}/versions/" + version.id, { });
+                    console.log("status " + deleteResponse.status)
+                }
+            }
