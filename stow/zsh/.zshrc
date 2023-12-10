@@ -41,7 +41,7 @@ function initialize_zgenom() {
 }
 
 function define_aliases() {
-  alias clean-branches="git fetch --all --prune && git branch -D $(git branch -vv | grep ': gone]'|  grep -v "\*" | awk '{ print $1; }')"
+  alias clean-branches="git fetch --all --prune && git branch -D $(git branch -vv | grep ': gone]'|  grep -v '\*' | awk '{ print $1; }')"
 }
 
 function main() {
