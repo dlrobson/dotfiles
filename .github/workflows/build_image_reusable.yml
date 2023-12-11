@@ -36,7 +36,7 @@ jobs:
           if [ "${{ inputs.require-base-image-changed }}" = "false" ]; then \
             echo "base_image_changed=false" >> $GITHUB_OUTPUT; \
           else \
-            docker pull ghcr.io/dlrobson/${{ inputs.image-name }}:latest || : \
+            docker pull ghcr.io/dlrobson/${{ inputs.image-name }}:latest || :; \
             if [ "${{ steps.base_image_digest.outputs.base_image_digest }}" != "$(docker inspect --format='{{index .Config.Labels \"org.opencontainers.image.base.digest\"}}' ghcr.io/dlrobson/${{ inputs.image-name }}:latest)" ]; then \
               echo "base_image_changed=true" >> $GITHUB_OUTPUT; \
             else \
