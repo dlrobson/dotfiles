@@ -61,11 +61,11 @@ jobs:
           labels: |
             org.opencontainers.image.version=${{ inputs.software-version }}
             org.opencontainers.image.licenses=MIT
-            org.opencontainers.imaage.base.digest=${{ steps.base_image_digest.outputs.base_image_digest }}
+            org.opencontainers.image.base.digest=${{ steps.base_image_digest.outputs.base_image_digest }}
           annotations: |
             org.opencontainers.image.version=${{ inputs.software-version }}
             org.opencontainers.image.licenses=MIT
-            org.opencontainers.imaage.base.digest=${{ steps.base_image_digest.outputs.base_image_digest }}
+            org.opencontainers.image.base.digest=${{ steps.base_image_digest.outputs.base_image_digest }}
 
       - name: Set up QEMU
         if: ${{ steps.base_image_changed.outputs.base_image_changed }}}
