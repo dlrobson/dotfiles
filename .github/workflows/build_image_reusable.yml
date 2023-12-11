@@ -27,8 +27,8 @@ jobs:
       - name: Pull base image
         run: docker pull ${{ inputs.base-image }}
 
-      - id: base_image_sha
-        run: echo "base_image_sha=$(docker image inspect --format='{{index .RepoDigests 0}}' ${{ inputs.base-image }})" >> $GITHUB_OUTPUT
+      - id: base_image_digest
+        run: echo "base_image_digest=$(docker image inspect --format='{{index .RepoDigests 0}}' ${{ inputs.base-image }})" >> $GITHUB_OUTPUT
 
       - name: Check if base image has changed
         id: base_image_changed
@@ -37,7 +37,7 @@ jobs:
             echo "base_image_changed=false" >> $GITHUB_OUTPUT; \
           else \
             docker pull ghcr.io/dlrobson/${{ inputs.image-name }}:latest || : \
-            if [ "${{ steps.base_image_sha.outputs.base_image_sha }}" != "$(docker inspect --format='{{index .Config.Labels "org.opencontainers.image.base.digest"}}' ghcr.io/dlrobson/${{ inputs.image-name }}:latest)" ]; then \
+            if [ "${{ steps.base_image_digest.outputs.base_image_digest }}" != "$(docker inspect --format='{{index .Config.Labels "org.opencontainers.image.base.digest"}}' ghcr.io/dlrobson/${{ inputs.image-name }}:latest)" ]; then \
               echo "base_image_changed=true" >> $GITHUB_OUTPUT; \
             else \
               echo "base_image_changed=false" >> $GITHUB_OUTPUT; \
@@ -59,11 +59,11 @@ jobs:
           labels: |
             org.opencontainers.image.version=${{ inputs.software-version }}
             org.opencontainers.image.licenses=MIT
-            org.opencontainers.imaage.base.digest=${{ steps.base_image_sha.outputs.base_image_sha }}
+            org.opencontainers.imaage.base.digest=${{ steps.base_image_digest.outputs.base_image_digest }}
           annotations: |
             org.opencontainers.image.version=${{ inputs.software-version }}
             org.opencontainers.image.licenses=MIT
-            org.opencontainers.imaage.base.digest=${{ steps.base_image_sha.outputs.base_image_sha }}
+            org.opencontainers.imaage.base.digest=${{ steps.base_image_digest.outputs.base_image_digest }}
 
       - name: Set up QEMU
         if: ${{ steps.base_image_changed.outputs.base_image_changed }}}
