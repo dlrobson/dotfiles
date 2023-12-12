@@ -100,14 +100,3 @@ jobs:
           labels: |
             ${{ steps.metadata.outputs.labels }}
           platforms: linux/amd64,linux/arm64
-
-      - name: Delete all containers from package without tags
-        uses: Chizkiyahu/delete-untagged-ghcr-action@v3
-        with:
-          token: ${{ secrets.GHCR_TOKEN }}
-          repository_owner: ${{ github.repository_owner }}
-          repository: ${{ github.repository }}
-          untagged_only: true
-          owner_type: user
-          except_untagged_multiplatform: true
-

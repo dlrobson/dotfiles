@@ -1,0 +1,21 @@
+name: Prune untagged images
+
+on:
+  schedule:
+    # Run at 2am every day
+    - cron: '0 2 * * *'
+
+jobs:
+  build_image:
+    name: Build and Publish Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete all containers from package without tags
+        uses: Chizkiyahu/delete-untagged-ghcr-action@v3
+        with:
+          token: ${{ secrets.GHCR_TOKEN }}
+          repository_owner: ${{ github.repository_owner }}
+          repository: ${{ github.repository }}
+          untagged_only: true
+          owner_type: user
+          except_untagged_multiplatform: true
