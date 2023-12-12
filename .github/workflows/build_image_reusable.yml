@@ -35,7 +35,7 @@ jobs:
         id: base_image_changed
         run: |
           if [ "${{ inputs.require-base-image-changed }}" = "false" ]; then \
-            echo "base_image_changed=false" >> $GITHUB_OUTPUT; \
+            echo "base_image_changed=true" >> $GITHUB_OUTPUT; \
           else \
             docker pull ghcr.io/dlrobson/${{ inputs.image-name }}:latest || :; \
 
