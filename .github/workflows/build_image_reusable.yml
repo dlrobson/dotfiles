@@ -99,8 +99,7 @@ jobs:
             UID=1000
             GID=1000
             BASE_IMAGE=${{ inputs.base-image }}
-          # push: ${{ github.event_name != 'pull_request' }}
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           annotations: |
             ${{ steps.metadata.outputs.annotations }}
           tags: |
