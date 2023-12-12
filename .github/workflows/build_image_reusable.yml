@@ -46,8 +46,10 @@ jobs:
             echo "current_base_image_digest=${{ steps.base_image_digest.outputs.base_image_digest }}"; \
             
             if [ "${{ steps.base_image_digest.outputs.base_image_digest }}" != "$base_image_digest" ]; then \
+              echo "Base image has changed"; \
               echo "base_image_changed=true" >> $GITHUB_OUTPUT; \
             else \
+              echo "Base image has not changed"; \
               echo "base_image_changed=false" >> $GITHUB_OUTPUT; \
             fi \
           fi
