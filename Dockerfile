@@ -34,6 +34,10 @@ RUN if ! id -u ${USERNAME} > /dev/null 2>&1; then \
     else echo "User ${USERNAME} already has UID ${UID}"; \
     fi
 
+# If the user is not a sudoer, add them to the sudo group
+RUN cat /etc/sudoers.d/nopasswd | grep ${USERNAME} > /dev/null 2>&1 || \
+    echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
+
 # Set the user's default shell
 RUN chsh -s /bin/zsh ${USERNAME}
 
