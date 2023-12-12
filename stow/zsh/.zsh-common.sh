@@ -1,5 +1,5 @@
 # This function sets up the SSH agent and adds any common private keys.
-function setup_ssh_agent() {
+function _setup_ssh_agent() {
   # Check if the .ssh directory exists
   if [ -d "$HOME/.ssh" ]; then
     # Check if an SSH agent is already running
@@ -37,7 +37,7 @@ function setup_ssh_agent() {
 }
 
 # This function appends common directories to the PATH environment variable.
-function update_path() {
+function _update_path() {
   # set PATH so it includes user's private bin if it exists, and is not already in PATH
   if [ -d "$HOME/bin" ] && [[ ":$PATH:" != *":$HOME/bin:"* ]]; then
     PATH="$HOME/bin:$PATH"

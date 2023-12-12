@@ -5,8 +5,8 @@ on:
     branches:
       - master
   pull_request:
-  # schedule:
-  #   - cron: '0 2 * * *' # run at 2 AM UTC
+  schedule:
+    - cron: '0 2 * * *' # run at 2 AM UTC
 
 # This stops any running jobs when a new commit is pushed
 # Reference: https://stackoverflow.com/a/72408109
@@ -38,12 +38,15 @@ jobs:
           - build-image: ubuntu:latest
             image-name: dotfiles/base
             software-version: ${{ needs.version_info.outputs.software_version }}
+            require-base-image-changed: ${{ github.event_name == 'schedule' }}
           - build-image: rust:slim
             image-name: dotfiles/rust
             software-version: ${{ needs.version_info.outputs.software_version }}
-          # - build-image: ghcr.io/dlrobson/latex-dev-container:latest
-          #   image-name: dotfiles/latex
-          #   software-version: ${{ needs.version_info.outputs.software_version }}
+            require-base-image-changed: ${{ github.event_name == 'schedule' }}
+          - build-image: ghcr.io/dlrobson/latex-dev-container:latest
+            image-name: dotfiles/latex
+            software-version: ${{ needs.version_info.outputs.software_version }}
+            require-base-image-changed: ${{ github.event_name == 'schedule' }}
     uses: ./.github/workflows/build_image_reusable.yml
     with:
       base-image: ${{ matrix.build-image }}
