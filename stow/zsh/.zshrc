@@ -1,4 +1,4 @@
-function initialize_p10k_prompt() {
+function _initialize_p10k_prompt() {
   # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
   # Initialization code that may require console input (password prompts, [y/n]
   # confirmations, etc.) must go above this block; everything else may go below.
@@ -7,7 +7,7 @@ function initialize_p10k_prompt() {
   fi
 }
 
-function initialize_zgenom() {
+function _initialize_zgenom() {
   # load zgenom
   source "${HOME}/.zgenom/zgenom.zsh"
 
@@ -40,20 +40,14 @@ function initialize_zgenom() {
   fi
 }
 
-function define_aliases() {
-  alias clean-branches="git fetch --all --prune && git branch -D $(git branch -vv | grep ': gone]'|  grep -v \"\*\" | awk '{ print $1; }')"
-}
-
-function main() {
+function _main() {
   source $HOME/.zsh-common.sh
 
-  define_aliases
+  _update_path
 
-  update_path
+  _initialize_p10k_prompt
 
-  initialize_p10k_prompt
-
-  initialize_zgenom
+  _initialize_zgenom
 
   # Increase history file sizes, so we can store all history
   export HISTSIZE=1000000000
@@ -73,4 +67,9 @@ function main() {
   [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 }
 
-main
+_main
+
+# Aliases
+clean_branches() {
+  git fetch --all --prune && git branch -D $(git branch -vv | grep ': gone]'|  grep -v "\*" | awk '{ print $1; }')
+}
