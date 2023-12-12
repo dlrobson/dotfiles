@@ -41,7 +41,9 @@ jobs:
             docker pull ghcr.io/dlrobson/${{ inputs.image-name }}:latest || :; \
 
             base_image_digest=$(docker inspect --format='{{index .Config.Labels "org.opencontainers.image.base.digest"}}' ghcr.io/dlrobson/${{ inputs.image-name }}:latest) || :; \
-            echo $base_image_digest; \
+
+            echo "base_image_digest=$base_image_digest"; \
+            echo "current_base_image_digest=${{ steps.base_image_digest.outputs.base_image_digest }}"; \
             
             if [ "${{ steps.base_image_digest.outputs.base_image_digest }}" != "$base_image_digest" ]; then \
               echo "base_image_changed=true" >> $GITHUB_OUTPUT; \
