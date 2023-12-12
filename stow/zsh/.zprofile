@@ -2,7 +2,7 @@
 source $HOME/.zsh-common.sh
 
 # Update the path to include the local bin directories
-update_path
+_update_path
 
 # Setup the ssh agent
-setup_ssh_agent
+_setup_ssh_agent
