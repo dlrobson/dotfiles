@@ -15,8 +15,7 @@ on:
       require-base-image-changed:
         required: false
         type: boolean
-        default: true
-        # default: false
+        default: false
     secrets:
       GHCR_TOKEN:
         required: true
@@ -100,7 +99,8 @@ jobs:
             UID=1000
             GID=1000
             BASE_IMAGE=${{ inputs.base-image }}
-          push: ${{ github.event_name != 'pull_request' }}
+          # push: ${{ github.event_name != 'pull_request' }}
+          push: true
           annotations: |
             ${{ steps.metadata.outputs.annotations }}
           tags: |
@@ -115,6 +115,7 @@ jobs:
           token: ${{ secrets.GHCR_TOKEN }}
           repository_owner: ${{ github.repository_owner }}
           repository: ${{ github.repository }}
+          package_name: ${{ inputs.image-name }}
           untagged_only: true
           owner_type: user
           except_untagged_multiplatform: true
