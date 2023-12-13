@@ -14,8 +14,8 @@ on:
         type: string
       require-base-image-changed:
         required: false
-        type: boolean
-        default: false
+        type: string
+        default: "false"
     secrets:
       GHCR_TOKEN:
         required: true
