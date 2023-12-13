@@ -5,9 +5,12 @@ This repo contains my dotfiles, and a script to install them. It also contains a
 ## Published Images
 
 The following images are published to ghcr.io:
-- [dlrobson/dotfiles/base](https://github.com/dlrobson/dotfiles/pkgs/container/dotfiles%2Fbase)
-- [dlrobson/dotfiles/rust](https://github.com/dlrobson/dotfiles/pkgs/container/dotfiles%2Frust)
-- [dlrobson/dotfiles/latex](https://github.com/dlrobson/dotfiles/pkgs/container/dotfiles%2Flatex)
+
+| Image                                      | Description                                         |
+|--------------------------------------------|-----------------------------------------------------|
+| [dlrobson/dotfiles/base](https://github.com/dlrobson/dotfiles/pkgs/container/dotfiles%2Fbase)      | Base configuration for dotfiles                     |
+| [dlrobson/dotfiles/rust](https://github.com/dlrobson/dotfiles/pkgs/container/dotfiles%2Frust)      | Dotfiles with configurations for Rust development   |
+| [dlrobson/dotfiles/latex](https://github.com/dlrobson/dotfiles/pkgs/container/dotfiles%2Flatex)    | Dotfiles tailored for LaTeX development             |
 
 ## .github/workflows/build_image_reusable.yml
 
@@ -29,10 +32,6 @@ cd dotfiles
 ## Install Recommended p10k font
 
 See [here](https://github.com/romkatv/powerlevel10k#meslo-nerd-font-patched-for-powerlevel10k) for instructions on how to install the font.
-
-## DockerHub Image
-
-The docker image is available on [DockerHub](https://hub.docker.com/repository/docker/dlrobson/dotfiles).
 
 ## Create a Dev Image with the dotfiles baked in
 
