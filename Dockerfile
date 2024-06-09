@@ -1,5 +1,5 @@
 # Allow to build ontop of a base image
-ARG BASE_IMAGE=ubuntu:23.10
+ARG BASE_IMAGE=ubuntu:24.04
 FROM $BASE_IMAGE
 
 ARG UID=1000
