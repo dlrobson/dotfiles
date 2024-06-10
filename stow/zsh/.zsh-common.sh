@@ -1,38 +1,64 @@
 # This function sets up the SSH agent and adds any common private keys.
 function _setup_ssh_agent() {
   # Check if the .ssh directory exists
-  if [ -d "$HOME/.ssh" ]; then
-    # Check if an SSH agent is already running
-    RUNNING_AGENT=$(ps -ax | grep 'ssh-agent -s' | grep -v grep | wc -l | tr -d '[:space:]')
+  if [ ! -d "$HOME/.ssh" ]; then
+    echo "Error when setting up SSH agent: ~/.ssh/ does not exist."
+    return
+  fi
 
-    # If there is no agent running, start one
-    if [ "$RUNNING_AGENT" = "0" ]; then
-      # Start a new instance of the SSH agent. 
-      ssh-agent -s &> $HOME/.ssh/ssh-agent
-    fi
+  # Check if the ssh-agent file exists
+  if [ ! -f "$HOME/.ssh/ssh-agent" ]; then
+    # Start a new instance of the SSH agent.
+    echo "Starting new SSH agent..."
+    ssh-agent -s &> $HOME/.ssh/ssh-agent
+  else
+    # We need to validate that the ssh-agent is still running
 
-    # Load the SSH agent environment variables
-    eval `cat $HOME/.ssh/ssh-agent`
+    # Get the PID of the Agent in the ssh-agent file
+    EXPECTED_SSH_AGENT_PID=$(cat $HOME/.ssh/ssh-agent | grep SSH_AGENT_PID | cut -d '=' -f 2 | cut -d ';' -f 1)
 
-    # List of common private key filenames to check
-    common_key_filenames=("id_rsa" "id_dsa" "id_ecdsa" "id_ed25519")
-    key_added=false
+    # Determine if the PID of the agent is running
+    # Get the PIDs of the running agents. It will be a list of PID numbers.
+    AGENT_PID=($(ps -ax | grep 'ssh-agent -s' | grep -v grep | awk '{print $1}'))
 
-    for key_filename in "${common_key_filenames[@]}"; do
-      if [ -f "$HOME/.ssh/$key_filename" ]; then
-        ssh-add "$HOME/.ssh/$key_filename" &>/dev/null
-        if [ $? -eq 0 ]; then
-          key_added=true
-          echo "Added key: $HOME/.ssh/$key_filename"
-        fi
+    # Check if the SSH_AGENT_PID is in the list of running agents
+    RUNNING_AGENT="0"
+    for pid in $AGENT_PID; do
+      if [ "$EXPECTED_SSH_AGENT_PID" = "$pid" ]; then
+        RUNNING_AGENT="1"
+        break
       fi
     done
 
-    if [ "$key_added" = false ]; then
-      echo "No common private keys found in ~/.ssh/."
+    # If the agent is not running, start a new instance of the SSH agent.
+    if [ "$RUNNING_AGENT" = "0" ]; then
+      # Start a new instance of the SSH agent.
+      echo "SSH agent is not running. Starting new SSH agent..."
+      ssh-agent -s &> $HOME/.ssh/ssh-agent
     fi
-  else
-    echo "Error when setting up SSH agent: ~/.ssh/ does not exist."
+  fi
+
+  # Load the SSH agent environment variables
+  eval `cat $HOME/.ssh/ssh-agent`
+
+  # List of common private key filenames to check
+  common_key_filenames=("id_rsa" "id_dsa" "id_ecdsa" "id_ed25519")
+  key_added=false
+
+  for key_filename in "${common_key_filenames[@]}"; do
+    if [ -f "$HOME/.ssh/$key_filename" ]; then
+      ssh-add "$HOME/.ssh/$key_filename"
+      if [ $? -eq 0 ]; then
+        key_added=true
+        echo "Added key: $HOME/.ssh/$key_filename"
+      else
+        echo "Error adding key: $HOME/.ssh/$key_filename"
+      fi
+    fi
+  done
+
+  if [ "$key_added" = false ]; then
+    echo "No common private keys were added."
   fi
 }
 
