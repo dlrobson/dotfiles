@@ -16,14 +16,13 @@ on:
         required: false
         type: boolean
         default: false
-    secrets:
-      GHCR_TOKEN:
-        required: true
 
 jobs:
   build_image:
     name: Build and Publish Image
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - name: Pull base image
         run: docker pull ${{ inputs.base-image }}
@@ -88,7 +87,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GHCR_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and Push Image
         if: ${{ steps.base_image_changed.outputs.base_image_changed != 'false' }}
@@ -108,13 +107,11 @@ jobs:
             ${{ steps.metadata.outputs.labels }}
           platforms: linux/amd64,linux/arm64
 
-      - name: Delete all containers from package without tags
-        uses: Chizkiyahu/delete-untagged-ghcr-action@v3
+      # When tags are overwritten, the old tags are not removed from the registry.
+      # This action removes the old tags. This also handles multi-arch manifests, and
+      # does not delete untagged images linked to the manifest.
+      - uses: dataaxiom/ghcr-cleanup-action@v1
         with:
-          token: ${{ secrets.GHCR_TOKEN }}
-          repository_owner: ${{ github.repository_owner }}
-          repository: ${{ github.repository }}
-          package_name: ${{ inputs.image-name }}
-          untagged_only: true
-          owner_type: user
-          except_untagged_multiplatform: true
+          package: ${{ inputs.image-name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+

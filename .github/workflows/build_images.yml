@@ -31,14 +31,14 @@ jobs:
   build_image:
     name: Build and Publish Images
     needs: version_info
+    permissions:
+      packages: write
     strategy:
       fail-fast: false
       matrix:
         include:
           - build-image: ubuntu:latest
             image-name: dotfiles/base
-          - build-image: rust:slim
-            image-name: dotfiles/rust
           - build-image: ghcr.io/dlrobson/latex-dev-container:latest
             image-name: dotfiles/latex
     uses: ./.github/workflows/build_image_reusable.yml
@@ -47,5 +47,3 @@ jobs:
       image-name: ${{ matrix.image-name }}
       software-version: ${{ needs.version_info.outputs.software_version }}
       require-base-image-changed: ${{ github.event_name == 'schedule' }}
-    secrets:
-      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
