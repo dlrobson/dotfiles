@@ -21,6 +21,8 @@ jobs:
   build_image:
     name: Build and Publish Image
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - name: Pull base image
         run: docker pull ${{ inputs.base-image }}

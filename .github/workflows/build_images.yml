@@ -31,6 +31,8 @@ jobs:
   build_image:
     name: Build and Publish Images
     needs: version_info
+    permissions:
+      packages: write
     strategy:
       fail-fast: false
       matrix:
