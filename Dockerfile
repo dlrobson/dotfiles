@@ -19,6 +19,8 @@ RUN apt-get update && \
     stow git ca-certificates curl zsh tmux \
     # devcontainer required
     ssh \
+    # for tmux-yank
+    xsel \
     # Other useful packages
     sudo less htop && \
     rm -rf /var/lib/apt/lists/*

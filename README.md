@@ -19,7 +19,7 @@ This workflow builds a target image for both amd64 and arm64, and pushes it to g
 ## Local Setup
 First, ensure that all dependencies are installed:
 ```bash
-sudo apt-get install -y stow git ca-certificates curl zsh tmux
+sudo apt-get install -y stow git ca-certificates curl zsh tmux xsel
 ```
 
 Clone the repo to your home directory, and setup the dotfiles:
