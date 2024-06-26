@@ -40,7 +40,6 @@ Run:
 docker build --progress=plain \
     --build-arg UID=$(id -u) \
     --build-arg GID=$(id -g) \
-    --build-arg USERNAME=<username> \
     --build-arg BASE_IMAGE=<base-image> \
     -t docker.io/dlrobson/dotfiles -f <path-to-dockerfile> <path-to-repo>
 ```
