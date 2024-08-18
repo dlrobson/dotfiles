@@ -74,3 +74,5 @@ function _update_path() {
     PATH="$HOME/.local/bin:$PATH"
   fi
 }
+
+# This function reads the path of this script and sets the base directory.
