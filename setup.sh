@@ -10,17 +10,17 @@ install_dependencies() {
   echo "Installing dependencies..."
 
   # The list of packages to install
-  pkgs="stow git ca-certificates curl zsh tmux xsel"
+  local pkgs="stow git ca-certificates curl zsh tmux xsel"
 
   # Grab the user, and determine if they can run sudo commands
-  user="$(id -un 2>/dev/null || true)"
+  local user="$(id -un 2>/dev/null || true)"
 
-	sh_c='sh -c'
-	if [ "$user" != 'root' ]; then
+	local sh_c="sh -c"
+	if [ "$user" != "root" ]; then
 		if command_exists sudo; then
-			sh_c='sudo -E sh -c'
+			sh_c="sudo -E sh -c"
 		elif command_exists su; then
-			sh_c='su -c'
+			sh_c="su -c"
 		else
       echo "Warning: This user does not have root access. This script will not be able to install packages."
 			return
@@ -28,25 +28,27 @@ install_dependencies() {
 	fi
 
   # Install the packages. Only supports apt for now
-  $sh_c 'apt-get update -qq >/dev/null'
+  $sh_c "apt-get update -qq >/dev/null"
   $sh_c "DEBIAN_FRONTEND=noninteractive apt-get install -y -qq $pkgs >/dev/null"
 }
 
 dotfile_setup() {
+  local dotfiles_path="$1"
+
   # If zgenom is not installed, install it
   if [ ! -d ~/.zgenom ]; then
     git clone https://github.com/jandamm/zgenom.git "${HOME}/.zgenom"
   fi
   
   # Determine the base directory and the directory containing stow packages
-  stow_dir="$(dirname "$(readlink -f "$0")")/stow"
+  local stow_dir="$dotfiles_path/stow"
 
   # This for loop iterates through all directories
   # contained in the stow directory. This makes
   # it easy to add configurations for new applications
   # without having to modify this script.
   for app in "$stow_dir"/*/; do
-    app_name=$(basename "$app")
+    local app_name=$(basename "$app")
     stow -t "${HOME}" -d "$stow_dir" "$app_name"
   done;
 }
@@ -78,7 +80,6 @@ kmonad_setup() {
   echo "To disable the service, use: systemctl --user disable kmonad-mapping.service"
 }
 
-echo "Setting up dotfiles..."
 
 # Function to display help message
 show_help() {
@@ -93,34 +94,42 @@ show_help() {
   echo "If no options are provided, the script will install dependencies and set up dotfiles by default."
 }
 
-# By default, only install dependencies and setup the dotfiles.
-if [ $# -eq 0 ]; then
-  install_dependencies
-  dotfile_setup
-else
-  # Parse command line options
-  while [ $# -gt 0 ]; do
-    case $1 in
-      -k|--kmonad)
-        kmonad_setup
-        shift
-        ;;
-      -i|--install-dependencies)
-        install_dependencies
-        shift
-        ;;
-      -d|--dotfile-setup-only)
-        dotfile_setup
-        shift
-        ;;
-      -h|--help)
-        show_help
-        exit 0
-        ;;
-      *)
-        echo "Unknown option: $key"
-        exit 1
-        ;;
-    esac
-  done
-fi
+main() {
+  echo "Setting up dotfiles..."
+  # Capture this before we shift the arguments
+  local dotfiles_path="$(dirname "$(readlink -f "$0")")"
+
+  # By default, only install dependencies and setup the dotfiles.
+  if [ $# -eq 0 ]; then
+    install_dependencies
+    dotfile_setup "$dotfiles_path"
+  else
+    # Parse command line options
+    while [ $# -gt 0 ]; do
+      case $1 in
+        -k|--kmonad)
+          kmonad_setup
+          shift
+          ;;
+        -i|--install-dependencies)
+          install_dependencies
+          shift
+          ;;
+        -d|--dotfile-setup-only)
+          dotfile_setup "$dotfiles_path"
+          shift
+          ;;
+        -h|--help)
+          show_help
+          exit 0
+          ;;
+        *)
+          echo "Unknown option: $key"
+          exit 1
+          ;;
+      esac
+    done
+  fi
+}
+
+main

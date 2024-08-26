@@ -8,21 +8,19 @@ RUN whoami > ${WHOAMI_FILE}
 # The username to use in the container
 ENV USERNAME=user
 # The final home directory of the user
-ENV HOME /home/${USERNAME}
+ENV HOME=/home/${USERNAME}
 
 USER root
 
 # Install dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    # Required packages
-    stow git ca-certificates curl zsh tmux \
     # devcontainer required
     ssh \
-    # for tmux-yank
-    xsel \
-    # Other useful packages
-    sudo less htop && \
+    # For package installations
+    sudo \
+    # Other useful tools
+    less htop && \
     rm -rf /var/lib/apt/lists/*
 
 RUN export ORIGINAL_USERNAME=$(cat ${WHOAMI_FILE}) && \
@@ -42,14 +40,18 @@ RUN export ORIGINAL_USERNAME=$(cat ${WHOAMI_FILE}) && \
 
 WORKDIR $HOME
 
-USER user
-
 # Copy the repo into the image
 RUN mkdir dotfiles
 COPY --chown=${USERNAME} . dotfiles/
 
-# Run the setup script
-RUN /bin/zsh $HOME/dotfiles/setup.sh && \
+# Install dependencies for the setup script
+RUN /bin/sh -c "$HOME/dotfiles/setup.sh --install-dependencies" && \
+    rm -rf /var/lib/apt/lists/*
+
+USER user
+
+# Run the setup script only setting up the dotfiles
+RUN /bin/zsh -c "$HOME/dotfiles/setup.sh --dotfile-setup-only" && \
     # This sources the zshrc file and then exits
     echo exit | script -qec zsh /dev/null && \
     # Start a new tmux session in detached mode, source the tmux configuration
