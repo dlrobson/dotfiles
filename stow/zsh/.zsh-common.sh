@@ -13,10 +13,10 @@ function _update_path() {
 
 # This function resolves the path to dotfiles repo path.
 function dotfiles_path() {
-  full_path=$(readlink -f "$HOME/.zshrc")
+  local full_path=$(readlink -f "$HOME/.zshrc")
 
   # Extract the DOTFILES_ROOT_PATH by removing '/stow/zsh/.zshrc'
-  dotfiles_root=$(dirname "$(dirname "$(dirname "$full_path")")")
+  local dotfiles_root=$(dirname "$(dirname "$(dirname "$full_path")")")
 
   # Print the DOTFILES_ROOT_PATH
   echo "$dotfiles_root"

@@ -16,14 +16,14 @@ function _setup_ssh_agent() {
     # We need to validate that the ssh-agent is still running
 
     # Get the PID of the Agent in the ssh-agent file
-    EXPECTED_SSH_AGENT_PID=$(cat $HOME/.ssh/ssh-agent | grep SSH_AGENT_PID | cut -d '=' -f 2 | cut -d ';' -f 1)
+    local EXPECTED_SSH_AGENT_PID=$(cat $HOME/.ssh/ssh-agent | grep SSH_AGENT_PID | cut -d '=' -f 2 | cut -d ';' -f 1)
 
     # Determine if the PID of the agent is running
     # Get the PIDs of the running agents. It will be a list of PID numbers.
-    AGENT_PID=($(ps -ax | grep 'ssh-agent -s' | grep -v grep | awk '{print $1}'))
+    local AGENT_PID=($(ps -ax | grep 'ssh-agent -s' | grep -v grep | awk '{print $1}'))
 
     # Check if the SSH_AGENT_PID is in the list of running agents
-    RUNNING_AGENT="0"
+    local RUNNING_AGENT="0"
     for pid in $AGENT_PID; do
       if [ "$EXPECTED_SSH_AGENT_PID" = "$pid" ]; then
         RUNNING_AGENT="1"
@@ -43,8 +43,8 @@ function _setup_ssh_agent() {
   eval `cat $HOME/.ssh/ssh-agent`
 
   # List of common private key filenames to check
-  common_key_filenames=("id_rsa" "id_dsa" "id_ecdsa" "id_ed25519")
-  key_added=false
+  local common_key_filenames=("id_rsa" "id_dsa" "id_ecdsa" "id_ed25519")
+  local key_added=false
 
   for key_filename in "${common_key_filenames[@]}"; do
     if [ -f "$HOME/.ssh/$key_filename" ]; then
