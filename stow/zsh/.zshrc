@@ -131,3 +131,4 @@ update_dotfiles() {
 
   echo "Updated dotfiles. Run `source ~/.zshrc` to get the latest changes."
 }
+
