@@ -1,0 +1,7 @@
+[user]
+	name = Daniel Robson
+	email = danr.236@gmail.com
+
+; include only if a remote within the ouster namespace is present
+[includeIf "hasconfig:remote.*.url:git@gitlab.com:ouster/*/**"]
+	path = ~/.gitconfig-ouster

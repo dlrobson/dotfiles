@@ -73,3 +73,62 @@ _main
 clean_branches() {
   git fetch --all --prune && git branch -D $(git branch -vv | grep ': gone]'|  grep -v "\*" | awk '{ print $1; }')
 }
+
+# Function to check if an update is available for the dotfiles repo
+function _is_update_available() {
+  # Resolve the path to the dotfiles repo
+  local dotfiles_root_path=$(dotfiles_path)
+
+  # Fetch the latest changes from the remote without merging
+  git -C "$dotfiles_root_path" fetch origin
+
+  # Get the current branch name
+  local current_branch=$(git -C "$dotfiles_root_path" rev-parse --abbrev-ref HEAD)
+
+  # Get the latest commit hash of the remote current branch
+  local remote_commit=$(git -C "$dotfiles_root_path" rev-parse "origin/$current_branch")
+
+  # Get the latest commit hash of the local current branch
+  local local_commit=$(git -C "$dotfiles_root_path" rev-parse "$current_branch")
+
+  # Compare the commit hashes to check if an update is available
+  if [ "$local_commit" != "$remote_commit" ]; then
+    # Update available: The remote branch has changes
+    return 0
+  else
+    # No update available: The local branch is up-to-date
+    return 1
+  fi
+}
+
+# Pulls the latest dotfiles, then runs the setup.sh script in that repo.
+# Sources the .zshrc file afterwards. Returns a warning if the current branch is not master.
+update_dotfiles() {
+  # Resolve the path to the dotfiles repo
+  local dotfiles_root_path=$(dotfiles_path)
+
+  # Check the current branch
+  local current_branch=$(git -C "$dotfiles_root_path" rev-parse --abbrev-ref HEAD)
+
+  # Warn if the current branch is not master
+  local MASTER_BRANCH="master"
+  if [ "$current_branch" != "$MASTER_BRANCH" ]; then
+    echo "Warning: You are on branch '$current_branch', not '$MASTER_BRANCH'."
+  fi
+
+  # Call the _is_update_available function and exit if an update
+  # is available. This will source the zshrc
+  if ! _is_update_available; then
+    echo "No update available for dotfiles."
+    return
+  fi
+
+  # Pull the latest changes from the remote
+  git -C "$dotfiles_root_path" pull
+
+  # Run the setup.sh script in the dotfiles repo
+  sh "$dotfiles_root_path/setup.sh"
+
+  echo "Updated dotfiles. Run `source ~/.zshrc` to get the latest changes."
+}
+

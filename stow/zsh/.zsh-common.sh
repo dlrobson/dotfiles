@@ -1,67 +1,3 @@
-# This function sets up the SSH agent and adds any common private keys.
-function _setup_ssh_agent() {
-  # Check if the .ssh directory exists
-  if [ ! -d "$HOME/.ssh" ]; then
-    echo "Error when setting up SSH agent: ~/.ssh/ does not exist."
-    return
-  fi
-
-  # Check if the ssh-agent file exists
-  if [ ! -f "$HOME/.ssh/ssh-agent" ]; then
-    # Start a new instance of the SSH agent.
-    echo "Starting new SSH agent..."
-    ssh-agent -s &> $HOME/.ssh/ssh-agent
-  else
-    # We need to validate that the ssh-agent is still running
-
-    # Get the PID of the Agent in the ssh-agent file
-    EXPECTED_SSH_AGENT_PID=$(cat $HOME/.ssh/ssh-agent | grep SSH_AGENT_PID | cut -d '=' -f 2 | cut -d ';' -f 1)
-
-    # Determine if the PID of the agent is running
-    # Get the PIDs of the running agents. It will be a list of PID numbers.
-    AGENT_PID=($(ps -ax | grep 'ssh-agent -s' | grep -v grep | awk '{print $1}'))
-
-    # Check if the SSH_AGENT_PID is in the list of running agents
-    RUNNING_AGENT="0"
-    for pid in $AGENT_PID; do
-      if [ "$EXPECTED_SSH_AGENT_PID" = "$pid" ]; then
-        RUNNING_AGENT="1"
-        break
-      fi
-    done
-
-    # If the agent is not running, start a new instance of the SSH agent.
-    if [ "$RUNNING_AGENT" = "0" ]; then
-      # Start a new instance of the SSH agent.
-      echo "SSH agent is not running. Starting new SSH agent..."
-      ssh-agent -s &> $HOME/.ssh/ssh-agent
-    fi
-  fi
-
-  # Load the SSH agent environment variables
-  eval `cat $HOME/.ssh/ssh-agent`
-
-  # List of common private key filenames to check
-  common_key_filenames=("id_rsa" "id_dsa" "id_ecdsa" "id_ed25519")
-  key_added=false
-
-  for key_filename in "${common_key_filenames[@]}"; do
-    if [ -f "$HOME/.ssh/$key_filename" ]; then
-      ssh-add "$HOME/.ssh/$key_filename"
-      if [ $? -eq 0 ]; then
-        key_added=true
-        echo "Added key: $HOME/.ssh/$key_filename"
-      else
-        echo "Error adding key: $HOME/.ssh/$key_filename"
-      fi
-    fi
-  done
-
-  if [ "$key_added" = false ]; then
-    echo "No common private keys were added."
-  fi
-}
-
 # This function appends common directories to the PATH environment variable.
 function _update_path() {
   # set PATH so it includes user's private bin if it exists, and is not already in PATH
@@ -73,4 +9,15 @@ function _update_path() {
   if [ -d "$HOME/.local/bin" ] && [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
     PATH="$HOME/.local/bin:$PATH"
   fi
+}
+
+# This function resolves the path to dotfiles repo path.
+function dotfiles_path() {
+  local full_path=$(readlink -f "$HOME/.zshrc")
+
+  # Extract the DOTFILES_ROOT_PATH by removing '/stow/zsh/.zshrc'
+  local dotfiles_root=$(dirname "$(dirname "$(dirname "$full_path")")")
+
+  # Print the DOTFILES_ROOT_PATH
+  echo "$dotfiles_root"
 }
