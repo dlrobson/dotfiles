@@ -1,4 +1,5 @@
 #!/bin/sh
+set -x
 
 # Helper function to determine if a command exists
 command_exists() {
@@ -64,6 +65,21 @@ dotfile_setup() {
     local app_name=$(basename "$app")
     stow -t "${HOME}" -d "$stow_dir" "$app_name"
   done;
+
+
+    # This sources the zshrc file and then exits
+    echo exit | script -qec zsh /dev/null && \
+    # Start a new tmux session in detached mode, source the tmux configuration
+    # file, and then kill the server. 
+    # `tmux new-session -d -s tmp` starts a new tmux session in detached mode
+    # (i.e., not visible to the user) with the name 'tmp'.
+    # `"tmux source-file ~/.tmux.conf; tmux kill-server"` is the command that is
+    # run in the new tmux session.
+    # `tmux source-file ~/.tmux.conf` sources (loads) the tmux configuration file.
+    # `tmux kill-server` then kills the tmux server, ending the session.
+    # This sequence is used to ensure that the tmux configuration file is correctly
+    # loaded in a tmux session environment.
+    tmux new-session -d -s tmp "tmux source-file ~/.tmux.conf; tmux kill-server"
 }
 
 # Function to setup kmonad
@@ -291,7 +307,7 @@ main() {
           shift
           ;;
         -i|--install-dependencies)
-          install_dependencies
+          install_dependencies $DEFAULT_PACKAGES
           shift
           ;;
         -d|--dotfile-setup-only)

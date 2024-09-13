@@ -51,19 +51,6 @@ RUN /bin/sh -c "$HOME/dotfiles/setup.sh --install-dependencies" && \
 USER user
 
 # Run the setup script only setting up the dotfiles
-RUN /bin/zsh -c "$HOME/dotfiles/setup.sh --dotfile-setup-only" && \
-    # This sources the zshrc file and then exits
-    echo exit | script -qec zsh /dev/null && \
-    # Start a new tmux session in detached mode, source the tmux configuration
-    # file, and then kill the server. 
-    # `tmux new-session -d -s tmp` starts a new tmux session in detached mode
-    # (i.e., not visible to the user) with the name 'tmp'.
-    # `"tmux source-file ~/.tmux.conf; tmux kill-server"` is the command that is
-    # run in the new tmux session.
-    # `tmux source-file ~/.tmux.conf` sources (loads) the tmux configuration file.
-    # `tmux kill-server` then kills the tmux server, ending the session.
-    # This sequence is used to ensure that the tmux configuration file is correctly
-    # loaded in a tmux session environment.
-    tmux new-session -d -s tmp "tmux source-file ~/.tmux.conf; tmux kill-server"
+RUN /bin/zsh -c "$HOME/dotfiles/setup.sh --dotfile-setup-only"
 
 CMD ["/bin/zsh"]
