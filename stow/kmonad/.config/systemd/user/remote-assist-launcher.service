@@ -1,0 +1,14 @@
+[Unit]
+Description=JUMPCLOUD-ASSIST-LAUNCHER
+Wants=remote-assist-service.service
+After=remote-assist-service.service
+
+[Service]
+Type=simple
+ExecStart=/bin/bash -c '/opt/jc_user_ro/jumpcloud-remote-assist/jumpcloud-assist-launcher'
+Restart=on-failure
+RestartSec=500ms
+KillMode=process
+
+[Install]
+WantedBy=default.target

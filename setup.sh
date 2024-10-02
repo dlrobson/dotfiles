@@ -196,13 +196,13 @@ git_installation() {
     return 1
   fi
 
-  sh_c "add-apt-repository -y ppa:git-core/ppa >/dev/null"
+  $sh_c "add-apt-repository -y ppa:git-core/ppa >/dev/null"
 
   # Install Git
   install_dependencies git
 
   # Upgrade Git to the latest version
-  sh_c "apt-get upgrade git -y"
+  $sh_c "apt-get upgrade git -y -qq >/dev/null"
 
   echo "Git installation complete."
 }
@@ -233,17 +233,34 @@ brave_installation() {
   echo "Brave browser installation complete."
 }
 
+# Function to install Docker
+docker_installation() {
+  # Check if Docker is already installed
+  if command_exists docker; then
+    echo "Docker is already installed."
+    return 0
+  fi
+
+  curl -fsSL https://get.docker.com -o get-docker.sh
+  sh get-docker.sh
+  rm get-docker.sh
+
+  echo "Docker installation complete."
+}
+
 # Function to setup a new machine
 setup_new_machine() {
   echo "Setting up a new machine..."
   dotfiles_path="$1"
 
   # Install dependencies and additional packages
-  install_dependencies $DEFAULT_PACKAGES apt-transport-https curl gpg htop less wget
+  install_dependencies $DEFAULT_PACKAGES apt-transport-https curl gpg htop less tree wget
   dotfile_setup "$dotfiles_path"
 
   # Get the latest Git version
   git_installation
+  # Install docker
+  docker_installation
 
   # Do additional setup beyond the dotfiles
   kmonad_installation

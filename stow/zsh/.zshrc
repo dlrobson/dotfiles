@@ -132,3 +132,10 @@ update_dotfiles() {
   echo "Updated dotfiles. Run `source ~/.zshrc` to get the latest changes."
 }
 
+# Function that runs a docker exec command in a devcontainer.
+# Usage: `devcontainer_exec <command>`
+devcontainer_exec() {
+  local container_name="$(basename $(pwd))_$USER"
+
+  docker exec -w /workspaces/$(basename $(pwd)) -it $container_name $@
+}
