@@ -25,7 +25,7 @@ get_sudo_su() {
   echo "$sh_c"
 }
 
-DEFAULT_PACKAGES="stow git ca-certificates curl zsh tmux xsel"
+DEFAULT_PACKAGES="stow git ca-certificates curl zsh tmux xsel keychain"
 
 # Installs dependencies
 install_dependencies() {
