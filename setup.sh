@@ -151,36 +151,12 @@ kmonad_installation() {
   echo "Kmonad installation complete."
 }
 
-# Function to install the latest version of Git
-git_installation() {
-  echo "Installing Git..."
-
-  # Get the sudo command
-  local sh_c
-  sh_c="$(get_sudo_su)"
-  if [ $? -ne 0 ]; then
-    return 1
-  fi
-
-  $sh_c "add-apt-repository -y ppa:git-core/ppa >/dev/null"
-
-  # Install Git
-  install_dependencies git
-
-  # Upgrade Git to the latest version
-  $sh_c "apt-get upgrade git -y -qq >/dev/null"
-
-  echo "Git installation complete."
-}
-
 # Function to display help message
 show_help() {
   echo "Usage: $0 [options]"
   echo
   echo "Options:"
   echo "  -k, --kmonad                Setup the kmonad systemd service for custom keyboard mapping"
-  echo "  -i, --install-dependencies  Install required dependencies"
-  echo "  -d, --dotfile-setup-only    Set up dotfiles only"
   echo "  -h, --help                  Show this help message"
   echo
   echo "If no options are provided, the script will install dependencies and set up dotfiles by default."
@@ -194,7 +170,6 @@ main() {
   # By default, only install dependencies and setup the dotfiles.
   if [ $# -eq 0 ]; then
     install_dependencies $DEFAULT_PACKAGES
-    git_installation
     dotfile_setup "$dotfiles_path"
   else
     # Parse command line options
@@ -202,15 +177,6 @@ main() {
       case $1 in
         -k|--kmonad)
           kmonad_setup
-          shift
-          ;;
-        -i|--install-dependencies)
-          install_dependencies $DEFAULT_PACKAGES
-          git_installation
-          shift
-          ;;
-        -d|--dotfile-setup-only)
-          dotfile_setup "$dotfiles_path"
           shift
           ;;
         -h|--help)
