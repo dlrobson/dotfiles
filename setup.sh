@@ -190,6 +190,11 @@ main() {
       esac
     done
   fi
+
+  # If git is less than 2.36, warn the user
+  if [ "$(git --version | awk '{print $3}')" \< "2.36" ]; then
+    echo "Warning: Git version is less than 2.36. Consider upgrading to ensure the correct email defined in the gitconfig is used."
+  fi
 }
 
 main "$@"
