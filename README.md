@@ -1,6 +1,6 @@
 # dlrobson's dotfiles
 
-This repo contains my dotfiles, and a script to install them. It also contains a Dockerfile to create a dev image with the dotfiles baked in.
+This repo contains my dotfiles, and a script to install them.
 
 ## Install Recommended p10k font
 
