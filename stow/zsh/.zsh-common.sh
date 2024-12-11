@@ -11,6 +11,15 @@ function _update_path() {
   fi
 }
 
+# This function sets up the SSH agent and adds any common private keys.
+# Useful for vscode dev containers.
+function _setup_ssh_agent() {
+  # If keychain exists, use it to manage the ssh agent
+  if type keychain > /dev/null; then
+    eval $(keychain --eval --agents ssh --quick --quiet)
+  fi
+}
+
 # This function resolves the path to dotfiles repo path.
 function dotfiles_path() {
   local full_path=$(readlink -f "$HOME/.zshrc")
