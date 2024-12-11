@@ -49,8 +49,6 @@ function _main() {
 
   _initialize_zgenom
 
-  _setup_ssh_agent
-
   # Increase history file sizes, so we can store all history
   export HISTSIZE=1000000000
   export SAVEHIST=1000000000
