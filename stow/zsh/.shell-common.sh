@@ -14,9 +14,16 @@ function _update_path() {
 # This function sets up the SSH agent and adds any common private keys.
 # Useful for vscode dev containers.
 function _setup_ssh_agent() {
-  # If keychain exists, use it to manage the ssh agent
+  # Check if keychain exists, and load all available SSH keys
   if type keychain > /dev/null; then
     eval $(keychain --eval --agents ssh --quick --quiet)
+
+    # Add all keys in ~/.ssh if none are loaded
+    if ! ssh-add -L >/dev/null 2>&1; then
+      for key in ~/.ssh/id_*; do
+        [[ -f "$key" && ! "$key" =~ \.pub$ ]] && keychain "$key"
+      done
+    fi
   fi
 }
 
