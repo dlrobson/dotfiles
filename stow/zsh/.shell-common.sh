@@ -13,7 +13,7 @@ function _update_path() {
 
 # This function sets up the SSH agent and adds any common private keys.
 # Useful for vscode dev containers.
-_setup_ssh_agent() {
+function _setup_ssh_agent() {
   # Get all the identities in the ~/.ssh directory
   keys=($(find ~/.ssh -type f -name 'id_*' -not -name '*.pub'))
   
