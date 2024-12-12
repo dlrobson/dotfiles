@@ -23,12 +23,7 @@ _setup_ssh_agent() {
   fi
 
   if type keychain > /dev/null; then
-    eval $(keychain --eval --agents ssh --quick --quiet)
-
-    # Add all found keys to the ssh-agent
-    for key in "${keys[@]}"; do
-      keychain "$key" --quiet
-    done
+    eval $(keychain --eval --agents ssh --quick --quiet "${keys[@]}")
   fi
 }
 
