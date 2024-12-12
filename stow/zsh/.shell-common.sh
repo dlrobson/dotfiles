@@ -15,14 +15,14 @@ function _update_path() {
 # Useful for vscode dev containers.
 function _setup_ssh_agent() {
   # Check if keychain exists, and load all available SSH keys
-  if type keychain > /dev/null; then
-    eval $(keychain --eval --agents ssh --quick --quiet)
-
-    # Add all keys in ~/.ssh if none are loaded
-    if ! ssh-add -L >/dev/null 2>&1; then
+  if ! ssh-add -L >/dev/null 2>&1; then
+    keys=(~/.ssh/id_*) # Collect matching files in an array
+    if [[ -e ${keys[0]} ]]; then # Check if at least one match exists
       for key in ~/.ssh/id_*; do
         [[ -f "$key" && ! "$key" =~ \.pub$ ]] && keychain "$key"
       done
+    else
+      echo "No SSH keys found in ~/.ssh"
     fi
   fi
 }
