@@ -10,12 +10,7 @@ in
 {
   home.username = builtins.getEnv "USER";
   home.homeDirectory = builtins.getEnv "HOME";
-  home.stateVersion = "24.11";
-  programs.home-manager.enable = true;
 
-  # Import KMonad configuration only when not in a container and not on NixOS
-  imports = lib.optional ((!isContainer) && (!isNixOS)) ./kmonad/kmonad.nix;
-  
   programs.bash = {
     enable = true;
     initExtra = ''
@@ -104,4 +99,10 @@ in
       }
     ];
   };
+
+  # Import KMonad configuration only when not in a container and not on NixOS
+  imports = lib.optional ((!isContainer) && (!isNixOS)) ./kmonad/kmonad.nix;
+  
+  programs.home-manager.enable = true;
+  home.stateVersion = "24.11";
 }
