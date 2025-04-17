@@ -12,8 +12,3 @@ RUN usermod -aG sudo ubuntu && \
 ENV USER=ubuntu
 
 USER ubuntu
-
-COPY . /home-manager
-
-# Run the setup.sh script with sudo configuration
-RUN /home-manager/setup.sh

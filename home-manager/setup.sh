@@ -20,8 +20,12 @@ _install_packages() {
     return 1
 }
 
-_is_systemd_available() {
-    [ -d "/run/systemd/system" ] && _command_exists systemctl
+_is_in_container() {
+    # Check for .dockerenv file
+    [ -f "/.dockerenv" ] && return 0
+    # Check for docker in cgroup
+    grep -q docker /proc/1/cgroup 2>/dev/null && return 0
+    return 1
 }
 
 _install_nix_single_user() {
@@ -98,13 +102,16 @@ install_nix() {
         return 0
     fi
 
-    if _is_systemd_available; then
-        echo "Systemd is available. Installing Nix in multi-user mode..."
-        echo "ERROR: Nix installation is untested in multi-user mode. Cannot continue."
-        return 1
-    else
+    if _is_in_container; then
+        echo "Container environment detected. Installing Nix in single-user mode..."
         if ! _install_nix_single_user; then
             echo "Error: Failed to install Nix in single-user mode"
+            return 1
+        fi
+    else
+        echo "Non-container environment detected. Installing Nix in multi-user mode..."
+        if ! _install_nix_multi_user; then
+            echo "Error: Failed to install Nix in multi-user mode"
             return 1
         fi
     fi
