@@ -162,7 +162,8 @@ deploy_home_manager() {
     SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
     
     # Deploy home-manager configuration. Replace conflicting files with .backup
-    if ! home-manager switch -b backup -f "$SCRIPT_DIR/home.nix"; then
+    if ! home-manager switch -f "$SCRIPT_DIR/home.nix"; then
+    # if ! home-manager switch -b backup -f "$SCRIPT_DIR/home.nix"; then
         echo "Error: Failed to apply home-manager configuration"
         return 1
     fi

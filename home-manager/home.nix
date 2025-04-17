@@ -1,10 +1,17 @@
 { config, pkgs, lib, ... }:
 
+let
+  # Detect if running in a container
+  isContainer = builtins.pathExists "/.dockerenv" || lib.pathExists "/run/.containerenv";
+in
 {
   home.username = builtins.getEnv "USER";
   home.homeDirectory = builtins.getEnv "HOME";
   home.stateVersion = "24.11";
   programs.home-manager.enable = true;
+
+  # Import KMonad configuration only when not in a container
+  imports = lib.optional (!isContainer) ./kmonad/kmonad.nix;
   
   programs.bash = {
     enable = true;
