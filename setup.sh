@@ -10,6 +10,11 @@ _install_packages() {
     packages="$1"
 
     if _command_exists apt; then
+        # Add Fish PPA if fish is in the package list
+        if echo "$packages" | grep -q "fish"; then
+            echo "Adding Fish Shell PPA..."
+            DEBIAN_FRONTEND=noninteractive sudo -E add-apt-repository -y ppa:fish-shell/release-4
+        fi
         echo "Installing packages: $packages"
         DEBIAN_FRONTEND=noninteractive sudo -E apt-get -qq update
         DEBIAN_FRONTEND=noninteractive sudo -E apt -y install $packages
@@ -68,8 +73,8 @@ _install_nix_multi_user() {
 
 # Public functions called by main
 install_required_packages() {
-    REQUIRED_COMMANDS=""
-    REQUIRED_PACKAGES=""
+    REQUIRED_COMMANDS="fish"
+    REQUIRED_PACKAGES="fish"
 
     # Add nix dependencies if needed
     if ! _command_exists nix; then
@@ -170,6 +175,20 @@ deploy_home_manager() {
     return 0
 }
 
+check_default_shell() {
+    current_shell=$(getent passwd "$USER" | cut -d: -f7)
+    fish_path="$(which fish)"
+    
+    if [ "$current_shell" != "$fish_path" ]; then
+        echo "Warning: Fish is not set as your default shell!"
+        echo "To make fish your default shell, run:"
+        echo "    chsh -s $fish_path"
+        return 1
+    fi
+    
+    return 0
+}
+
 main() {
     if ! install_required_packages; then
         echo "Failed to install required packages"
@@ -190,6 +209,8 @@ main() {
         echo "Failed to deploy home-manager"
         exit 1
     fi
+    
+    check_default_shell
     
     echo "Home-manager setup and configuration complete!"
 }
