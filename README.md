@@ -6,10 +6,10 @@ A collection of dotfiles managed using [Home Manager](https://github.com/nix-com
 
 ### Supported Systems
 
-| System Type | Support | Notes |
-|-------------|---------|-------|
-| Debian/Ubuntu | ✅ | Tested on Ubuntu 22.04+ |
-| NixOS | ✅ | KMonad setup not required |
+| System Type | Support |
+|-------------|---------|
+| Debian/Ubuntu | ✅ |
+| NixOS | ✅ |
 
 ### Prerequisites
 
@@ -74,3 +74,12 @@ This will:
 All configurations are managed through Home Manager and can be found in:
 - `home.nix`: Main Home Manager configuration
 - `kmonad/`: KMonad-related configurations
+
+## Managing Features
+
+To add new dotfile features:
+1. Edit `home.nix` to add your new configuration
+2. Apply changes by running:
+```bash
+home-manager switch
+```
