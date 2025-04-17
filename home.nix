@@ -3,6 +3,9 @@
 let
   # Detect if running in a container
   isContainer = builtins.pathExists "/.dockerenv" || lib.pathExists "/run/.containerenv";
+  
+  # Detect if running on NixOS
+  isNixOS = builtins.pathExists "/etc/nixos";
 in
 {
   home.username = builtins.getEnv "USER";
@@ -10,8 +13,8 @@ in
   home.stateVersion = "24.11";
   programs.home-manager.enable = true;
 
-  # Import KMonad configuration only when not in a container
-  imports = lib.optional (!isContainer) ./kmonad/kmonad.nix;
+  # Import KMonad configuration only when not in a container and not on NixOS
+  imports = lib.optional ((!isContainer) && (!isNixOS)) ./kmonad/kmonad.nix;
   
   programs.bash = {
     enable = true;
