@@ -1,9 +1,0 @@
-[Unit]
-Description=Start Kmonad with custom mapping
-
-[Service]
-ExecStart=%h/.config/systemd/user/start-kmonad.sh
-Restart=on-failure
-
-[Install]
-WantedBy=default.target
