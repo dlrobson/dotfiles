@@ -1,199 +1,197 @@
-#!/bin/bash
-set -x
+#!/bin/sh
+set -eu
 
-# Helper function to determine if a command exists
-command_exists() {
-	command -v "$@" > /dev/null 2>&1
+# Private helper functions
+_command_exists() {
+    command -v "$1" >/dev/null 2>&1
 }
 
-# Helper function to get the sudo command
-get_sudo_su() {
-  local user="$(id -un 2>/dev/null || true)"
-  local sh_c="sh -c"
+_install_packages() {
+    packages="$1"
 
-  if [ "$user" != "root" ]; then
-    if command_exists sudo; then
-      sh_c="sudo -E sh -c"
-    elif command_exists su; then
-      sh_c="su -c"
-    else
-      echo "Warning: This user does not have root access. This script will not be able to install packages."
-      return 1
+    if _command_exists apt; then
+        echo "Installing packages: $packages"
+        DEBIAN_FRONTEND=noninteractive sudo -E apt-get -qq update
+        DEBIAN_FRONTEND=noninteractive sudo -E apt -y install $packages
+        return 0
     fi
-  fi
 
-  echo "$sh_c"
-}
-
-DEFAULT_PACKAGES="stow git ca-certificates curl zsh tmux xsel keychain"
-
-# Installs dependencies
-install_dependencies() {
-  echo "Installing dependencies..."
-
-  # The list of packages to install
-  local pkgs="$@"
-
-  # Get the sudo command
-  local sh_c
-  sh_c="$(get_sudo_su)"
-  if [ $? -ne 0 ]; then
+    echo "No supported package manager found. Please install packages manually."
     return 1
-  fi
-
-  # Install the packages. Only supports apt for now
-  $sh_c "apt-get update -qq >/dev/null"
-  $sh_c "DEBIAN_FRONTEND=noninteractive apt-get install -y -qq $pkgs >/dev/null"
 }
 
-dotfile_setup() {
-  local dotfiles_path="$1"
-
-  # If zgenom is not installed, install it
-  if [ ! -d ~/.zgenom ]; then
-    git clone https://github.com/jandamm/zgenom.git "${HOME}/.zgenom"
-  fi
-  
-  # Determine the base directory and the directory containing stow packages
-  local stow_dir="$dotfiles_path/stow"
-
-  # This for loop iterates through all directories
-  # contained in the stow directory. This makes
-  # it easy to add configurations for new applications
-  # without having to modify this script.
-  for app in "$stow_dir"/*/; do
-    local app_name=$(basename "$app")
-    stow -t "${HOME}" -d "$stow_dir" "$app_name"
-  done;
-
-  # This sources the zshrc file and then exits
-  echo exit | script -qec zsh /dev/null && \
-  # Start a new tmux session in detached mode, source the tmux configuration
-  # file, and then kill the server. 
-  # `tmux new-session -d -s tmp` starts a new tmux session in detached mode
-  # (i.e., not visible to the user) with the name 'tmp'.
-  # `"tmux source-file ~/.tmux.conf; tmux kill-server"` is the command that is
-  # run in the new tmux session.
-  # `tmux source-file ~/.tmux.conf` sources (loads) the tmux configuration file.
-  # `tmux kill-server` then kills the tmux server, ending the session.
-  # This sequence is used to ensure that the tmux configuration file is correctly
-  # loaded in a tmux session environment.
-  tmux new-session -d -s tmp "tmux source-file ~/.tmux.conf; tmux kill-server"
+_is_in_container() {
+    # Check for .dockerenv file
+    [ -f "/.dockerenv" ] && return 0
+    # Check for docker in cgroup
+    grep -q docker /proc/1/cgroup 2>/dev/null && return 0
+    return 1
 }
 
-# Function to setup kmonad
-kmonad_setup() {
-  echo "Setting up the kmonad service. This assumes the setup.sh script was run already."
+_install_nix_single_user() {
+    echo "Installing Nix (single-user mode)..."
+    
+    # Create and configure /nix directory
+    sudo mkdir -p /nix && sudo chown "$(whoami)" /nix
 
-  # Checks for the kmonad command to exist. If not, error:
-  if ! command_exists kmonad; then
-    echo "`kmonad` is not installed. Please install it and make it accessible on your PATH."
-  fi
+    # Install Nix in single-user mode
+    curl -L https://nixos.org/nix/install | sh -s -- --no-daemon
 
-  set -x
+    # Source nix profile
+    if [ ! -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
+        echo "Error: Nix profile script not found"
+        return 1
+    fi
 
-  # Reload systemd to recognize the new service
-  systemctl --user daemon-reload
+    # Load Nix environment
+    . "$HOME/.nix-profile/etc/profile.d/nix.sh"
 
-  # Enable the service to start on login
-  systemctl --user enable kmonad-mapping.service
-
-  # Start the service immediately
-  systemctl --user start kmonad-mapping.service
-
-  set +x
-
-  echo "Kmonad service has been set up."
-  echo "To verify the status of the service, use: systemctl --user status kmonad-mapping.service"
-  echo "To disable the service, use: systemctl --user disable kmonad-mapping.service"
-}
-
-# Function to install kmonad
-kmonad_installation() {
-  # Check if kmonad is already installed
-  if command_exists kmonad; then
-    echo "Kmonad is already installed."
     return 0
-  fi
-
-  echo "Installing kmonad..."
-
-  # Get the sudo command
-  local sh_c
-  sh_c="$(get_sudo_su)"
-  if [ $? -ne 0 ]; then
-    return 1
-  fi
-
-  # Create the directory if it doesn't exist
-  mkdir -p ~/.local/bin
-
-  # Download kmonad binary
-  wget -O ~/.local/bin/kmonad https://github.com/kmonad/kmonad/releases/download/0.4.2/kmonad
-
-  # Make the binary executable
-  chmod +x ~/.local/bin/kmonad
-
-  # Create the uinput group if it doesn't exist
-  $sh_c "groupadd uinput"
-
-  # Add the current user to the input and uinput groups
-  $sh_c "usermod -aG input $(whoami)"
-  $sh_c "usermod -aG uinput $(whoami)"
-
-  # Create the udev rules file
-  $sh_c "echo \"KERNEL==\\\"uinput\\\", MODE=\\\"0660\\\", GROUP=\\\"uinput\\\", OPTIONS+=\\\"static_node=uinput\\\"\" |  tee /etc/udev/rules.d/90-kmonad.rules"
-
-  # Load the uinput kernel module
-  $sh_c "modprobe uinput"
-
-  echo "Kmonad installation complete."
 }
 
-# Function to display help message
-show_help() {
-  echo "Usage: $0 [options]"
-  echo
-  echo "Options:"
-  echo "  -k, --kmonad                Setup the kmonad systemd service for custom keyboard mapping"
-  echo "  -h, --help                  Show this help message"
-  echo
-  echo "If no options are provided, the script will install dependencies and set up dotfiles by default."
+_install_nix_multi_user() {
+    echo "Installing Nix (multi-user mode)..."
+    
+    # Install Nix in multi-user mode
+    curl -L https://nixos.org/nix/install | sh -s -- --daemon
+
+    # Source nix profile
+    if [ ! -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+        echo "Error: Nix profile script not found"
+        return 1
+    fi
+
+    # Load Nix environment
+    . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+    return 0
+}
+
+# Public functions called by main
+install_required_packages() {
+    REQUIRED_COMMANDS=""
+    REQUIRED_PACKAGES=""
+
+    # Add nix dependencies if needed
+    if ! _command_exists nix; then
+        REQUIRED_COMMANDS="$REQUIRED_COMMANDS curl xz"
+        REQUIRED_PACKAGES="$REQUIRED_PACKAGES curl xz-utils"
+    fi
+
+    # Install dependencies if needed
+    missing_commands=""
+    for cmd in $REQUIRED_COMMANDS; do
+        if ! _command_exists "$cmd"; then
+            missing_commands="$missing_commands $cmd"
+        fi
+    done
+
+    if [ -n "$missing_commands" ]; then
+        echo "Missing commands: $missing_commands"
+        if ! _install_packages "$REQUIRED_PACKAGES"; then
+            echo "Failed to install required packages: $REQUIRED_PACKAGES"
+            return 1
+        fi
+    fi
+
+    return 0
+}
+
+install_nix() {
+    if _command_exists nix; then
+        echo "Nix is already installed."
+        return 0
+    fi
+
+    if _is_in_container; then
+        echo "Container environment detected. Installing Nix in single-user mode..."
+        if ! _install_nix_single_user; then
+            echo "Error: Failed to install Nix in single-user mode"
+            return 1
+        fi
+    else
+        echo "Non-container environment detected. Installing Nix in multi-user mode..."
+        if ! _install_nix_multi_user; then
+            echo "Error: Failed to install Nix in multi-user mode"
+            return 1
+        fi
+    fi
+
+    # Validate installation
+    if ! _command_exists nix; then
+        echo "Error: Nix installation failed"
+        return 1
+    fi
+
+    return 0
+}
+
+install_home_manager() {
+    if _command_exists home-manager; then
+        echo "home-manager is already installed."
+        return 0
+    fi
+
+    echo "Installing home-manager..."
+    if ! nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager; then
+        echo "Error: Failed to add home-manager channel"
+        return 1
+    fi
+
+    if ! nix-channel --update; then
+        echo "Error: Failed to update channels"
+        return 1
+    fi
+
+    # Install home-manager
+    if ! nix-shell '<home-manager>' -A install; then
+        echo "Error: Failed to install home-manager"
+        return 1
+    fi
+
+    # Validate installation
+    if ! _command_exists home-manager; then
+        echo "Error: home-manager installation failed"
+        return 1
+    fi
+
+    return 0
+}
+
+deploy_home_manager() {
+    echo "Deploying home-manager configuration..."
+    SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+    
+    # Deploy home-manager configuration. Replace conflicting files with .backup
+    if ! home-manager switch -b backup -f "$SCRIPT_DIR/home.nix"; then
+        echo "Error: Failed to apply home-manager configuration"
+        return 1
+    fi
+    
+    return 0
 }
 
 main() {
-  echo "Setting up dotfiles..."
-  # Capture this before we shift the arguments
-  local dotfiles_path="$(dirname "$(readlink -f "$0")")"
+    if ! install_required_packages; then
+        echo "Failed to install required packages"
+        exit 1
+    fi
 
-  # By default, only install dependencies and setup the dotfiles.
-  if [ $# -eq 0 ]; then
-    install_dependencies $DEFAULT_PACKAGES
-    dotfile_setup "$dotfiles_path"
-  else
-    # Parse command line options
-    while [ $# -gt 0 ]; do
-      case $1 in
-        -k|--kmonad)
-          kmonad_setup
-          shift
-          ;;
-        -h|--help)
-          show_help
-          exit 0
-          ;;
-        *)
-          echo "Unknown option: $key"
-          exit 1
-          ;;
-      esac
-    done
-  fi
+    if ! install_nix; then
+        echo "Failed to install Nix"
+        exit 1
+    fi
 
-  # If git is less than 2.36, warn the user
-  if [ "$(git --version | awk '{print $3}')" \< "2.36" ]; then
-    echo "Warning: Git version is less than 2.36. Consider upgrading to ensure the correct email defined in the gitconfig is used."
-  fi
+    if ! install_home_manager; then
+        echo "Failed to install home-manager"
+        exit 1
+    fi
+
+    if ! deploy_home_manager; then
+        echo "Failed to deploy home-manager"
+        exit 1
+    fi
+    
+    echo "Home-manager setup and configuration complete!"
 }
 
-main "$@"
+main

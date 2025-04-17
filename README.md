@@ -2,6 +2,6 @@
 
 This repo contains my dotfiles, and a script to install them.
 
-## Install Recommended p10k font
+This README needs to be updated.
 
-See [here](https://github.com/romkatv/powerlevel10k#meslo-nerd-font-patched-for-powerlevel10k) for instructions on how to install the font.
+TODO: SSH-Agent setup maybe required for devcontainers
