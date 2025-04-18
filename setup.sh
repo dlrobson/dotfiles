@@ -6,85 +6,6 @@ _command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-_install_packages() {
-    packages="$1"
-
-    if _command_exists apt; then
-        # Add Fish PPA if fish is in the package list
-        if echo "$packages" | grep -q "fish"; then
-            echo "Adding Fish Shell PPA..."
-            DEBIAN_FRONTEND=noninteractive sudo -E add-apt-repository -y ppa:fish-shell/release-4
-        fi
-        echo "Installing packages: $packages"
-        DEBIAN_FRONTEND=noninteractive sudo -E apt-get -qq update
-        DEBIAN_FRONTEND=noninteractive sudo -E apt -y install $packages
-        return 0
-    fi
-
-    echo "No supported package manager found. Please install packages manually."
-    return 1
-}
-
-# Public functions called by main
-install_required_packages() {
-    REQUIRED_COMMANDS="fish"
-    REQUIRED_PACKAGES="fish"
-
-    # Add nix dependencies if needed
-    if ! _command_exists nix; then
-        REQUIRED_COMMANDS="$REQUIRED_COMMANDS curl xz"
-        REQUIRED_PACKAGES="$REQUIRED_PACKAGES curl xz-utils"
-    fi
-
-    # Install dependencies if needed
-    missing_commands=""
-    for cmd in $REQUIRED_COMMANDS; do
-        if ! _command_exists "$cmd"; then
-            missing_commands="$missing_commands $cmd"
-        fi
-    done
-
-    if [ -n "$missing_commands" ]; then
-        echo "Missing commands: $missing_commands"
-        if ! _install_packages "$REQUIRED_PACKAGES"; then
-            echo "Failed to install required packages: $REQUIRED_PACKAGES"
-            return 1
-        fi
-    fi
-
-    return 0
-}
-
-install_nix() {
-    if _command_exists nix; then
-        echo "Nix is already installed."
-        return 0
-    fi
-
-    echo "Installing Nix..."
-    
-    # Install Nix in multi-user mode
-    curl -L https://nixos.org/nix/install | sh -s -- --daemon
-
-    # Source nix profile
-    if [ ! -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
-        echo "Error: Nix profile script not found"
-        return 1
-    fi
-
-    # Load Nix environment
-    . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
-    return 0
-
-    # Validate installation
-    if ! _command_exists nix; then
-        echo "Error: Nix installation failed"
-        return 1
-    fi
-
-    return 0
-}
-
 install_home_manager() {
     if _command_exists home-manager; then
         echo "home-manager is already installed."
@@ -131,27 +52,31 @@ deploy_home_manager() {
 }
 
 check_default_shell() {
+    if ! _command_exists fish; then
+        echo "Note: Fish shell is not installed. This configuration includes Fish shell settings."
+        echo "Consider installing Fish and setting it as your default shell:"
+        echo "    chsh -s \$(which fish)"
+        return 0
+    fi
+    
     current_shell=$(getent passwd "$USER" | cut -d: -f7)
     fish_path="$(which fish)"
     
     if [ "$current_shell" != "$fish_path" ]; then
-        echo "Warning: Fish is not set as your default shell!"
+        echo "Note: Fish is installed but not set as your default shell."
         echo "To make fish your default shell, run:"
         echo "    chsh -s $fish_path"
-        return 1
     fi
     
     return 0
 }
 
 main() {
-    if ! install_required_packages; then
-        echo "Failed to install required packages"
-        exit 1
-    fi
-
-    if ! install_nix; then
-        echo "Failed to install Nix"
+    # Early check for Nix
+    if ! _command_exists nix; then
+        echo "Error: Nix is required but not installed."
+        echo "Please install Nix first: https://nixos.org/download.html"
+        echo "After installing Nix, run this script again."
         exit 1
     fi
 
