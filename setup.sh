@@ -13,7 +13,8 @@ install_home_manager() {
     fi
 
     echo "Installing home-manager..."
-    if ! nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager; then
+
+    if ! nix-channel --add https://github.com/nix-community/home-manager/archive/release-24.11.tar.gz home-manager; then
         echo "Error: Failed to add home-manager channel"
         return 1
     fi
