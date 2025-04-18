@@ -83,6 +83,13 @@ in
     ];
   };
 
+  programs.bash = {
+    enable = true;
+    initExtra = ''
+      [ -x /bin/fish ] && SHELL=/bin/fish exec fish
+    '';
+  };
+
   # Import KMonad configuration only when not in a container and not on NixOS
   imports = lib.optional ((!isContainer) && (!isNixOS)) ./kmonad/kmonad.nix;
   
