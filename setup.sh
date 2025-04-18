@@ -25,52 +25,6 @@ _install_packages() {
     return 1
 }
 
-_is_in_container() {
-    # Check for .dockerenv file
-    [ -f "/.dockerenv" ] && return 0
-    # Check for docker in cgroup
-    grep -q docker /proc/1/cgroup 2>/dev/null && return 0
-    return 1
-}
-
-_install_nix_single_user() {
-    echo "Installing Nix (single-user mode)..."
-    
-    # Create and configure /nix directory
-    sudo mkdir -p /nix && sudo chown "$(whoami)" /nix
-
-    # Install Nix in single-user mode
-    curl -L https://nixos.org/nix/install | sh -s -- --no-daemon
-
-    # Source nix profile
-    if [ ! -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
-        echo "Error: Nix profile script not found"
-        return 1
-    fi
-
-    # Load Nix environment
-    . "$HOME/.nix-profile/etc/profile.d/nix.sh"
-
-    return 0
-}
-
-_install_nix_multi_user() {
-    echo "Installing Nix (multi-user mode)..."
-    
-    # Install Nix in multi-user mode
-    curl -L https://nixos.org/nix/install | sh -s -- --daemon
-
-    # Source nix profile
-    if [ ! -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
-        echo "Error: Nix profile script not found"
-        return 1
-    fi
-
-    # Load Nix environment
-    . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
-    return 0
-}
-
 # Public functions called by main
 install_required_packages() {
     REQUIRED_COMMANDS="fish"
@@ -107,19 +61,20 @@ install_nix() {
         return 0
     fi
 
-    if _is_in_container; then
-        echo "Container environment detected. Installing Nix in single-user mode..."
-        if ! _install_nix_single_user; then
-            echo "Error: Failed to install Nix in single-user mode"
-            return 1
-        fi
-    else
-        echo "Non-container environment detected. Installing Nix in multi-user mode..."
-        if ! _install_nix_multi_user; then
-            echo "Error: Failed to install Nix in multi-user mode"
-            return 1
-        fi
+    echo "Installing Nix..."
+    
+    # Install Nix in multi-user mode
+    curl -L https://nixos.org/nix/install | sh -s -- --daemon
+
+    # Source nix profile
+    if [ ! -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+        echo "Error: Nix profile script not found"
+        return 1
     fi
+
+    # Load Nix environment
+    . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+    return 0
 
     # Validate installation
     if ! _command_exists nix; then

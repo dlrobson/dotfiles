@@ -7,9 +7,9 @@ A collection of dotfiles managed using [Home Manager](https://github.com/nix-com
 ### Supported Systems
 
 | System Type | Support |
-|-------------|---------|
-| Debian/Ubuntu | ✅ |
-| NixOS | ✅ |
+|-------------|----|
+| Ubuntu      | ✅ |
+| NixOS       | ✅ |
 
 ### Prerequisites
 
