@@ -13,9 +13,9 @@ A collection of dotfiles managed using [Home Manager](https://github.com/nix-com
 
 ### Prerequisites
 
-The installation script will automatically install required dependencies, but you'll need:
-- A Unix-like system from the supported list above
-- sudo access (you will be prompted during installation if needed)
+You'll need:
+- [Nix package manager](https://nixos.org/download.html) installed
+- Fish shell (recommended, install via your system's package manager)
 
 ### Setup
 
