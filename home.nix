@@ -86,7 +86,9 @@ in
   programs.bash = {
     enable = true;
     initExtra = ''
-      [ -x /bin/fish ] && SHELL=/bin/fish exec fish
+      if FISH_PATH="$(command -v fish)"; then
+        SHELL="$FISH_PATH" exec "$FISH_PATH"
+      fi
     '';
   };
 
