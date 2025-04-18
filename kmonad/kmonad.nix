@@ -23,7 +23,5 @@
     Install = {
       WantedBy = [ "default.target" ];
     };
-    # Service is installed but not enabled by default
-    # It will be enabled by the kmonad-setup.sh script
   };
 }
