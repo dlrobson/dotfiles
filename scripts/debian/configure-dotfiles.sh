@@ -95,14 +95,14 @@ deploy_home_manager() {
     esac
     
     # Prepare home-manager command with optional dry-run flag
-    local hm_cmd="home-manager switch -b backup -f $REPO_ROOT/home.nix"
+    local hm_cmd="home-manager switch -b backup -f $REPO_ROOT/home.nix --argstr profile $profile"
     if [ -n "$dry_run_flag" ]; then
         hm_cmd="$hm_cmd -n"
         echo "Running in dry-run mode - no changes will be applied"
     fi
-    
+
     # Deploy home-manager configuration
-    if ! ROBSON_HOME_PROFILE="$profile" $hm_cmd; then
+    if ! $hm_cmd; then
         echo "Error: Failed to apply home-manager configuration"
         return 1
     fi
