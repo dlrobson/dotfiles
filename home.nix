@@ -1,100 +1,26 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
-  # Detect if running in a container
-  isContainer = builtins.pathExists "/.dockerenv" || lib.pathExists "/run/.containerenv";
-  
-  # Detect if running on NixOS
-  isNixOS = builtins.pathExists "/etc/nixos";
+  homeDirectory = builtins.getEnv "HOME";
+  username = builtins.getEnv "USER";
+  profile =
+    let
+      envProfile = builtins.getEnv "ROBSON_HOME_PROFILE";
+    in
+    if envProfile != "" then envProfile else "minimal";
 in
 {
-  home.username = builtins.getEnv "USER";
-  home.homeDirectory = builtins.getEnv "HOME";
+  imports = [ ./home ];
 
-  programs.fish = {
+  home-manager-configuration = {
     enable = true;
-    plugins = [
-      {
-        name = "plugin-git";
-        src = pkgs.fishPlugins.plugin-git.src;
-      }
-    ];
-    
-    functions = {
-      clean_branches = ''
-        git fetch --all --prune && git branch -D (git branch -vv | string match -r ': gone]' | string match -rv '\*' | awk '{ print $1; }')
-      '';
-    };
+    inherit profile username homeDirectory;
   };
 
-  programs.git = {
-    enable = true;
-    userName = "Daniel Robson";
-    userEmail = "danr.236@gmail.com";
-    
-    includes = [
-      {
-        condition = "hasconfig:remote.*.url:git@gitlab.com:work/*/**";
-        contents = {
-          user.email = "REDACTED";
-        };
-      }
-    ];
-
-    extraConfig = {
-      pull.rebase = true;
-      core.editor = "vi";
-      init.defaultBranch = "main";
-    };
-  };
-
-  programs.vim = {
-    enable = true;
-    extraConfig = ''
-      " Sets it so that the backspace and arrow keys work properly
-      set nocompatible
-      set backspace=2
-    '';
-  };
-
-  programs.tmux = {
-    enable = true;
-    mouse = true;
-    historyLimit = 100000;
-    terminal = "screen-256color";
-
-    plugins = with pkgs.tmuxPlugins; [
-      {
-        plugin = yank;
-        extraConfig = "set -g @yank_selection_mouse 'clipboard'";
-      }
-      {
-        plugin = continuum;
-        extraConfig = "set -g @continuum-restore 'on'";
-      }
-      {
-        plugin = resurrect;
-        extraConfig = "set -g @resurrect-capture-pane-contents 'on'";
-      }
-      {
-        plugin = gruvbox;
-        extraConfig = "set -g @tmux-gruvbox 'dark'";
-      }
-    ];
-  };
-
-  programs.bash = {
-    enable = true;
-    initExtra = ''
-      if FISH_PATH="$(command -v fish)"; then
-        SHELL="$FISH_PATH" exec "$FISH_PATH"
-      fi
-    '';
-  };
-
-  # Import KMonad configuration only when not in a container and not on NixOS
-  imports = lib.optional ((!isContainer) && (!isNixOS)) ./kmonad/kmonad.nix;
-  
-  programs.home-manager.enable = true;
-  home.stateVersion = "24.11";
+  nixpkgs.config.allowUnfree = true;
 }

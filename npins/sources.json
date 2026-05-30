@@ -1,0 +1,44 @@
+{
+  "pins": {
+    "home-manager": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "nix-community",
+        "repo": "home-manager"
+      },
+      "branch": "release-25.11",
+      "submodules": false,
+      "revision": "3ee51fbdac8c8bdfe1e7e1fcaba6520a563f394f",
+      "url": "https://github.com/nix-community/home-manager/archive/3ee51fbdac8c8bdfe1e7e1fcaba6520a563f394f.tar.gz",
+      "hash": "sha256-QOD/CNm196nCJRheux/URi4/HE66fthdOMqCJoPP1Y0="
+    },
+    "nixpkgs": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "NixOS",
+        "repo": "nixpkgs"
+      },
+      "branch": "release-25.11",
+      "submodules": false,
+      "revision": "7c6daed3ba27d5b516f47b638e566ba2dbe66cbb",
+      "url": "https://github.com/NixOS/nixpkgs/archive/7c6daed3ba27d5b516f47b638e566ba2dbe66cbb.tar.gz",
+      "hash": "sha256-TvB9AfX8GEbTZ7908Ew8XJzJ/To4IjvW+Ktl0aC9uoA="
+    },
+    "nixpkgs-unstable": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "NixOS",
+        "repo": "nixpkgs"
+      },
+      "branch": "nixos-unstable",
+      "submodules": false,
+      "revision": "29916453413845e54a65b8a1cf996842300cd299",
+      "url": "https://github.com/NixOS/nixpkgs/archive/29916453413845e54a65b8a1cf996842300cd299.tar.gz",
+      "hash": "sha256-Ap9KJX+5xHIn3bPIpfNgT6MEXdAECECwo4/rmlQD74M="
+    }
+  },
+  "version": 7
+}
