@@ -26,6 +26,19 @@
       "url": "https://github.com/NixOS/nixpkgs/archive/7c6daed3ba27d5b516f47b638e566ba2dbe66cbb.tar.gz",
       "hash": "sha256-TvB9AfX8GEbTZ7908Ew8XJzJ/To4IjvW+Ktl0aC9uoA="
     },
+    "nixGL": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "nix-community",
+        "repo": "nixGL"
+      },
+      "branch": "main",
+      "submodules": false,
+      "revision": "b6105297e6f0cd041670c3e8628394d4ee247ed5",
+      "url": "https://github.com/nix-community/nixGL/archive/b6105297e6f0cd041670c3e8628394d4ee247ed5.tar.gz",
+      "hash": "sha256-fbRQzIGPkjZa83MowjbD2ALaJf9y6KMDdJBQMKFeY/8="
+    },
     "nixpkgs-unstable": {
       "type": "Git",
       "repository": {
