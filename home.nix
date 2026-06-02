@@ -2,13 +2,17 @@
   config,
   pkgs,
   lib,
-  profile ? "minimal",
   ...
 }:
 
 let
   homeDirectory = builtins.getEnv "HOME";
   username = builtins.getEnv "USER";
+  profile =
+    let
+      envProfile = builtins.getEnv "ROBSON_HOME_PROFILE";
+    in
+    if envProfile != "" then envProfile else "minimal";
 in
 {
   imports = [ ./home ];

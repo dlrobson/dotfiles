@@ -5,6 +5,7 @@ set -eu
 NIX_RELEASE_VERSION="25.11"
 PROFILE_MINIMAL="minimal"
 PROFILE_DESKTOP="desktop"
+PROFILE_OUSTER="ouster"
 
 # Global variables
 PROFILE="$PROFILE_MINIMAL"
@@ -88,17 +89,20 @@ deploy_home_manager() {
         "$PROFILE_DESKTOP")
             echo "Using desktop profile (includes GUI applications)"
             ;;
+        "$PROFILE_OUSTER")
+            echo "Using ouster profile (includes desktop + company tools)"
+            ;;
     esac
-    
+
     # Prepare home-manager command with optional dry-run flag
-    local hm_cmd="home-manager switch -b backup -f $REPO_ROOT/home.nix --argstr profile $profile"
+    local hm_cmd="home-manager switch -b backup -f $REPO_ROOT/home.nix"
     if [ -n "$dry_run_flag" ]; then
         hm_cmd="$hm_cmd -n"
         echo "Running in dry-run mode - no changes will be applied"
     fi
 
     # Deploy home-manager configuration
-    if ! $hm_cmd; then
+    if ! ROBSON_HOME_PROFILE="$profile" $hm_cmd; then
         echo "Error: Failed to apply home-manager configuration"
         return 1
     fi
@@ -118,6 +122,10 @@ parse_arguments() {
                 echo "Using $PROFILE_DESKTOP profile (includes GUI applications)"
                 PROFILE="$PROFILE_DESKTOP"
                 ;;
+            "--$PROFILE_OUSTER")
+                echo "Using $PROFILE_OUSTER profile (includes desktop + company tools)"
+                PROFILE="$PROFILE_OUSTER"
+                ;;
             --dry-run)
                 echo "Enabling dry-run mode"
                 DRY_RUN=1
@@ -128,6 +136,7 @@ parse_arguments() {
                 echo "Profiles:"
                 echo "  --$PROFILE_MINIMAL         Minimal configuration with CLI tools only (default)"
                 echo "  --$PROFILE_DESKTOP         Desktop configuration with GUI applications"
+                echo "  --$PROFILE_OUSTER          Ouster configuration with desktop + company tools"
                 echo
                 echo "Options:"
                 echo "  --dry-run         Run in dry-run mode (no changes will be applied)"

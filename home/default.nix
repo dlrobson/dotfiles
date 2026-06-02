@@ -54,6 +54,7 @@ in
 
     home-manager-desktop-configuration.enable = builtins.elem cfg.profile [
       "desktop"
+      "ouster"
     ];
     home-manager-desktop-configuration.homeDirectory = cfg.homeDirectory;
   };

@@ -21,9 +21,9 @@ let
     name = "run-tests";
     runtimeInputs = [ pkgs.home-manager ];
     text = ''
-      for profile in minimal desktop; do
+      for profile in minimal desktop ouster; do
         echo "Testing home-manager profile: $profile"
-        USER=$(id -un) home-manager build -f home.nix --argstr profile "$profile"
+        ROBSON_HOME_PROFILE="$profile" USER=$(id -un) home-manager build -f home.nix
       done
     '';
   };
