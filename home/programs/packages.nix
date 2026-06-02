@@ -31,9 +31,6 @@ in
         config.unstablePkgs.work-vpn-client
         config.unstablePkgs.slack
       ]
-      ++ lib.optionals (cfg.profile == "desktop") [
-        moonlight-qt
-      ]
       ++ lib.optionals (cfg.profile == "desktop" || cfg.profile == "ouster") [
         config.unstablePkgs.code-cursor
       ];
