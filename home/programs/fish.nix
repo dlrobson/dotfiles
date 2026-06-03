@@ -57,19 +57,6 @@
           git branch -D $filtered_branches
         end
       '';
-      ssh = ''
-        set -l local_socket (string replace 'unix:path=' ''' -- $DBUS_SESSION_BUS_ADDRESS)
-        if test -S "$local_socket"
-            set -l uid (id -u)
-            set -l remote_path "/run/user/$uid/dbus-ssh-"(random)
-            command ssh \
-                -R "$remote_path:$local_socket" \
-                -o "SetEnv DBUS_SESSION_BUS_ADDRESS=unix:path=$remote_path" \
-                $argv
-        else
-            command ssh $argv
-        end
-      '';
     };
   };
 }

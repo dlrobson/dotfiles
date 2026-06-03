@@ -13,7 +13,7 @@
 
     activation = {
       installClaudeCodeMarketplace = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        export PATH="${config.unstablePkgs.claude-code}/bin:${pkgs.git}/bin:${pkgs.jq}/bin:$PATH"
+        export PATH="${config.unstablePkgs.claude-code}/bin:${pkgs.git}/bin:${pkgs.jq}/bin:${pkgs.openssh}/bin:$PATH"
 
         marketplaceName="dlrobson-plugins"
         $DRY_RUN_CMD claude plugin marketplace add "dlrobson/plugin-marketplace"
