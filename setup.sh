@@ -78,8 +78,7 @@ deploy_home_manager() {
     local dry_run_flag="$2"
     
     echo "Deploying home-manager configuration..."
-    SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
-    REPO_ROOT=$(dirname "$(dirname "$SCRIPT_DIR")")
+    REPO_ROOT=$(dirname "$(readlink -f "$0")")
     
     # Set message based on profile
     case "$profile" in

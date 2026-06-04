@@ -20,7 +20,7 @@ in
     home.packages = with pkgs; [ kmonad ];
 
     home.file = {
-      ".config/thinkpad.kbd".source = ../../assets/thinkpad.kbd;
+      ".config/thinkpad.kbd".source = ../../kmonad/thinkpad.kbd;
     };
 
     systemd.user.services.kmonad-mapping = {
