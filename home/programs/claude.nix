@@ -27,12 +27,20 @@
           tmpfile=$(mktemp)
           trap 'rm -f "$tmpfile"' EXIT
           claude plugin list --available --json 2>/dev/null > "$tmpfile"
-          currentPlugins=$(jq -r --arg m "$marketplaceName" \
+
+          installedIds=$(jq -r '.installed[].id' "$tmpfile")
+          availablePlugins=$(jq -r --arg m "$marketplaceName" \
             '.available[] | select(.marketplaceName == $m) | .pluginId' "$tmpfile")
 
           while IFS= read -r plugin; do
-            [ -n "$plugin" ] && claude plugin install "$plugin"
-          done <<< "$currentPlugins"
+            if [ -z "$plugin" ]; then continue; fi
+            if echo "$installedIds" | grep -qx "$plugin@$marketplaceName"; then
+              echo "Already installed: $plugin"
+            else
+              echo "Installing: $plugin"
+              claude plugin install "$plugin"
+            fi
+          done <<< "$availablePlugins"
         '';
       };
     };
