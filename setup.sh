@@ -2,7 +2,6 @@
 set -eu
 
 # Constants
-NIX_RELEASE_VERSION="25.11"
 PROFILE_MINIMAL="minimal"
 PROFILE_DESKTOP="desktop"
 PROFILE_OUSTER="ouster"
@@ -10,10 +9,15 @@ PROFILE_OUSTER="ouster"
 # Global variables
 PROFILE="$PROFILE_MINIMAL"
 DRY_RUN=""
+REPO_ROOT=""
 
 # Private helper functions
 _command_exists() {
     command -v "$1" >/dev/null 2>&1
+}
+
+_npins_path() {
+    nix-instantiate --eval -E "(import $REPO_ROOT/npins).$1.outPath" | tr -d '"'
 }
 
 install_home_manager() {
@@ -24,17 +28,7 @@ install_home_manager() {
 
     echo "Installing home-manager..."
 
-    if ! nix-channel --add https://github.com/nix-community/home-manager/archive/release-${NIX_RELEASE_VERSION}.tar.gz home-manager; then
-        echo "Error: Failed to add home-manager channel"
-        return 1
-    fi
-
-    if ! nix-channel --update; then
-        echo "Error: Failed to update channels"
-        return 1
-    fi
-
-    if ! nix-env -iA home-manager.home-manager; then
+    if ! nix-env -iA home-manager -f "$(_npins_path home-manager)"; then
         echo "Error: Failed to install home-manager"
         return 1
     fi
@@ -47,39 +41,12 @@ install_home_manager() {
     return 0
 }
 
-validate_nixpkgs_version() {
-    echo "Validating nixpkgs version..."
-    current_version=$(nix-channel --list | grep "^nixpkgs" | grep -oE "[0-9]+\.[0-9]+" || echo "unknown")
-    
-    if [ "$current_version" != "$NIX_RELEASE_VERSION" ]; then
-        echo "Nixpkgs version doesn't match $NIX_RELEASE_VERSION (found: $current_version)"
-        echo "Setting nixpkgs to version $NIX_RELEASE_VERSION..."
-        
-        if ! nix-channel --add https://channels.nixos.org/nixos-${NIX_RELEASE_VERSION} nixpkgs; then
-            echo "Error: Failed to set nixpkgs version to $NIX_RELEASE_VERSION"
-            return 1
-        fi
-        
-        if ! nix-channel --update; then
-            echo "Error: Failed to update nixpkgs channel"
-            return 1
-        fi
-        
-        echo "Nixpkgs version updated to $NIX_RELEASE_VERSION"
-    else
-        echo "Nixpkgs version $NIX_RELEASE_VERSION already configured"
-    fi
-    
-    return 0
-}
-
 deploy_home_manager() {
     local profile="$1"
     local dry_run_flag="$2"
-    
+
     echo "Deploying home-manager configuration..."
-    REPO_ROOT=$(dirname "$(readlink -f "$0")")
-    
+
     # Set message based on profile
     case "$profile" in
         "$PROFILE_MINIMAL")
@@ -94,7 +61,7 @@ deploy_home_manager() {
     esac
 
     # Prepare home-manager command with optional dry-run flag
-    local hm_cmd="home-manager switch -b backup -f $REPO_ROOT/home.nix"
+    local hm_cmd="home-manager switch -b backup -f $REPO_ROOT/home.nix -I home-manager=$(_npins_path home-manager) -I nixpkgs=$(_npins_path nixpkgs)"
     if [ -n "$dry_run_flag" ]; then
         hm_cmd="$hm_cmd -n"
         echo "Running in dry-run mode - no changes will be applied"
@@ -105,7 +72,7 @@ deploy_home_manager() {
         echo "Error: Failed to apply home-manager configuration"
         return 1
     fi
-    
+
     return 0
 }
 
@@ -140,8 +107,6 @@ parse_arguments() {
                 echo "Options:"
                 echo "  --dry-run         Run in dry-run mode (no changes will be applied)"
                 echo "  --help            Show this help message"
-                echo
-                echo "This script will ensure nixpkgs is set to version $NIX_RELEASE_VERSION."
                 exit 0
                 ;;
             *)
@@ -154,9 +119,11 @@ parse_arguments() {
 }
 
 main() {
+    REPO_ROOT=$(dirname "$(readlink -f "$0")")
+
     # Parse arguments and set global variables
     parse_arguments "$@"
-    
+
     if ! _command_exists nix; then
         echo "Error: Nix is required but not installed."
         echo "Please install Nix first: https://nixos.org/download.html"
@@ -168,17 +135,12 @@ main() {
         echo "Failed to install home-manager"
         exit 1
     fi
-    
-    if ! validate_nixpkgs_version; then
-        echo "Failed to validate or update nixpkgs version"
-        exit 1
-    fi
 
     if ! deploy_home_manager "$PROFILE" "$DRY_RUN"; then
         echo "Failed to deploy home-manager"
         exit 1
     fi
-    
+
     echo "Home-manager setup and configuration complete! Please ensure either bash or fish is your default shell."
 }
 
