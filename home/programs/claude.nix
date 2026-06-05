@@ -24,13 +24,10 @@
           claude plugin marketplace add "dlrobson/plugin-marketplace"
           claude plugin marketplace update "$marketplaceName" || true
 
-          tmpfile=$(mktemp)
-          trap 'rm -f "$tmpfile"' EXIT
-          claude plugin list --available --json 2>/dev/null > "$tmpfile"
-
-          installedIds=$(jq -r '.installed[].id' "$tmpfile")
-          availablePlugins=$(jq -r --arg m "$marketplaceName" \
-            '.available[] | select(.marketplaceName == $m) | .pluginId' "$tmpfile")
+          marketplaceDir=$(claude plugin marketplace list --json \
+            | jq -r --arg m "$marketplaceName" '.[] | select(.name == $m) | .installLocation')
+          availablePlugins=$(jq -r '.plugins[].name' "$marketplaceDir/.claude-plugin/marketplace.json")
+          installedIds=$(claude plugin list --json | jq -r '.[].id')
 
           while IFS= read -r plugin; do
             if [ -z "$plugin" ]; then continue; fi
@@ -38,7 +35,7 @@
               echo "Already installed: $plugin"
             else
               echo "Installing: $plugin"
-              claude plugin install "$plugin"
+              claude plugin install "$plugin@$marketplaceName"
             fi
           done <<< "$availablePlugins"
         '';
