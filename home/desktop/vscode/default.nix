@@ -10,6 +10,7 @@
       with config.unstablePkgs.vscode-extensions;
       [
         ms-vscode-remote.remote-ssh
+        mkhl.direnv
         eamodio.gitlens
       ]
       ++ [

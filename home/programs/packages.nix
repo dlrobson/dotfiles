@@ -19,6 +19,7 @@ in
       [
         git-lfs
         htop
+        jq
         less
         libnotify
         nixpkgs-fmt
