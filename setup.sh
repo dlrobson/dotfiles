@@ -28,7 +28,7 @@ install_home_manager() {
 
     echo "Installing home-manager..."
 
-    if ! nix-env -iA home-manager -f "$(_npins_path home-manager)"; then
+    if ! nix-env -iA home-manager -f "$(_npins_path home-manager)" -I "nixpkgs=$(_npins_path nixpkgs)"; then
         echo "Error: Failed to install home-manager"
         return 1
     fi
