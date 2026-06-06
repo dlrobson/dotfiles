@@ -52,10 +52,7 @@ in
       stateVersion = "25.11";
     };
 
-    home-manager-desktop-configuration.enable = builtins.elem cfg.profile [
-      "desktop"
-      "ouster"
-    ];
+    home-manager-desktop-configuration.enable = cfg.profile == "desktop";
     home-manager-desktop-configuration.homeDirectory = cfg.homeDirectory;
   };
 }
