@@ -21,9 +21,9 @@ let
     name = "run-tests";
     runtimeInputs = [ pkgs.home-manager ];
     text = ''
-      for profile in minimal desktop ouster; do
+      for profile in minimal desktop; do
         echo "Testing home-manager profile: $profile"
-        ROBSON_HOME_PROFILE="$profile" USER=$(id -un) home-manager build -f home.nix
+        USER=$(id -un) home-manager build -f profiles/$profile.nix
       done
     '';
   };
@@ -31,6 +31,12 @@ let
   build = pkgs.writeShellApplication {
     name = "build";
     text = ''echo "No build step for dotfiles"'';
+  };
+
+  update-pins = pkgs.writeShellApplication {
+    name = "update-pins";
+    runtimeInputs = [ pkgs.npins ];
+    text = "npins update";
   };
 in
 pkgs.mkShell {
@@ -42,5 +48,6 @@ pkgs.mkShell {
     fix
     run-tests
     build
+    update-pins
   ];
 }
