@@ -6,15 +6,9 @@
 }:
 
 let
-  baseIgnores = [
+  ignores = [
     ".direnv"
     ".claude/settings.local.json"
-  ];
-  ousterIgnores = baseIgnores ++ [
-    "CLAUDE.md"
-    ".envrc"
-    "shell.nix"
-    "docs/superpowers"
   ];
 in
 {
@@ -22,8 +16,6 @@ in
     ../../modules/common/private.nix
     ../../modules/common/unstable-pkgs.nix
   ];
-
-  home.file.".config/git/ignore-ouster".text = lib.concatStringsSep "\n" ousterIgnores;
 
   programs.difftastic = {
     enable = true;
@@ -34,7 +26,7 @@ in
   programs.git = {
     enable = true;
     package = config.unstablePkgs.git;
-    ignores = baseIgnores;
+    inherit ignores;
 
     settings = {
       core.editor = "vi";
@@ -47,16 +39,7 @@ in
       };
     };
 
-    includes = [
-      {
-        condition = "hasconfig:remote.*.url:git@gitlab.com:work/*/**";
-        contents = {
-          user.email = "REDACTED";
-          core.excludesFile = "~/.config/git/ignore-ouster";
-        };
-      }
-    ]
-    ++ lib.optionals config.private.available [
+    includes = lib.optionals config.private.available [
       {
         contents.core.hooksPath = "${config.private.dir}/.githooks";
       }
