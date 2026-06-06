@@ -20,7 +20,6 @@ in
         nixpkgs-fmt
         nodejs_24
         ripgrep
-        config.unstablePkgs.glab
       ]
       ++ lib.optionals (cfg.profile == "desktop") [
         config.unstablePkgs.code-cursor
