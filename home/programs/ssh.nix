@@ -16,9 +16,9 @@
       Include ~/.ssh/config.local*
     '';
     enableDefaultConfig = false;
-    matchBlocks."*" = {
-      addKeysToAgent = "yes";
-      extraOptions.SetEnv = "TERM=xterm-256color";
+    settings = {
+      AddKeysToAgent = "yes";
+      SetEnv = "TERM=xterm-256color";
     };
   };
 }
