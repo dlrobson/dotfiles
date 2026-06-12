@@ -7,6 +7,7 @@
     ./direnv.nix
     ./fish.nix
     ./git.nix
+    ./headroom.nix
     ./packages.nix
     ./rbw.nix
     ./ssh.nix
