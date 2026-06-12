@@ -1,5 +1,6 @@
 let
   pkgs = import (import ./npins).nixpkgs { };
+  unstablePkgs = import (import ./npins).nixpkgs-unstable { };
 
   check = pkgs.writeShellApplication {
     name = "check";
@@ -35,8 +36,8 @@ let
 
   update-pins = pkgs.writeShellApplication {
     name = "update-pins";
-    runtimeInputs = [ pkgs.npins ];
-    text = "npins update";
+    runtimeInputs = [ unstablePkgs.npins ];
+    text = "npins upgrade && npins update";
   };
 in
 pkgs.mkShell {
