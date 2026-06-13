@@ -1,6 +1,8 @@
 let
-  pkgs = import (import ./npins).nixpkgs { };
-  unstablePkgs = import (import ./npins).nixpkgs-unstable { };
+  sources = import ./npins;
+  pkgs = import sources.nixpkgs { };
+  unstablePkgs = import sources.nixpkgs-unstable { };
+  hm = import sources.home-manager { inherit pkgs; };
 
   check = pkgs.writeShellApplication {
     name = "check";
@@ -20,7 +22,7 @@ let
 
   run-tests = pkgs.writeShellApplication {
     name = "run-tests";
-    runtimeInputs = [ pkgs.home-manager ];
+    runtimeInputs = [ hm.home-manager ];
     text = ''
       for profile in minimal desktop; do
         echo "Testing home-manager profile: $profile"
@@ -44,7 +46,7 @@ pkgs.mkShell {
   buildInputs = [
     pkgs.nixfmt
     pkgs.statix
-    pkgs.home-manager
+    hm.home-manager
     check
     fix
     run-tests
