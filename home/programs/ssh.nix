@@ -17,7 +17,9 @@
     '';
     settings."*" = {
       AddKeysToAgent = "yes";
-      SetEnv = { TERM = "xterm-256color"; };
+      SetEnv = {
+        TERM = "xterm-256color";
+      };
     };
   };
 }
