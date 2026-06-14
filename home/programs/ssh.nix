@@ -12,6 +12,7 @@
 
   programs.ssh = {
     enable = true;
+    enableDefaultConfig = false;
     extraConfig = ''
       Include ~/.ssh/config.local*
     '';
