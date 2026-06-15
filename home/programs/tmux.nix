@@ -1,6 +1,8 @@
 { config, pkgs, ... }:
 
 {
+  home.packages = with pkgs; [ fzf ]; # required by fzf-tmux-url plugin
+
   programs.tmux = {
     enable = true;
     mouse = true;
