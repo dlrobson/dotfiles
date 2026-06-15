@@ -41,6 +41,16 @@
               claude plugin install "$plugin@$marketplaceName"
             fi
           done <<< "$availablePlugins"
+
+          while IFS= read -r installedId; do
+            if [ -z "$installedId" ]; then continue; fi
+            pluginName=$(echo "$installedId" | sed "s/@$marketplaceName$//")
+            if [ "$pluginName" = "$installedId" ]; then continue; fi
+            if ! echo "$availablePlugins" | grep -qx "$pluginName"; then
+              echo "Removing stale plugin: $installedId"
+              claude plugin remove "$installedId"
+            fi
+          done <<< "$installedIds"
         '';
       };
     };
