@@ -6,7 +6,10 @@
     mouse = true;
     historyLimit = 100000;
     terminal = "screen-256color";
-    extraConfig = "set -g focus-events on";
+    extraConfig = ''
+      set -g focus-events on
+      set -g automatic-rename off
+    '';
 
     plugins = with pkgs.tmuxPlugins; [
       cpu
@@ -28,6 +31,8 @@
         extraConfig = ''
           set -g @catppuccin_flavor "mocha"
           set -g @catppuccin_window_status_style "rounded"
+          set -g @catppuccin_window_text " #W"
+          set -g @catppuccin_window_current_text " #W"
 
           set -g status-right-length 100
           set -g status-left-length 100
