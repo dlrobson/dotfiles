@@ -15,6 +15,7 @@ in
 
     settings = {
       theme = "dark:Catppuccin Frappe,light:Catppuccin Latte";
+      term = "xterm-256color";
     };
   };
 }
