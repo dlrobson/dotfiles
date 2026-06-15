@@ -9,7 +9,10 @@
   home = {
     packages = [ config.unstablePkgs.claude-code ];
 
-    sessionPath = [ "${config.home.homeDirectory}/.npm-global/bin" ];
+    sessionPath = [
+      "${config.home.homeDirectory}/.npm-global/bin"
+      "${config.home.homeDirectory}/.local/bin"
+    ];
   };
 
   systemd.user = {
