@@ -21,8 +21,5 @@ in
         nodejs_24
         ripgrep
       ]
-      ++ lib.optionals (cfg.profile == "desktop") [
-        config.unstablePkgs.code-cursor
-      ];
   };
 }
