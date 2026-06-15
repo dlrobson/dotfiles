@@ -7,7 +7,11 @@
 
 {
   home = {
-    packages = [ config.unstablePkgs.claude-code ];
+    packages = [
+      config.unstablePkgs.claude-code
+      config.unstablePkgs.bun
+      pkgs.uv
+    ];
 
     sessionPath = [
       "${config.home.homeDirectory}/.npm-global/bin"
