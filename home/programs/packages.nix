@@ -20,6 +20,6 @@ in
         nixpkgs-fmt
         nodejs_24
         ripgrep
-      ]
+      ];
   };
 }
