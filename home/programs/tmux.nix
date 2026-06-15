@@ -9,6 +9,11 @@
     extraConfig = ''
       set -g focus-events on
       set -g automatic-rename off
+
+      # Open new panes/windows in the current pane's working directory
+      bind '"' split-window -c "#{pane_current_path}"
+      bind % split-window -h -c "#{pane_current_path}"
+      bind c new-window -c "#{pane_current_path}"
     '';
 
     plugins = with pkgs.tmuxPlugins; [
