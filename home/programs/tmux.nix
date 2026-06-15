@@ -19,6 +19,7 @@
     plugins = with pkgs.tmuxPlugins; [
       cpu
       battery
+      fzf-tmux-url
       {
         plugin = yank;
         extraConfig = "set -g @yank_selection_mouse 'clipboard'";
