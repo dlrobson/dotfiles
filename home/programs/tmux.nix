@@ -1,8 +1,6 @@
 { config, pkgs, ... }:
 
 {
-  home.packages = with pkgs; [ fzf xclip ]; # required by fzf-tmux-url plugin
-
   programs.tmux = {
     enable = true;
     mouse = true;
@@ -21,10 +19,6 @@
     plugins = with pkgs.tmuxPlugins; [
       cpu
       battery
-      {
-        plugin = fzf-tmux-url;
-        extraConfig = "set -g @fzf-url-copy-cmd 'xclip -selection clipboard'";
-      }
       {
         plugin = yank;
         extraConfig = "set -g @yank_selection_mouse 'clipboard'";
