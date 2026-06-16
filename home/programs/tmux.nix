@@ -9,7 +9,6 @@
     extraConfig = ''
       set -g focus-events on
       set -g automatic-rename off
-      set -g visual-bell on
 
       # Open new panes/windows in the current pane's working directory
       bind '"' split-window -c "#{pane_current_path}"
@@ -37,8 +36,8 @@
         extraConfig = ''
           set -g @catppuccin_flavor "mocha"
           set -g @catppuccin_window_status_style "rounded"
-          set -g @catppuccin_window_text " #W"
-          set -g @catppuccin_window_current_text " #W"
+          set -g @catppuccin_window_text " #W#{?window_bell_flag, !,}"
+          set -g @catppuccin_window_current_text " #W#{?window_bell_flag, !,}"
 
           set -g status-right-length 100
           set -g status-left-length 100
