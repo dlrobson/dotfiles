@@ -91,10 +91,10 @@ in
         Unit.Description = "Claude Code usage window trigger timer";
         Timer = {
           OnCalendar = [
-            "America/New_York *-*-* 02:00:00"
-            "America/New_York *-*-* 07:00:00"
-            "America/New_York *-*-* 14:00:00"
-            "America/New_York *-*-* 19:00:00"
+            "*-*-* 02:00:00 America/New_York"
+            "*-*-* 07:00:00 America/New_York"
+            "*-*-* 14:00:00 America/New_York"
+            "*-*-* 19:00:00 America/New_York"
           ];
           Persistent = true;
         };
