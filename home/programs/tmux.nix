@@ -38,7 +38,7 @@
           set -g @catppuccin_window_status_style "rounded"
           set -g @catppuccin_window_text " #W#{@claude_done}"
           set -g @catppuccin_window_current_text " #W#{@claude_done}"
-          set-hook -g window-focus-in "set-window-option @claude_done ''"
+          set-hook -g window-focus-in "set-window-option -u @claude_done"
 
           set -g status-right-length 100
           set -g status-left-length 100
