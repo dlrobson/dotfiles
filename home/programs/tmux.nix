@@ -9,6 +9,7 @@
     extraConfig = ''
       set -g focus-events on
       set -g automatic-rename off
+      set -g visual-bell on
 
       # Open new panes/windows in the current pane's working directory
       bind '"' split-window -c "#{pane_current_path}"
