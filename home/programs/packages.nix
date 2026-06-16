@@ -9,17 +9,15 @@ let
 in
 {
   home = {
-    packages =
-      with pkgs;
-      [
-        git-lfs
-        htop
-        jq
-        less
-        libnotify
-        nixpkgs-fmt
-        nodejs_24
-        ripgrep
-      ];
+    packages = with pkgs; [
+      git-lfs
+      htop
+      jq
+      less
+      libnotify
+      nixpkgs-fmt
+      nodejs_24
+      ripgrep
+    ];
   };
 }
