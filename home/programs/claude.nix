@@ -82,7 +82,7 @@ in
           Type = "oneshot";
           ExecStart = pkgs.writeShellScript "claude-window-trigger" ''
             export PATH="${config.unstablePkgs.claude-code}/bin:$PATH"
-            claude -p "hi" --output-format text > /dev/null
+            claude -p "hi" --output-format text
           '';
         };
       };
