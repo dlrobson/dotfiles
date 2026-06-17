@@ -7,6 +7,7 @@
 
 {
   home.activation.headroom = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    ${pkgs.uv}/bin/uv tool install "headroom-ai[proxy]" --quiet
+    export npm_config_prefix="${config.home.homeDirectory}/.npm-global"
+    ${pkgs.nodejs_24}/bin/npm install -g headroom-ai
   '';
 }
