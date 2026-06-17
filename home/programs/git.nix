@@ -6,12 +6,7 @@
 }:
 
 let
-  ignores = [
-    ".direnv"
-    ".claude/settings.local.json"
-    ".serena"
-    "headroom_memory.db"
-  ];
+  ignores = import ./git-base-ignores.nix;
 in
 {
   imports = [
