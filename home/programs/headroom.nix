@@ -37,5 +37,5 @@ let
   };
 in
 {
-  home.packages = [ headroom-ai ];
+  home.packages = [ (pkgs.python3.withPackages (_ps: [ headroom-ai ])) ];
 }
