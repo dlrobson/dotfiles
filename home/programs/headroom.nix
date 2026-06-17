@@ -23,6 +23,7 @@ let
     };
     nativeBuildInputs = [ pkgs.autoPatchelfHook ];
     buildInputs = [ pkgs.stdenv.cc.cc.lib ];
+    pythonRelaxDeps = true;
     propagatedBuildInputs = with pkgs.python3Packages; [
       tiktoken
       pydantic

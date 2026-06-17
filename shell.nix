@@ -26,7 +26,7 @@ let
     text = ''
       for profile in minimal desktop; do
         echo "Testing home-manager profile: $profile"
-        USER=$(id -un) home-manager build -f profiles/$profile.nix
+        USER=$(id -un) home-manager build -f profiles/$profile.nix -I nixpkgs=${sources.nixpkgs}
       done
     '';
   };
