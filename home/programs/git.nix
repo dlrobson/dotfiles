@@ -9,6 +9,7 @@ let
   ignores = [
     ".direnv"
     ".claude/settings.local.json"
+    ".serena"
   ];
 in
 {
