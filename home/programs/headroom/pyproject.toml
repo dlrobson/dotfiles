@@ -1,0 +1,8 @@
+[project]
+name = "headroom"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = ["headroom-ai[proxy]"]
+
+[tool.uv]
+managed = true
