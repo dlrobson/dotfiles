@@ -9,7 +9,9 @@
       },
       "branch": "master",
       "submodules": false,
-      "revision": "7bff980f37fc24e09dbc986643719900c139bf12"
+      "revision": "7bff980f37fc24e09dbc986643719900c139bf12",
+      "url": "https://github.com/pyproject-nix/build-system-pkgs/archive/7bff980f37fc24e09dbc986643719900c139bf12.tar.gz",
+      "hash": "0m9ymk1jm4dp3l95hdw10m31bjml1f2qwn7mydkaanp42jag5d9i"
     },
     "home-manager": {
       "type": "Git",
@@ -46,9 +48,9 @@
       },
       "branch": "release-26.05",
       "submodules": false,
-      "revision": "498e89b92b7a7fdafe03961f44ef4251efc91902",
-      "url": "https://github.com/NixOS/nixpkgs/archive/498e89b92b7a7fdafe03961f44ef4251efc91902.tar.gz",
-      "hash": "sha256-IQtHS4ttsqnY9A1zWCBcGAR6zV5nwo3aquHFaen5rt0="
+      "revision": "643734306c95aad85287ebf991fabc9f3ade2f13",
+      "url": "https://github.com/NixOS/nixpkgs/archive/643734306c95aad85287ebf991fabc9f3ade2f13.tar.gz",
+      "hash": "sha256-fXpxvVF77CWcGEyU2wj/AbrdhprX2ugAyh0N6NwRUq8="
     },
     "nixpkgs-unstable": {
       "type": "Git",
@@ -72,7 +74,9 @@
       },
       "branch": "master",
       "submodules": false,
-      "revision": "112aebcc00ecf20d48a5c08e80660a6852a4707a"
+      "revision": "112aebcc00ecf20d48a5c08e80660a6852a4707a",
+      "url": "https://github.com/pyproject-nix/pyproject.nix/archive/112aebcc00ecf20d48a5c08e80660a6852a4707a.tar.gz",
+      "hash": "0w3zkgw2zp2mayai4mbpb054nh6h5cvmrp36c6mcnzkzls9br1sg"
     },
     "uv2nix": {
       "type": "Git",
@@ -83,7 +87,9 @@
       },
       "branch": "master",
       "submodules": false,
-      "revision": "ec7b3fd86a8add8c546192ad5d66dade40d21e48"
+      "revision": "ec7b3fd86a8add8c546192ad5d66dade40d21e48",
+      "url": "https://github.com/pyproject-nix/uv2nix/archive/ec7b3fd86a8add8c546192ad5d66dade40d21e48.tar.gz",
+      "hash": "0bds34cp2abmzvd96sgcvyia5zzq75cdyjprn6gvc9aq3363a5vn"
     }
   },
   "version": 8
