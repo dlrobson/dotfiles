@@ -10,6 +10,15 @@ in
 {
   options.claude-window-trigger = {
     enable = lib.mkEnableOption "Claude Code usage window triggers";
+    schedule = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [
+        "*-*-* 01:30:00 America/New_York"
+        "*-*-* 06:45:00 America/New_York"
+        "*-*-* 14:00:00 America/New_York"
+      ];
+      description = "OnCalendar entries for the window trigger timer.";
+    };
   };
 
   config = {
@@ -90,11 +99,7 @@ in
       timers.claude-window-trigger = lib.mkIf cfg.enable {
         Unit.Description = "Claude Code usage window trigger timer";
         Timer = {
-          OnCalendar = [
-            "*-*-* 01:30:00 America/New_York"
-            "*-*-* 06:45:00 America/New_York"
-            "*-*-* 14:00:00 America/New_York"
-          ];
+          OnCalendar = cfg.schedule;
           Persistent = true;
         };
         Install.WantedBy = [ "timers.target" ];
