@@ -69,6 +69,9 @@ in
               if ! echo "$availablePlugins" | grep -qx "$pluginName"; then
                 echo "Removing stale plugin: $installedId"
                 claude plugin remove "$installedId"
+              else
+                echo "Updating: $installedId"
+                claude plugin update "$pluginName" || true
               fi
             done <<< "$installedIds"
           '';
