@@ -71,7 +71,7 @@ in
                 claude plugin remove "$installedId"
               else
                 echo "Updating: $installedId"
-                claude plugin update "$pluginName" || true
+                claude plugin update "$installedId" || true
               fi
             done <<< "$installedIds"
           '';
