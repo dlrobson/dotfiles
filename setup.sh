@@ -1,16 +1,11 @@
 #!/bin/sh
 set -eu
 
-# Constants
-PROFILE_MINIMAL="minimal"
-PROFILE_DESKTOP="desktop"
-
 # Global variables
-PROFILE="$PROFILE_MINIMAL"
+PROFILE=""
 DRY_RUN=""
 REPO_ROOT=""
 
-# Private helper functions
 _command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
@@ -40,31 +35,45 @@ install_home_manager() {
     return 0
 }
 
-deploy_home_manager() {
+fix_sandbox_permissions() {
+    fixed=0
+    for sandbox in $(find $(nix-store -q --requisites ~/.nix-profile 2>/dev/null) -name "chrome-sandbox" 2>/dev/null); do
+        if ! stat -c "%U %a" "$sandbox" 2>/dev/null | grep -q "^root 4755$"; then
+            sudo chown root:root "$sandbox" && sudo chmod 4755 "$sandbox"
+            echo "Fixed sandbox: $sandbox"
+            fixed=$((fixed + 1))
+        fi
+    done
+
+    if [ "$fixed" -gt 0 ]; then
+        echo "Fixed $fixed chrome-sandbox file(s)."
+    fi
+}
+
+deploy() {
     local profile="$1"
     local dry_run_flag="$2"
+    local profile_file="$REPO_ROOT/profiles/${profile}.nix"
 
-    echo "Deploying home-manager configuration..."
+    if [ ! -f "$profile_file" ]; then
+        echo "Error: unknown profile: $profile"
+        echo "Available profiles:"
+        for f in "$REPO_ROOT/profiles/"*.nix; do
+            echo "  $(basename "$f" .nix)"
+        done
+        return 1
+    fi
 
-    # Set message based on profile
-    case "$profile" in
-        "$PROFILE_MINIMAL")
-            echo "Using minimal profile (CLI tools only)"
-            ;;
-        "$PROFILE_DESKTOP")
-            echo "Using desktop profile (includes GUI applications)"
-            ;;
-    esac
+    echo "Deploying configuration for: $profile"
 
-    # Prepare home-manager command with optional dry-run flag
-    local hm_cmd="home-manager switch -b backup -f $REPO_ROOT/profiles/$profile.nix -I home-manager=$(_npins_path home-manager) -I nixpkgs=$(_npins_path nixpkgs)"
+    local hm_cmd="home-manager switch -b backup -f $profile_file -I home-manager=$(_npins_path home-manager) -I nixpkgs=$(_npins_path nixpkgs)"
     if [ -n "$dry_run_flag" ]; then
         hm_cmd="$hm_cmd -n"
         echo "Running in dry-run mode - no changes will be applied"
     fi
 
     if ! $hm_cmd; then
-        echo "Error: Failed to apply home-manager configuration"
+        echo "Error: Failed to apply configuration"
         return 1
     fi
 
@@ -72,52 +81,53 @@ deploy_home_manager() {
 }
 
 parse_arguments() {
-    # Parse command line arguments
     while [ $# -gt 0 ]; do
         case "$1" in
-            "--$PROFILE_MINIMAL")
-                echo "Using $PROFILE_MINIMAL profile (CLI tools only)"
-                PROFILE="$PROFILE_MINIMAL"
-                ;;
-            "--$PROFILE_DESKTOP")
-                echo "Using $PROFILE_DESKTOP profile (includes GUI applications)"
-                PROFILE="$PROFILE_DESKTOP"
-                ;;
             --dry-run)
-                echo "Enabling dry-run mode"
                 DRY_RUN=1
                 ;;
             --help)
-                echo "Usage: $0 [PROFILE] [OPTIONS]"
+                echo "Usage: $0 <profile> [OPTIONS]"
                 echo
                 echo "Profiles:"
-                echo "  --$PROFILE_MINIMAL         Minimal configuration with CLI tools only (default)"
-                echo "  --$PROFILE_DESKTOP         Desktop configuration with GUI applications"
+                for f in "$REPO_ROOT/profiles/"*.nix; do
+                    echo "  $(basename "$f" .nix)"
+                done
                 echo
                 echo "Options:"
-                echo "  --dry-run         Run in dry-run mode (no changes will be applied)"
-                echo "  --help            Show this help message"
+                echo "  --dry-run   Run in dry-run mode (no changes applied)"
+                echo "  --help      Show this help message"
                 exit 0
                 ;;
-            *)
+            -*)
                 echo "Error: Unknown option $1"
                 exit 1
+                ;;
+            *)
+                if [ -n "$PROFILE" ]; then
+                    echo "Error: multiple profiles specified"
+                    exit 1
+                fi
+                PROFILE="$1"
                 ;;
         esac
         shift
     done
+
+    if [ -z "$PROFILE" ]; then
+        echo "Error: profile name required"
+        echo "Run '$0 --help' for usage"
+        exit 1
+    fi
 }
 
 main() {
     REPO_ROOT=$(dirname "$(readlink -f "$0")")
-
-    # Parse arguments and set global variables
     parse_arguments "$@"
 
     if ! _command_exists nix; then
         echo "Error: Nix is required but not installed."
         echo "Please install Nix first: https://nixos.org/download.html"
-        echo "After installing Nix, run this script again."
         exit 1
     fi
 
@@ -126,13 +136,16 @@ main() {
         exit 1
     fi
 
-    if ! deploy_home_manager "$PROFILE" "$DRY_RUN"; then
-        echo "Failed to deploy home-manager"
+    if ! deploy "$PROFILE" "$DRY_RUN"; then
+        echo "Failed to deploy configuration"
         exit 1
     fi
 
-    echo "Home-manager setup and configuration complete! Please ensure either bash or fish is your default shell."
+    if [ -z "$DRY_RUN" ]; then
+        fix_sandbox_permissions
+    fi
+
+    echo "Configuration for '$PROFILE' deployed. Ensure fish or bash is your default shell."
 }
 
-# Call main with all script arguments
 main "$@"
