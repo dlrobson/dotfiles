@@ -7,14 +7,17 @@
 with lib;
 let
   cfg = config.home-manager-desktop-configuration;
+  isNixOS = builtins.pathExists "/etc/nixos";
+  isGnomeRunning = builtins.match ".*GNOME.*" (builtins.getEnv "XDG_CURRENT_DESKTOP") != null;
+  gnomeExtensions = with pkgs.gnomeExtensions; [
+    alphabetical-app-grid
+    quick-settings-audio-devices-hider
+  ];
 in
 {
   imports = [
-    ./ghostty.nix
-    ./brave.nix
-    ./gnome.nix
-    ./kmonad.nix
-    ./vscode
+    ../../modules/common/unstable-pkgs.nix
+    ./nixgl-pkgs.nix
   ];
 
   options.home-manager-desktop-configuration = {
@@ -25,16 +28,104 @@ in
     };
   };
 
-  config = mkIf cfg.enable {
-    gnome-configuration = {
-      enable = true;
-      inherit (cfg) homeDirectory;
-    };
-    kmonad-setup.enable = true;
-    programs = {
-      chromium.enable = true;
-      vscode.enable = true;
-      ghostty.enable = true;
-    };
-  };
+  config = mkIf cfg.enable (mkMerge [
+    {
+      programs = {
+        chromium = {
+          enable = true;
+          package =
+            if isNixOS then config.unstablePkgs.brave else config.lib.nixGL.wrap config.unstablePkgs.brave;
+          extensions = [
+            { id = "nngceckbapebfimnlniiiahkandclblb"; } # Bitwarden
+            { id = "neebplgakaahbhdphmkckjjcegoiijjo"; } # Keepa
+            { id = "idpbkophnbfijcnlffdmmppgnncgappc"; } # Rakuten
+            { id = "nffaoalbilbmmfgbnbgppjihopabppdk"; } # Video Speed Controller
+          ];
+        };
+
+        ghostty = {
+          enable = true;
+          package =
+            if isNixOS then config.unstablePkgs.ghostty else config.lib.nixGL.wrap config.unstablePkgs.ghostty;
+          settings = {
+            theme = "dark:Catppuccin Frappe,light:Catppuccin Latte";
+            term = "xterm-256color";
+          };
+        };
+
+        vscode = {
+          enable = true;
+          package = config.unstablePkgs.vscode;
+          profiles.default.extensions =
+            with config.unstablePkgs.vscode-extensions;
+            [
+              ms-vscode-remote.remote-ssh
+              mkhl.direnv
+              eamodio.gitlens
+            ]
+            ++ [
+              (pkgs.vscode-utils.extensionFromVscodeMarketplace {
+                name = "save-as-root";
+                publisher = "yy0931";
+                version = "1.11.0";
+                sha256 = "sha256-NziiIY/qTFvJMwPoIIu2xLMPL9mn3gB3VSaItHIvfCI=";
+              })
+              (pkgs.vscode-utils.extensionFromVscodeMarketplace {
+                name = "back-n-forth";
+                publisher = "nick-rudenko";
+                version = "3.1.1";
+                sha256 = "sha256-yircrP2CjlTWd0thVYoOip/KPve24Ivr9f6HbJN0Haw=";
+              })
+            ];
+        };
+      };
+
+      home.file.".config/Code/User/prompts/spec-sidecar.instructions.md".source =
+        ./spec-sidecar.instructions.md;
+    }
+
+    (mkIf isGnomeRunning {
+      home.packages = gnomeExtensions;
+
+      dconf = {
+        enable = true;
+        settings = {
+          "org/gnome/shell" = {
+            disable-user-extensions = false;
+            enabled-extensions = map (ext: ext.extensionUuid) gnomeExtensions;
+            disabed-extensions = [ ];
+          };
+          "org/gnome/settings-daemon/plugins/media-keys" = {
+            custom-keybindings = [
+              "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+            ];
+          };
+          "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
+            binding = "<Primary><Alt>t";
+            command = "ghostty";
+            name = "open-terminal";
+          };
+        };
+      };
+    })
+
+    (mkIf (!isNixOS) {
+      targets.genericLinux.enable = true;
+      xdg.mime.enable = true;
+      xdg.systemDirs.data = [ "${cfg.homeDirectory}/.nix-profile/share/applications" ];
+
+      home.packages = with pkgs; [ kmonad ];
+
+      home.file.".config/thinkpad.kbd".source = ../../kmonad/thinkpad.kbd;
+
+      systemd.user.services.kmonad-mapping = {
+        Unit.Description = "Start KMonad with custom mapping";
+        Service = {
+          ExecStart = "${pkgs.kmonad}/bin/kmonad %h/.config/thinkpad.kbd";
+          Restart = "on-failure";
+        };
+        Install.WantedBy = [ "default.target" ];
+      };
+    })
+  ]);
 }
