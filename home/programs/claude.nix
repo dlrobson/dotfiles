@@ -12,11 +12,7 @@ in
     enable = lib.mkEnableOption "Claude Code usage window triggers";
     schedule = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [
-        "*-*-* 01:30:00 America/New_York"
-        "*-*-* 06:45:00 America/New_York"
-        "*-*-* 14:00:00 America/New_York"
-      ];
+      default = [];
       description = "OnCalendar entries for the window trigger timer.";
     };
   };
