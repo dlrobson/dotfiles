@@ -25,7 +25,6 @@ in
     home = {
       packages = [
         config.unstablePkgs.claude-code
-        config.unstablePkgs.bun
         pkgs.uv
       ];
 
