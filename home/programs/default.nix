@@ -5,6 +5,7 @@
     ./bash.nix
     ./claude.nix
     ./direnv.nix
+    ./et.nix
     ./fish.nix
     ./git.nix
     ./headroom.nix
