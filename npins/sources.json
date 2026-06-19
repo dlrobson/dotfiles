@@ -11,7 +11,7 @@
       "submodules": false,
       "revision": "c487902a53fc25aea01ddfdf2bf002e82d0cad45",
       "url": "https://github.com/anthropics/claude-code/archive/c487902a53fc25aea01ddfdf2bf002e82d0cad45.tar.gz",
-      "hash": "sha256-BPZgMmQ9dZQ++oxb+YAHvgwiRg+P29OaIza5vc5zQes="
+      "hash": "sha256-60Fzzr25NiOa09uPD0YiDL4HgPlbjPo+lHU9ZDJg9gQ="
     },
     "build-system-pkgs": {
       "type": "Git",
@@ -128,7 +128,7 @@
       "submodules": false,
       "revision": "896224c4b1879920ab573417e68fd51d2ccc9072",
       "url": "https://github.com/obra/superpowers/archive/896224c4b1879920ab573417e68fd51d2ccc9072.tar.gz",
-      "hash": "sha256-i9ZT/nc4yhIvndpXVlad6IrKQJzgQ5N4IdGq+mv2VPo="
+      "hash": "sha256-+lT2a/qq0SF4k0PgnEDKiuidVlZX2p0vEso4d/5T1os="
     },
     "uv2nix": {
       "type": "Git",
