@@ -36,6 +36,14 @@ let
     text = ''echo "No build step for dotfiles"'';
   };
 
+  format = pkgs.writeShellApplication {
+    name = "format";
+    text = ''
+      find . -name "*.nix" -type f -print0 | xargs -0 nixfmt
+      statix fix --ignore "npins/default.nix"
+    '';
+  };
+
   update-pins = pkgs.writeShellApplication {
     name = "update-pins";
     runtimeInputs = [ unstablePkgs.npins ];
@@ -49,6 +57,7 @@ pkgs.mkShell {
     hm.home-manager
     check
     fix
+    format
     run-tests
     build
     update-pins
