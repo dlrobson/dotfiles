@@ -1,5 +1,16 @@
 {
   "pins": {
+    "anthropics-claude-code": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "anthropics",
+        "repo": "claude-code"
+      },
+      "branch": "main",
+      "submodules": false,
+      "revision": "c487902a53fc25aea01ddfdf2bf002e82d0cad45"
+    },
     "build-system-pkgs": {
       "type": "Git",
       "repository": {
@@ -9,9 +20,20 @@
       },
       "branch": "master",
       "submodules": false,
-      "revision": "7bff980f37fc24e09dbc986643719900c139bf12",
-      "url": "https://github.com/pyproject-nix/build-system-pkgs/archive/7bff980f37fc24e09dbc986643719900c139bf12.tar.gz",
-      "hash": "0m9ymk1jm4dp3l95hdw10m31bjml1f2qwn7mydkaanp42jag5d9i"
+      "revision": "b84e03a7870c66033d309e0e00abd513e2299627",
+      "url": "https://github.com/pyproject-nix/build-system-pkgs/archive/b84e03a7870c66033d309e0e00abd513e2299627.tar.gz",
+      "hash": "sha256-04KFQME8sE1LSywNiYS1B6Ucf5rEiUD7/vxwFMgooXU="
+    },
+    "claude-code-rules": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "NikiforovAll",
+        "repo": "claude-code-rules"
+      },
+      "branch": "main",
+      "submodules": false,
+      "revision": "5f59d584f14fe5a837e9d6d4bcae7da088b7e6bc"
     },
     "home-manager": {
       "type": "Git",
@@ -48,9 +70,9 @@
       },
       "branch": "release-26.05",
       "submodules": false,
-      "revision": "643734306c95aad85287ebf991fabc9f3ade2f13",
-      "url": "https://github.com/NixOS/nixpkgs/archive/643734306c95aad85287ebf991fabc9f3ade2f13.tar.gz",
-      "hash": "sha256-fXpxvVF77CWcGEyU2wj/AbrdhprX2ugAyh0N6NwRUq8="
+      "revision": "91b203c803d432cb6e1d1581122ef997ce72b30a",
+      "url": "https://github.com/NixOS/nixpkgs/archive/91b203c803d432cb6e1d1581122ef997ce72b30a.tar.gz",
+      "hash": "sha256-77y8EVN9S5Vmc8zbaBOxOhf24K8yScAVLlmA6VvpCg8="
     },
     "nixpkgs-unstable": {
       "type": "Git",
@@ -65,32 +87,6 @@
       "url": "https://github.com/NixOS/nixpkgs/archive/567a49d1913ce81ac6e9582e3553dd90a955875f.tar.gz",
       "hash": "sha256-lrp67w8AulE9Ks53n27I45ADSzbOCn4H+CNW1Ck8B+8="
     },
-    "pyproject-nix": {
-      "type": "Git",
-      "repository": {
-        "type": "GitHub",
-        "owner": "pyproject-nix",
-        "repo": "pyproject.nix"
-      },
-      "branch": "master",
-      "submodules": false,
-      "revision": "112aebcc00ecf20d48a5c08e80660a6852a4707a",
-      "url": "https://github.com/pyproject-nix/pyproject.nix/archive/112aebcc00ecf20d48a5c08e80660a6852a4707a.tar.gz",
-      "hash": "0w3zkgw2zp2mayai4mbpb054nh6h5cvmrp36c6mcnzkzls9br1sg"
-    },
-    "uv2nix": {
-      "type": "Git",
-      "repository": {
-        "type": "GitHub",
-        "owner": "pyproject-nix",
-        "repo": "uv2nix"
-      },
-      "branch": "master",
-      "submodules": false,
-      "revision": "ec7b3fd86a8add8c546192ad5d66dade40d21e48",
-      "url": "https://github.com/pyproject-nix/uv2nix/archive/ec7b3fd86a8add8c546192ad5d66dade40d21e48.tar.gz",
-      "hash": "0bds34cp2abmzvd96sgcvyia5zzq75cdyjprn6gvc9aq3363a5vn"
-    },
     "plugin-marketplace": {
       "type": "Git",
       "repository": {
@@ -100,22 +96,22 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "cfa72f273e9afbc8018973242b6a090dcf40e6d9",
-      "url": "https://github.com/dlrobson/plugin-marketplace/archive/cfa72f273e9afbc8018973242b6a090dcf40e6d9.tar.gz",
-      "hash": "01k365i4iwzxwqhs2vcaj0ypv35xm14lg5kyjincfwxrm0zn0crh"
+      "revision": "774d661290228a202d77eb555bd23b7bdcca86d9",
+      "url": "https://github.com/dlrobson/plugin-marketplace/archive/774d661290228a202d77eb555bd23b7bdcca86d9.tar.gz",
+      "hash": "sha256-h4hOXpyfIoBDxe7Dh6QNNSeM4gLVJfMckcBHUwXCUyc="
     },
-    "claude-code-rules": {
+    "pyproject-nix": {
       "type": "Git",
       "repository": {
         "type": "GitHub",
-        "owner": "NikiforovAll",
-        "repo": "claude-code-rules"
+        "owner": "pyproject-nix",
+        "repo": "pyproject.nix"
       },
-      "branch": "main",
+      "branch": "master",
       "submodules": false,
-      "revision": "5f59d584f14fe5a837e9d6d4bcae7da088b7e6bc",
-      "url": "https://github.com/NikiforovAll/claude-code-rules/archive/5f59d584f14fe5a837e9d6d4bcae7da088b7e6bc.tar.gz",
-      "hash": "1d81ldikjcbq7z1j0awdxfigdblvkmjqs1rflqvljdxd5sciiw5m"
+      "revision": "d9847acff422152a03764fd60c96ae0dd9f9fa73",
+      "url": "https://github.com/pyproject-nix/pyproject.nix/archive/d9847acff422152a03764fd60c96ae0dd9f9fa73.tar.gz",
+      "hash": "sha256-uRqDouxg3b0EuOHQd1HhmFZouHebM7pz+H6EWAXd3FM="
     },
     "superpowers": {
       "type": "Git",
@@ -126,22 +122,20 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "896224c4b1879920ab573417e68fd51d2ccc9072",
-      "url": "https://github.com/obra/superpowers/archive/896224c4b1879920ab573417e68fd51d2ccc9072.tar.gz",
-      "hash": "12ynagz7ff6a28prvnjparb9vs4ar909rq23jdw23ldaz9mzcm7s"
+      "revision": "896224c4b1879920ab573417e68fd51d2ccc9072"
     },
-    "anthropics-claude-code": {
+    "uv2nix": {
       "type": "Git",
       "repository": {
         "type": "GitHub",
-        "owner": "anthropics",
-        "repo": "claude-code"
+        "owner": "pyproject-nix",
+        "repo": "uv2nix"
       },
-      "branch": "main",
+      "branch": "master",
       "submodules": false,
-      "revision": "c487902a53fc25aea01ddfdf2bf002e82d0cad45",
-      "url": "https://github.com/anthropics/claude-code/archive/c487902a53fc25aea01ddfdf2bf002e82d0cad45.tar.gz",
-      "hash": "017nc0r68gbmjhzgm32vz600gghc4930z3yvsfd26dmrpp776hgb"
+      "revision": "14aa44100859a44144878fe079f8089d3fa4dc4e",
+      "url": "https://github.com/pyproject-nix/uv2nix/archive/14aa44100859a44144878fe079f8089d3fa4dc4e.tar.gz",
+      "hash": "sha256-PQfvfKWaBvCysdHFUO5GewwvwIqI/WL6OcrJhDSUdbc="
     }
   },
   "version": 8
