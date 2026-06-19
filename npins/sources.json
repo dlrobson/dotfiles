@@ -37,7 +37,7 @@
       "submodules": false,
       "revision": "5f59d584f14fe5a837e9d6d4bcae7da088b7e6bc",
       "url": "https://github.com/NikiforovAll/claude-code-rules/archive/5f59d584f14fe5a837e9d6d4bcae7da088b7e6bc.tar.gz",
-      "hash": "sha256-tQGjYzkxeD/DICuN66L2rpudZY0HLqY3STetLpkY8LU="
+      "hash": "sha256-tfAYmS6tN0k3pi4HjWWdm672ouuNKyDDP3gxOWOjAbU="
     },
     "home-manager": {
       "type": "Git",
