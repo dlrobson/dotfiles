@@ -18,9 +18,13 @@ in
   };
 
   config = {
+    programs.claude-code = {
+      enable = true;
+      package = config.unstablePkgs.claude-code;
+    };
+
     home = {
       packages = [
-        config.unstablePkgs.claude-code
         pkgs.uv
       ];
 
