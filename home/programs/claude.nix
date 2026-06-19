@@ -8,7 +8,7 @@ let
   cfg = config.claude-window-trigger;
   sources = import ../../npins;
   pluginMarketplace = sources.plugin-marketplace;
-  anthropicsClaude = sources.anthropics-claude-code;
+  anthropicsClaude = sources.claude-code;
   localPlugins = map (name: "${pluginMarketplace}/plugins/${name}")
     (builtins.attrNames (builtins.readDir "${pluginMarketplace}/plugins"));
 in

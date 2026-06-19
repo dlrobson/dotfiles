@@ -1,18 +1,5 @@
 {
   "pins": {
-    "anthropics-claude-code": {
-      "type": "Git",
-      "repository": {
-        "type": "GitHub",
-        "owner": "anthropics",
-        "repo": "claude-code"
-      },
-      "branch": "main",
-      "submodules": false,
-      "revision": "c487902a53fc25aea01ddfdf2bf002e82d0cad45",
-      "url": "https://github.com/anthropics/claude-code/archive/c487902a53fc25aea01ddfdf2bf002e82d0cad45.tar.gz",
-      "hash": "sha256-60Fzzr25NiOa09uPD0YiDL4HgPlbjPo+lHU9ZDJg9gQ="
-    },
     "build-system-pkgs": {
       "type": "Git",
       "repository": {
@@ -25,6 +12,19 @@
       "revision": "b84e03a7870c66033d309e0e00abd513e2299627",
       "url": "https://github.com/pyproject-nix/build-system-pkgs/archive/b84e03a7870c66033d309e0e00abd513e2299627.tar.gz",
       "hash": "sha256-04KFQME8sE1LSywNiYS1B6Ucf5rEiUD7/vxwFMgooXU="
+    },
+    "claude-code": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "anthropics",
+        "repo": "claude-code"
+      },
+      "branch": "main",
+      "submodules": false,
+      "revision": "c487902a53fc25aea01ddfdf2bf002e82d0cad45",
+      "url": "https://github.com/anthropics/claude-code/archive/c487902a53fc25aea01ddfdf2bf002e82d0cad45.tar.gz",
+      "hash": "sha256-60Fzzr25NiOa09uPD0YiDL4HgPlbjPo+lHU9ZDJg9gQ="
     },
     "claude-code-rules": {
       "type": "Git",
@@ -74,9 +74,9 @@
       },
       "branch": "release-26.05",
       "submodules": false,
-      "revision": "91b203c803d432cb6e1d1581122ef997ce72b30a",
-      "url": "https://github.com/NixOS/nixpkgs/archive/91b203c803d432cb6e1d1581122ef997ce72b30a.tar.gz",
-      "hash": "sha256-77y8EVN9S5Vmc8zbaBOxOhf24K8yScAVLlmA6VvpCg8="
+      "revision": "9b6c02329612087a18c1c001e3377fcb0568069c",
+      "url": "https://github.com/NixOS/nixpkgs/archive/9b6c02329612087a18c1c001e3377fcb0568069c.tar.gz",
+      "hash": "sha256-Yz6C/suhcXvWMP5RNN+4Dw94BhSQc5flHpMPsnYlb7k="
     },
     "nixpkgs-unstable": {
       "type": "Git",
