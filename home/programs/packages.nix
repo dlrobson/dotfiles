@@ -10,6 +10,7 @@ in
 {
   home = {
     packages = with pkgs; [
+      bat
       git-lfs
       htop
       jq
