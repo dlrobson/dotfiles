@@ -12,7 +12,7 @@ in
     enable = lib.mkEnableOption "Claude Code usage window triggers";
     schedule = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [];
+      default = [ ];
       description = "OnCalendar entries for the window trigger timer.";
     };
   };
