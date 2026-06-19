@@ -9,7 +9,9 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "c487902a53fc25aea01ddfdf2bf002e82d0cad45"
+      "revision": "c487902a53fc25aea01ddfdf2bf002e82d0cad45",
+      "url": "https://github.com/anthropics/claude-code/archive/c487902a53fc25aea01ddfdf2bf002e82d0cad45.tar.gz",
+      "hash": "sha256-BPZgMmQ9dZQ++oxb+YAHvgwiRg+P29OaIza5vc5zQes="
     },
     "build-system-pkgs": {
       "type": "Git",
@@ -33,7 +35,9 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "5f59d584f14fe5a837e9d6d4bcae7da088b7e6bc"
+      "revision": "5f59d584f14fe5a837e9d6d4bcae7da088b7e6bc",
+      "url": "https://github.com/NikiforovAll/claude-code-rules/archive/5f59d584f14fe5a837e9d6d4bcae7da088b7e6bc.tar.gz",
+      "hash": "sha256-tQGjYzkxeD/DICuN66L2rpudZY0HLqY3STetLpkY8LU="
     },
     "home-manager": {
       "type": "Git",
@@ -122,7 +126,9 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "896224c4b1879920ab573417e68fd51d2ccc9072"
+      "revision": "896224c4b1879920ab573417e68fd51d2ccc9072",
+      "url": "https://github.com/obra/superpowers/archive/896224c4b1879920ab573417e68fd51d2ccc9072.tar.gz",
+      "hash": "sha256-i9ZT/nc4yhIvndpXVlad6IrKQJzgQ5N4IdGq+mv2VPo="
     },
     "uv2nix": {
       "type": "Git",
