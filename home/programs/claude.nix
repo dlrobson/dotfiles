@@ -10,8 +10,9 @@ let
   pluginMarketplace = sources.plugin-marketplace;
   anthropicsClaude = sources.claude-code;
   headroom = sources.headroom;
-  localPlugins = map (name: "${pluginMarketplace}/plugins/${name}")
-    (builtins.attrNames (builtins.readDir "${pluginMarketplace}/plugins"));
+  localPlugins = map (name: "${pluginMarketplace}/plugins/${name}") (
+    builtins.attrNames (builtins.readDir "${pluginMarketplace}/plugins")
+  );
 in
 {
   options.claude-window-trigger = {
@@ -34,7 +35,8 @@ in
         "${anthropicsClaude}/plugins/frontend-design"
         "${anthropicsClaude}/plugins/pr-review-toolkit"
         "${headroom}/plugins/headroom-agent-hooks"
-      ] ++ localPlugins;
+      ]
+      ++ localPlugins;
     };
 
     home = {

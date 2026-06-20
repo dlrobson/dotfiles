@@ -23,4 +23,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: cachix/install-nix-action@v27
       - name: Run setup.sh (minimal profile)
-        run: ./setup.sh --minimal
+        run: ./setup.sh minimal
