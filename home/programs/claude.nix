@@ -9,7 +9,7 @@ let
   sources = import ../../npins;
   pluginMarketplace = sources.plugin-marketplace;
   anthropicsClaude = sources.claude-code;
-  headroom = sources.headroom;
+  inherit (sources) headroom;
   localPlugins = map (name: "${pluginMarketplace}/plugins/${name}") (
     builtins.attrNames (builtins.readDir "${pluginMarketplace}/plugins")
   );
