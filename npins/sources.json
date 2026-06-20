@@ -39,6 +39,22 @@
       "url": "https://github.com/NikiforovAll/claude-code-rules/archive/5f59d584f14fe5a837e9d6d4bcae7da088b7e6bc.tar.gz",
       "hash": "sha256-tfAYmS6tN0k3pi4HjWWdm672ouuNKyDDP3gxOWOjAbU="
     },
+    "headroom": {
+      "type": "GitRelease",
+      "repository": {
+        "type": "GitHub",
+        "owner": "chopratejas",
+        "repo": "headroom"
+      },
+      "pre_releases": false,
+      "version_upper_bound": null,
+      "release_prefix": null,
+      "submodules": false,
+      "version": "v0.26.0",
+      "revision": "b81a4a7a16d610e578b904c7618efae7c8897af6",
+      "url": "https://api.github.com/repos/chopratejas/headroom/tarball/refs/tags/v0.26.0",
+      "hash": "sha256-HLLElwmKe0KYH6qh5VeJvUPy6iLh8Va8hJ8xDt8xPAA="
+    },
     "home-manager": {
       "type": "Git",
       "repository": {

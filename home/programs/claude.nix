@@ -9,6 +9,7 @@ let
   sources = import ../../npins;
   pluginMarketplace = sources.plugin-marketplace;
   anthropicsClaude = sources.claude-code;
+  headroom = sources.headroom;
   localPlugins = map (name: "${pluginMarketplace}/plugins/${name}")
     (builtins.attrNames (builtins.readDir "${pluginMarketplace}/plugins"));
 in
@@ -32,6 +33,7 @@ in
         "${anthropicsClaude}/plugins/learning-output-style"
         "${anthropicsClaude}/plugins/frontend-design"
         "${anthropicsClaude}/plugins/pr-review-toolkit"
+        "${headroom}/plugins/headroom-agent-hooks"
       ] ++ localPlugins;
     };
 
