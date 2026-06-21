@@ -29,10 +29,8 @@ in
       enable = true;
       package = config.unstablePkgs.claude-code;
       plugins = [
-        "${sources.claude-code-rules}/plugins/handbook-glab"
         "${sources.superpowers}"
         "${anthropicsClaude}/plugins/learning-output-style"
-        "${anthropicsClaude}/plugins/frontend-design"
         "${anthropicsClaude}/plugins/pr-review-toolkit"
         "${headroom}/plugins/headroom-agent-hooks"
       ]
