@@ -96,13 +96,14 @@ in
             disabed-extensions = [ ];
           };
           "org/gnome/settings-daemon/plugins/media-keys" = {
+            terminal = lib.hm.gvariant.mkArray lib.hm.gvariant.type.string [];
             custom-keybindings = [
               "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
             ];
           };
           "org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0" = {
             binding = "<Primary><Alt>t";
-            command = "ghostty";
+            command = "${cfg.homeDirectory}/.nix-profile/bin/ghostty";
             name = "open-terminal";
           };
         };
