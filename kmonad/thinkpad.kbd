@@ -2,7 +2,7 @@
   input (device-file "/dev/input/by-path/platform-i8042-serio-0-event-kbd")
   output (uinput-sink
           "KMonad: X240"
-          "sleep 0.2s; xset r rate 230 70; sleep 0.2s; setxkbmap -option compose:menu")
+          "sleep 0.2s; xset r rate 230 70; xset -led named \"Caps Lock\"; sleep 0.2s; setxkbmap -option compose:menu")
   cmp-seq compose            ;; looks odd, but with compose:menu this HAS to be compose, not menu
   fallthrough true           ;; we don't want to have to worry about all the Fn stuff
 )
