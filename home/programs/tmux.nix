@@ -5,7 +5,7 @@
     enable = true;
     mouse = true;
     historyLimit = 100000;
-    terminal = "screen-256color";
+    terminal = "tmux-256color";
     extraConfig = ''
       set -g focus-events on
       set -g automatic-rename off
