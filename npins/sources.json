@@ -9,9 +9,9 @@
       },
       "branch": "master",
       "submodules": false,
-      "revision": "b84e03a7870c66033d309e0e00abd513e2299627",
-      "url": "https://github.com/pyproject-nix/build-system-pkgs/archive/b84e03a7870c66033d309e0e00abd513e2299627.tar.gz",
-      "hash": "sha256-04KFQME8sE1LSywNiYS1B6Ucf5rEiUD7/vxwFMgooXU="
+      "revision": "430680a19bc85a3bda55f12e4cc1a1aadcf2e478",
+      "url": "https://github.com/pyproject-nix/build-system-pkgs/archive/430680a19bc85a3bda55f12e4cc1a1aadcf2e478.tar.gz",
+      "hash": "sha256-6gmEVe69+KlRkZD4PEEV5xAlB9CB0Y9TiuEgQjDrKTQ="
     },
     "claude-code": {
       "type": "Git",
@@ -22,9 +22,9 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "c487902a53fc25aea01ddfdf2bf002e82d0cad45",
-      "url": "https://github.com/anthropics/claude-code/archive/c487902a53fc25aea01ddfdf2bf002e82d0cad45.tar.gz",
-      "hash": "sha256-60Fzzr25NiOa09uPD0YiDL4HgPlbjPo+lHU9ZDJg9gQ="
+      "revision": "b4073894cdef365c6061f036098ce0875bbdbc86",
+      "url": "https://github.com/anthropics/claude-code/archive/b4073894cdef365c6061f036098ce0875bbdbc86.tar.gz",
+      "hash": "sha256-8mtiItHlBQcVcjT59+9wrwOmN1Ih6qKhsGJk/zQjP0A="
     },
     "claude-code-rules": {
       "type": "Git",
@@ -50,10 +50,10 @@
       "version_upper_bound": null,
       "release_prefix": null,
       "submodules": false,
-      "version": "v0.26.0",
-      "revision": "b81a4a7a16d610e578b904c7618efae7c8897af6",
-      "url": "https://api.github.com/repos/chopratejas/headroom/tarball/refs/tags/v0.26.0",
-      "hash": "sha256-HLLElwmKe0KYH6qh5VeJvUPy6iLh8Va8hJ8xDt8xPAA="
+      "version": "v0.27.0",
+      "revision": "95b2333ee5a3f1cbe512ca04a6563c3572835758",
+      "url": "https://api.github.com/repos/chopratejas/headroom/tarball/refs/tags/v0.27.0",
+      "hash": "sha256-059AC105XH6BOnHvQjC3EueUL3Z6t1fD29fHqHkkmX0="
     },
     "home-manager": {
       "type": "Git",
@@ -64,9 +64,9 @@
       },
       "branch": "release-26.05",
       "submodules": false,
-      "revision": "8355f0a16b2dbb06a97959a918af5b239bbe05ae",
-      "url": "https://github.com/nix-community/home-manager/archive/8355f0a16b2dbb06a97959a918af5b239bbe05ae.tar.gz",
-      "hash": "sha256-ZGuxexEMo4Xv28KJ0dX/m/PHN4oZIOnxHZpNTyrvx4M="
+      "revision": "7bfff44b465909f69a442701293bc0badcf476dc",
+      "url": "https://github.com/nix-community/home-manager/archive/7bfff44b465909f69a442701293bc0badcf476dc.tar.gz",
+      "hash": "sha256-/1nNBbA7PrSQpTc9Qazkhl4kIPg+TNl0CjxS3UQJKlw="
     },
     "nixGL": {
       "type": "Git",
@@ -90,9 +90,9 @@
       },
       "branch": "release-26.05",
       "submodules": false,
-      "revision": "9b6c02329612087a18c1c001e3377fcb0568069c",
-      "url": "https://github.com/NixOS/nixpkgs/archive/9b6c02329612087a18c1c001e3377fcb0568069c.tar.gz",
-      "hash": "sha256-Yz6C/suhcXvWMP5RNN+4Dw94BhSQc5flHpMPsnYlb7k="
+      "revision": "e19832a27f7760bef9296d968c25e24765e8a679",
+      "url": "https://github.com/NixOS/nixpkgs/archive/e19832a27f7760bef9296d968c25e24765e8a679.tar.gz",
+      "hash": "sha256-Dxq6CN42CeUcIReDgcKz322t0HvUl3j4nlYpIGwYjtE="
     },
     "nixpkgs-unstable": {
       "type": "Git",
@@ -116,9 +116,9 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "774d661290228a202d77eb555bd23b7bdcca86d9",
-      "url": "https://github.com/dlrobson/plugin-marketplace/archive/774d661290228a202d77eb555bd23b7bdcca86d9.tar.gz",
-      "hash": "sha256-h4hOXpyfIoBDxe7Dh6QNNSeM4gLVJfMckcBHUwXCUyc="
+      "revision": "a186177f0577d4cfaecafcc53f4a13fba0571782",
+      "url": "https://github.com/dlrobson/plugin-marketplace/archive/a186177f0577d4cfaecafcc53f4a13fba0571782.tar.gz",
+      "hash": "sha256-pbjIyIzB+2RpmJo512JtWenSMB9b9+3lvhbhTjBgPvw="
     },
     "pyproject-nix": {
       "type": "Git",
@@ -129,9 +129,9 @@
       },
       "branch": "master",
       "submodules": false,
-      "revision": "d9847acff422152a03764fd60c96ae0dd9f9fa73",
-      "url": "https://github.com/pyproject-nix/pyproject.nix/archive/d9847acff422152a03764fd60c96ae0dd9f9fa73.tar.gz",
-      "hash": "sha256-uRqDouxg3b0EuOHQd1HhmFZouHebM7pz+H6EWAXd3FM="
+      "revision": "43f0b40edd0a74c63f66b7b48d969ae6b740d611",
+      "url": "https://github.com/pyproject-nix/pyproject.nix/archive/43f0b40edd0a74c63f66b7b48d969ae6b740d611.tar.gz",
+      "hash": "sha256-LRD1SuQWr49fGq3A+8GLXfsLE2xqIpQA440YDZwms3M="
     },
     "superpowers": {
       "type": "Git",
@@ -155,9 +155,9 @@
       },
       "branch": "master",
       "submodules": false,
-      "revision": "14aa44100859a44144878fe079f8089d3fa4dc4e",
-      "url": "https://github.com/pyproject-nix/uv2nix/archive/14aa44100859a44144878fe079f8089d3fa4dc4e.tar.gz",
-      "hash": "sha256-PQfvfKWaBvCysdHFUO5GewwvwIqI/WL6OcrJhDSUdbc="
+      "revision": "920fc6dfaf9f10ec56de93b184055e1a9f380d5e",
+      "url": "https://github.com/pyproject-nix/uv2nix/archive/920fc6dfaf9f10ec56de93b184055e1a9f380d5e.tar.gz",
+      "hash": "sha256-UfyLY3Hfwb3JqxCcj0953GxTFI5dEL85EKEe6DAFiVs="
     }
   },
   "version": 8
