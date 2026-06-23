@@ -9,6 +9,8 @@
     generateCompletions = false;
     interactiveShellInit = ''
       set fish_greeting # Disable greeting
+      bind \e\ct _fzf_search_current_token
+      bind -M insert \e\ct _fzf_search_current_token
     '';
     plugins = [
       {
