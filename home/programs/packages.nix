@@ -11,6 +11,8 @@ in
   home = {
     packages = with pkgs; [
       bat
+      fd
+      fzf
       git-lfs
       htop
       jq

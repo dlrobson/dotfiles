@@ -27,6 +27,10 @@
         name = "hydro";
         inherit (pkgs.fishPlugins.hydro) src;
       }
+      {
+        name = "fzf-fish";
+        inherit (pkgs.fishPlugins.fzf-fish) src;
+      }
     ];
     shellAbbrs = {
       grb = "git rebase --update-refs";
