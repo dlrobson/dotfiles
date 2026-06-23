@@ -9,6 +9,8 @@
     generateCompletions = false;
     interactiveShellInit = ''
       set fish_greeting # Disable greeting
+      # Disable fzf-fish's ctrl-r override to keep fish's native history pager
+      fzf_configure_bindings --history=
       bind \e\ct _fzf_search_current_token
       bind -M insert \e\ct _fzf_search_current_token
     '';
