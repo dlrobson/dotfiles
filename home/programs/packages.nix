@@ -13,6 +13,7 @@ in
       bat
       fd
       fzf
+      gh
       git-lfs
       htop
       jq
