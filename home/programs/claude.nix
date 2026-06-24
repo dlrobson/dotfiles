@@ -28,6 +28,17 @@ in
     programs.claude-code = {
       enable = true;
       package = config.unstablePkgs.claude-code;
+      settings = {
+        autoMemoryEnabled = true;
+        autoDreamEnabled = true;
+        remoteControlAtStartup = true;
+        agentPushNotifEnabled = true;
+        skipAutoPermissionPrompt = true;
+        attribution = {
+          commit = "";
+          pr = "";
+        };
+      };
       plugins = [
         "${sources.superpowers}"
         "${anthropicsClaude}/plugins/learning-output-style"
