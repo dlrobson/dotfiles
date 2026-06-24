@@ -38,6 +38,22 @@ in
           commit = "";
           pr = "";
         };
+        # headroom wrap installs rtk and adds this hook at runtime, but since
+        # settings.json is Nix-managed, runtime mutations get clobbered on rebuild.
+        # Declared here so the hook survives without needing headroom to run first.
+        hooks = {
+          PreToolUse = [
+            {
+              matcher = "Bash";
+              hooks = [
+                {
+                  type = "command";
+                  command = "${config.home.homeDirectory}/.claude/hooks/rtk-rewrite.sh";
+                }
+              ];
+            }
+          ];
+        };
       };
       plugins = [
         "${sources.superpowers}"
