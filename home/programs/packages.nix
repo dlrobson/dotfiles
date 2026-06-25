@@ -20,6 +20,7 @@ in
       less
       libnotify
       nixpkgs-fmt
+      nixd
       nodejs_24
       ripgrep
     ];

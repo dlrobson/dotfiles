@@ -26,6 +26,19 @@
       "url": "https://github.com/anthropics/claude-code/archive/0bd954331e2dbf76024ac53b0fd997314f653e51.tar.gz",
       "hash": "sha256-FoOfXbGL4UdNFM+IXN698E+t5iK/XxoxpzT7oKlZMQ0="
     },
+    "claude-code-lsps": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "boostvolt",
+        "repo": "claude-code-lsps"
+      },
+      "branch": "main",
+      "submodules": false,
+      "revision": "03956489c6eb27aed3066c79b34a788c3ed27943",
+      "url": "https://github.com/boostvolt/claude-code-lsps/archive/03956489c6eb27aed3066c79b34a788c3ed27943.tar.gz",
+      "hash": "sha256-3D1w7YDS371+7NsokN1KOjpOsrWPKgd/0ZQ7HEfzD04="
+    },
     "claude-code-rules": {
       "type": "Git",
       "repository": {

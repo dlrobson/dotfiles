@@ -47,6 +47,9 @@ in
         # inert without it. Repo is itself a marketplace; the plugin lives in
         # the `ast-grep/` subdir.
         "${sources.ast-grep-skill}/ast-grep"
+        "${sources.claude-code-lsps}/rust-analyzer"
+        "${sources.claude-code-lsps}/nixd"
+        "${sources.claude-code-lsps}/vtsls"
       ]
       ++ localPlugins;
     };
