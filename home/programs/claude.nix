@@ -47,6 +47,14 @@ in
     };
 
     home = {
+      # Runtime deps for the `nix` plugin's mcp-nixos server, which launches
+      # via `UV_PYTHON=$(which python3) uvx mcp-nixos`
+      # (see plugin-marketplace/plugins/nix/.mcp.json). uvx runs the server;
+      # python3 is the interpreter uv builds its environment against.
+      packages = with pkgs; [
+        uv
+        python3
+      ];
 
       sessionPath = [
         "${config.home.homeDirectory}/.npm-global/bin"
