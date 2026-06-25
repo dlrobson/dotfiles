@@ -29,6 +29,11 @@ in
       package = config.unstablePkgs.claude-code;
       settings = {
         outputStyle = "Learning";
+        # Retain sessions/tasks/backups for 60 days (default is shorter), so
+        # older sessions remain scrollable and backups recoverable.
+        # Note: the nixpkgs claude-code wrapper already sets DISABLE_AUTOUPDATER=1,
+        # so no env entry is needed to stop the bundled updater.
+        cleanupPeriodDays = 60;
         autoMemoryEnabled = true;
         autoDreamEnabled = true;
         remoteControlAtStartup = true;
