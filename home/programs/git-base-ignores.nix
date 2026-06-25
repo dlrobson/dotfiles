@@ -1,4 +1,5 @@
 [
   ".direnv"
   ".claude/settings.local.json"
+  ".claude/worktrees"
 ]
