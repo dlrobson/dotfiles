@@ -25,11 +25,6 @@ let
         lib.composeManyExtensions [
           buildSystemPkgs.overlays.wheel
           overlay
-          (final: prev: {
-            proxy-tools = prev.proxy-tools.overridePythonAttrs (old: {
-              buildInputs = (old.buildInputs or [ ]) ++ [ final.setuptools ];
-            });
-          })
         ]
       );
 in
