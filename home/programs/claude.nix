@@ -42,6 +42,11 @@ in
         "${sources.superpowers}"
         "${anthropicsClaude}/plugins/learning-output-style"
         "${anthropicsClaude}/plugins/pr-review-toolkit"
+        # Official ast-grep skill: structural (AST-based) code search and
+        # rewrites. The binary is added to home.packages below; the skill is
+        # inert without it. Repo is itself a marketplace; the plugin lives in
+        # the `ast-grep/` subdir.
+        "${sources.ast-grep-skill}/ast-grep"
       ]
       ++ localPlugins;
     };
@@ -51,9 +56,12 @@ in
       # via `UV_PYTHON=$(which python3) uvx mcp-nixos`
       # (see plugin-marketplace/plugins/nix/.mcp.json). uvx runs the server;
       # python3 is the interpreter uv builds its environment against.
-      packages = with pkgs; [
-        uv
-        python3
+      packages = [
+        pkgs.uv
+        pkgs.python3
+        # Binary for the ast-grep-skill plugin (pinned above). Unstable to
+        # stay aligned with the skill, which tracks the upstream repo's main.
+        config.unstablePkgs.ast-grep
       ];
 
       sessionPath = [
