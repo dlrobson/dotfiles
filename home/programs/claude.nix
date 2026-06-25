@@ -28,6 +28,7 @@ in
       enable = true;
       package = config.unstablePkgs.claude-code;
       settings = {
+        outputStyle = "Learning";
         autoMemoryEnabled = true;
         autoDreamEnabled = true;
         remoteControlAtStartup = true;
@@ -40,7 +41,6 @@ in
       };
       plugins = [
         "${sources.superpowers}"
-        "${anthropicsClaude}/plugins/learning-output-style"
         "${anthropicsClaude}/plugins/pr-review-toolkit"
         # Official ast-grep skill: structural (AST-based) code search and
         # rewrites. The binary is added to home.packages below; the skill is
