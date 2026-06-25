@@ -27,7 +27,10 @@
         plugin = resurrect;
         extraConfig = ''
           set -g @resurrect-capture-pane-contents 'on'
-          set -g @resurrect-processes '~claude'
+          # Match the saved command by substring (it's an absolute wrapper
+          # path), but restore bare `claude` so it re-resolves through the
+          # current nix-profile wrapper instead of stale /nix/store paths.
+          set -g @resurrect-processes '~claude->claude'
         '';
       }
       {
