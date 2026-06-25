@@ -9,7 +9,6 @@ let
   sources = import ../../npins;
   pluginMarketplace = sources.plugin-marketplace;
   anthropicsClaude = sources.claude-code;
-  inherit (sources) headroom;
   localPlugins = map (name: "${pluginMarketplace}/plugins/${name}") (
     builtins.attrNames (builtins.readDir "${pluginMarketplace}/plugins")
   );
@@ -38,36 +37,16 @@ in
           commit = "";
           pr = "";
         };
-        # headroom wrap installs rtk and adds this hook at runtime, but since
-        # settings.json is Nix-managed, runtime mutations get clobbered on rebuild.
-        # Declared here so the hook survives without needing headroom to run first.
-        hooks = {
-          PreToolUse = [
-            {
-              matcher = "Bash";
-              hooks = [
-                {
-                  type = "command";
-                  command = "${config.home.homeDirectory}/.claude/hooks/rtk-rewrite.sh";
-                }
-              ];
-            }
-          ];
-        };
       };
       plugins = [
         "${sources.superpowers}"
         "${anthropicsClaude}/plugins/learning-output-style"
         "${anthropicsClaude}/plugins/pr-review-toolkit"
-        "${headroom}/plugins/headroom-agent-hooks"
       ]
       ++ localPlugins;
     };
 
     home = {
-      packages = [
-        pkgs.uv
-      ];
 
       sessionPath = [
         "${config.home.homeDirectory}/.npm-global/bin"

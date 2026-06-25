@@ -8,8 +8,7 @@
     ./et.nix
     ./fish.nix
     ./git.nix
-    ./headroom.nix
-    ./packages.nix
+./packages.nix
     ./rbw.nix
     ./ssh.nix
     ./tmux.nix
