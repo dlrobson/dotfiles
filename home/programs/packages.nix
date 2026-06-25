@@ -22,7 +22,6 @@ in
       nixpkgs-fmt
       nodejs_24
       ripgrep
-      config.unstablePkgs.rtk
     ];
   };
 }

@@ -1,6 +1,7 @@
 {
   pkgs,
   lib,
+  config,
   ...
 }:
 
@@ -28,5 +29,8 @@ let
       );
 in
 {
-  home.packages = [ (pythonSet.mkVirtualEnv "headroom-env" workspace.deps.default) ];
+  home.packages = [
+    (pythonSet.mkVirtualEnv "headroom-env" workspace.deps.default)
+    config.unstablePkgs.rtk
+  ];
 }
