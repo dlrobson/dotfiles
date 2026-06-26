@@ -10,6 +10,15 @@
       set -g focus-events on
       set -g automatic-rename off
 
+      # Let Claude Code's desktop notifications and terminal progress bar
+      # pass through tmux to Ghostty (otherwise tmux swallows them).
+      set -g allow-passthrough on
+      # Distinguish Shift+Enter from plain Enter so Claude Code's newline
+      # shortcut works inside tmux; pair with a truecolor advert for the
+      # Catppuccin theme to render with full 24-bit color.
+      set -s extended-keys on
+      set -as terminal-features 'xterm*:extkeys:RGB'
+
       # Open new panes/windows in the current pane's working directory
       bind '"' split-window -c "#{pane_current_path}"
       bind % split-window -h -c "#{pane_current_path}"
