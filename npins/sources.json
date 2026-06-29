@@ -22,9 +22,9 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "0bd954331e2dbf76024ac53b0fd997314f653e51",
-      "url": "https://github.com/anthropics/claude-code/archive/0bd954331e2dbf76024ac53b0fd997314f653e51.tar.gz",
-      "hash": "sha256-FoOfXbGL4UdNFM+IXN698E+t5iK/XxoxpzT7oKlZMQ0="
+      "revision": "01f1617f14452ac78bf319cef2236d87c0fe05cb",
+      "url": "https://github.com/anthropics/claude-code/archive/01f1617f14452ac78bf319cef2236d87c0fe05cb.tar.gz",
+      "hash": "sha256-eVdDeXy/+Tbwv4JvSSdS4rTwvEIvV3gidUw9PSRReWw="
     },
     "claude-code-lsps": {
       "type": "Git",
@@ -61,9 +61,9 @@
       },
       "branch": "release-26.05",
       "submodules": false,
-      "revision": "7bfff44b465909f69a442701293bc0badcf476dc",
-      "url": "https://github.com/nix-community/home-manager/archive/7bfff44b465909f69a442701293bc0badcf476dc.tar.gz",
-      "hash": "sha256-/1nNBbA7PrSQpTc9Qazkhl4kIPg+TNl0CjxS3UQJKlw="
+      "revision": "868d0a692de703c2de98fab61968e4e310b7c28e",
+      "url": "https://github.com/nix-community/home-manager/archive/868d0a692de703c2de98fab61968e4e310b7c28e.tar.gz",
+      "hash": "sha256-G1I1gd32F7mp9LAe1DaZ4ZL7NX5gyiKwdCMwro1Vrck="
     },
     "nixGL": {
       "type": "Git",
@@ -87,9 +87,9 @@
       },
       "branch": "release-26.05",
       "submodules": false,
-      "revision": "0fc9820ebd1302bb078734f2123c4b293800cc25",
-      "url": "https://github.com/NixOS/nixpkgs/archive/0fc9820ebd1302bb078734f2123c4b293800cc25.tar.gz",
-      "hash": "sha256-jpZfj5rBZJZzdaLypxMTEerJI3Dy7Z0RZ1/UPL85wag="
+      "revision": "aadd8d088bd07aecbcd99a0135761e76ee8ac678",
+      "url": "https://github.com/NixOS/nixpkgs/archive/aadd8d088bd07aecbcd99a0135761e76ee8ac678.tar.gz",
+      "hash": "sha256-EeYVMY+bfPwS1piAbE2BTwZH1qFh3Ea2KzKeh86v3kg="
     },
     "nixpkgs-unstable": {
       "type": "Git",
@@ -100,9 +100,9 @@
       },
       "branch": "nixos-unstable",
       "submodules": false,
-      "revision": "567a49d1913ce81ac6e9582e3553dd90a955875f",
-      "url": "https://github.com/NixOS/nixpkgs/archive/567a49d1913ce81ac6e9582e3553dd90a955875f.tar.gz",
-      "hash": "sha256-lrp67w8AulE9Ks53n27I45ADSzbOCn4H+CNW1Ck8B+8="
+      "revision": "e73de5be04e0eff4190a1432b946d469c794e7b4",
+      "url": "https://github.com/NixOS/nixpkgs/archive/e73de5be04e0eff4190a1432b946d469c794e7b4.tar.gz",
+      "hash": "sha256-pGvFkM8N0xEkIIXDe5YYfbEAvHrk4IxBrjB/x8OomhE="
     },
     "plugin-marketplace": {
       "type": "Git",
