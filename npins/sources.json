@@ -22,9 +22,9 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "01f1617f14452ac78bf319cef2236d87c0fe05cb",
-      "url": "https://github.com/anthropics/claude-code/archive/01f1617f14452ac78bf319cef2236d87c0fe05cb.tar.gz",
-      "hash": "sha256-eVdDeXy/+Tbwv4JvSSdS4rTwvEIvV3gidUw9PSRReWw="
+      "revision": "a56ff02e8592fb2ad056e60d6f4fa231724deabb",
+      "url": "https://github.com/anthropics/claude-code/archive/a56ff02e8592fb2ad056e60d6f4fa231724deabb.tar.gz",
+      "hash": "sha256-uFfwj0w6tKlWXkvG1BK1LxWqeAd5E1M6fhr0jvx1nAw="
     },
     "claude-code-lsps": {
       "type": "Git",
@@ -87,9 +87,9 @@
       },
       "branch": "release-26.05",
       "submodules": false,
-      "revision": "aadd8d088bd07aecbcd99a0135761e76ee8ac678",
-      "url": "https://github.com/NixOS/nixpkgs/archive/aadd8d088bd07aecbcd99a0135761e76ee8ac678.tar.gz",
-      "hash": "sha256-EeYVMY+bfPwS1piAbE2BTwZH1qFh3Ea2KzKeh86v3kg="
+      "revision": "a455f05b42429d7b6e80080e17d0f541f2b23ba1",
+      "url": "https://github.com/NixOS/nixpkgs/archive/a455f05b42429d7b6e80080e17d0f541f2b23ba1.tar.gz",
+      "hash": "sha256-AHJH5HgsoDWY5TCeb4tSvNve92VJz+RpOrT04CxRlsw="
     },
     "nixpkgs-unstable": {
       "type": "Git",
@@ -100,9 +100,9 @@
       },
       "branch": "nixos-unstable",
       "submodules": false,
-      "revision": "e73de5be04e0eff4190a1432b946d469c794e7b4",
-      "url": "https://github.com/NixOS/nixpkgs/archive/e73de5be04e0eff4190a1432b946d469c794e7b4.tar.gz",
-      "hash": "sha256-pGvFkM8N0xEkIIXDe5YYfbEAvHrk4IxBrjB/x8OomhE="
+      "revision": "b5aa0fbd538984f6e3d201be0005b4463d8b09f8",
+      "url": "https://github.com/NixOS/nixpkgs/archive/b5aa0fbd538984f6e3d201be0005b4463d8b09f8.tar.gz",
+      "hash": "sha256-oPXCU/SSUokcGaJREHibG1CBX3+s/W7orDWQOZDsEeQ="
     },
     "plugin-marketplace": {
       "type": "Git",
@@ -126,9 +126,9 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "896224c4b1879920ab573417e68fd51d2ccc9072",
-      "url": "https://github.com/obra/superpowers/archive/896224c4b1879920ab573417e68fd51d2ccc9072.tar.gz",
-      "hash": "sha256-+lT2a/qq0SF4k0PgnEDKiuidVlZX2p0vEso4d/5T1os="
+      "revision": "f268f7c953744036f0fa7e9d4b73535c04e57cb8",
+      "url": "https://github.com/obra/superpowers/archive/f268f7c953744036f0fa7e9d4b73535c04e57cb8.tar.gz",
+      "hash": "sha256-gvFbbT6uTPSvpFZdPvOiddZxs6amBdL/vm2qp97Dej4="
     }
   },
   "version": 8
