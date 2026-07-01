@@ -8,7 +8,7 @@
     ./et.nix
     ./fish.nix
     ./git.nix
-./packages.nix
+    ./packages.nix
     ./rbw.nix
     ./ssh.nix
     ./tmux.nix
