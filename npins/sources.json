@@ -74,9 +74,9 @@
       },
       "branch": "release-26.05",
       "submodules": false,
-      "revision": "c7c0b21caaf96b4fda1a6fbfa58b5e40b341876b",
-      "url": "https://github.com/NixOS/nixpkgs/archive/c7c0b21caaf96b4fda1a6fbfa58b5e40b341876b.tar.gz",
-      "hash": "sha256-HFzBA/yk2zei/FVy7atXzc8VKJd43nSLpjmcFPC48Hw="
+      "revision": "bbf080acdc3ad59942fcb657790058a535618027",
+      "url": "https://github.com/NixOS/nixpkgs/archive/bbf080acdc3ad59942fcb657790058a535618027.tar.gz",
+      "hash": "sha256-wuxiFhsb4rptEHHbF6hWQz4INXMOSAiPCr9cFzalt3M="
     },
     "nixpkgs-unstable": {
       "type": "Git",
@@ -100,9 +100,9 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "56cb43738284c4c28b29f095bf49e6261491c11f",
-      "url": "https://github.com/dlrobson/plugin-marketplace/archive/56cb43738284c4c28b29f095bf49e6261491c11f.tar.gz",
-      "hash": "sha256-GHUGv0y0TKz0pSms5ER5EndMZb+uUtRFcs2g2Xl5GyA="
+      "revision": "137387ba707027c1c85c747fb0e2354a6bd607e0",
+      "url": "https://github.com/dlrobson/plugin-marketplace/archive/137387ba707027c1c85c747fb0e2354a6bd607e0.tar.gz",
+      "hash": "sha256-MsW+p/ITWLb2zwg03vOSouFAoAQAX9ezWcr6ZS0YMXk="
     }
   },
   "version": 8
