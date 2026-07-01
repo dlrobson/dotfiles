@@ -52,6 +52,19 @@
       "url": "https://github.com/NikiforovAll/claude-code-rules/archive/5f59d584f14fe5a837e9d6d4bcae7da088b7e6bc.tar.gz",
       "hash": "sha256-tfAYmS6tN0k3pi4HjWWdm672ouuNKyDDP3gxOWOjAbU="
     },
+    "claude-plugins-official": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "anthropics",
+        "repo": "claude-plugins-official"
+      },
+      "branch": "main",
+      "submodules": false,
+      "revision": "d149589943f011324e2c12997fd28f869d5124fe",
+      "url": "https://github.com/anthropics/claude-plugins-official/archive/d149589943f011324e2c12997fd28f869d5124fe.tar.gz",
+      "hash": "sha256-k9SJumVUhFcHow9F0tvVo3rPG4Oci3vACZe3ODeB2OU="
+    },
     "home-manager": {
       "type": "Git",
       "repository": {
@@ -116,19 +129,6 @@
       "revision": "56cb43738284c4c28b29f095bf49e6261491c11f",
       "url": "https://github.com/dlrobson/plugin-marketplace/archive/56cb43738284c4c28b29f095bf49e6261491c11f.tar.gz",
       "hash": "sha256-GHUGv0y0TKz0pSms5ER5EndMZb+uUtRFcs2g2Xl5GyA="
-    },
-    "superpowers": {
-      "type": "Git",
-      "repository": {
-        "type": "GitHub",
-        "owner": "obra",
-        "repo": "superpowers"
-      },
-      "branch": "main",
-      "submodules": false,
-      "revision": "f268f7c953744036f0fa7e9d4b73535c04e57cb8",
-      "url": "https://github.com/obra/superpowers/archive/f268f7c953744036f0fa7e9d4b73535c04e57cb8.tar.gz",
-      "hash": "sha256-gvFbbT6uTPSvpFZdPvOiddZxs6amBdL/vm2qp97Dej4="
     }
   },
   "version": 8

@@ -9,6 +9,7 @@ let
   sources = import ../../npins;
   pluginMarketplace = sources.plugin-marketplace;
   anthropicsClaude = sources.claude-code;
+  claudePluginsOfficial = sources.claude-plugins-official;
   localPlugins = map (name: "${pluginMarketplace}/plugins/${name}") (
     builtins.attrNames (builtins.readDir "${pluginMarketplace}/plugins")
   );
@@ -47,18 +48,25 @@ in
           commit = "";
           pr = "";
         };
+        # Plugins resolved from the `claude-plugins-official` marketplace
+        # (registered below), keyed as `plugin-id@marketplace-id`.
+        enabledPlugins = {
+          "claude-md-management@claude-plugins-official" = true;
+          "claude-code-setup@claude-plugins-official" = true;
+          "superpowers@claude-plugins-official" = true;
+          "rust-analyzer@claude-code-lsps" = true;
+          "nixd@claude-code-lsps" = true;
+          "vtsls@claude-code-lsps" = true;
+          "ast-grep@ast-grep-marketplace" = true;
+        };
+      };
+      marketplaces = {
+        claude-plugins-official = claudePluginsOfficial;
+        inherit (sources) claude-code-lsps;
+        ast-grep-marketplace = sources.ast-grep-skill;
       };
       plugins = [
-        "${sources.superpowers}"
         "${anthropicsClaude}/plugins/pr-review-toolkit"
-        # Official ast-grep skill: structural (AST-based) code search and
-        # rewrites. The binary is added to home.packages below; the skill is
-        # inert without it. Repo is itself a marketplace; the plugin lives in
-        # the `ast-grep/` subdir.
-        "${sources.ast-grep-skill}/ast-grep"
-        "${sources.claude-code-lsps}/rust-analyzer"
-        "${sources.claude-code-lsps}/nixd"
-        "${sources.claude-code-lsps}/vtsls"
       ]
       ++ localPlugins;
     };
