@@ -9,6 +9,7 @@ let
     text = ''
       find . -name "*.nix" -type f -print0 | xargs -0 nixfmt --check
       statix check --ignore "npins/default.nix"
+      find . -name "*.nix" -type f -not -path "./npins/*" -print0 | xargs -0 deadnix --fail
     '';
   };
 
@@ -17,6 +18,7 @@ let
     text = ''
       find . -name "*.nix" -type f -print0 | xargs -0 nixfmt
       statix fix --ignore "npins/default.nix"
+      find . -name "*.nix" -type f -not -path "./npins/*" -print0 | xargs -0 deadnix --edit
     '';
   };
 
@@ -41,6 +43,7 @@ let
     text = ''
       find . -name "*.nix" -type f -print0 | xargs -0 nixfmt
       statix fix --ignore "npins/default.nix"
+      find . -name "*.nix" -type f -not -path "./npins/*" -print0 | xargs -0 deadnix --edit
     '';
   };
 
@@ -54,6 +57,7 @@ pkgs.mkShell {
   buildInputs = [
     pkgs.nixfmt
     pkgs.statix
+    pkgs.deadnix
     hm.home-manager
     check
     fix
