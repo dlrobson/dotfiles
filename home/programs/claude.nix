@@ -28,7 +28,6 @@ in
       enable = true;
       package = config.unstablePkgs.claude-code;
       settings = {
-        outputStyle = "Learning";
         # Flicker-free alt-screen renderer with virtualized scrollback
         # (equivalent to CLAUDE_CODE_NO_FLICKER=1; toggle live via /tui).
         tui = "fullscreen";
