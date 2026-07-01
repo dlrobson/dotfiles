@@ -42,6 +42,7 @@ in
         remoteControlAtStartup = true;
         agentPushNotifEnabled = true;
         skipAutoPermissionPrompt = true;
+        model = "claude-sonnet-5";
         attribution = {
           commit = "";
           pr = "";
