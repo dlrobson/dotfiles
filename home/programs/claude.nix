@@ -42,6 +42,7 @@ in
         agentPushNotifEnabled = true;
         skipAutoPermissionPrompt = true;
         model = "claude-sonnet-5";
+        effortLevel = "medium";
         attribution = {
           commit = "";
           pr = "";
