@@ -8,10 +8,16 @@ let
   cfg = config.claude-window-trigger;
   sources = import ../../npins;
   pluginMarketplace = sources.plugin-marketplace;
-  anthropicsClaude = sources.claude-code;
   claudePluginsOfficial = sources.claude-plugins-official;
-  localPlugins = map (name: "${pluginMarketplace}/plugins/${name}") (
-    builtins.attrNames (builtins.readDir "${pluginMarketplace}/plugins")
+  # Enable every plugin listed in the marketplace's manifest automatically,
+  # so new plugins added to the repo don't need to be listed here by hand.
+  localMarketplaceManifest = builtins.fromJSON (
+    builtins.readFile "${pluginMarketplace}/.claude-plugin/marketplace.json"
+  );
+  localEnabledPlugins = lib.listToAttrs (
+    map (
+      plugin: lib.nameValuePair "${plugin.name}@dlrobson-plugins" true
+    ) localMarketplaceManifest.plugins
   );
 in
 {
@@ -48,27 +54,26 @@ in
           commit = "";
           pr = "";
         };
-        # Plugins resolved from the `claude-plugins-official` marketplace
-        # (registered below), keyed as `plugin-id@marketplace-id`.
+        # Plugins resolved from the marketplaces registered below, keyed as
+        # `plugin-id@marketplace-id`.
         enabledPlugins = {
           "claude-md-management@claude-plugins-official" = true;
           "claude-code-setup@claude-plugins-official" = true;
           "superpowers@claude-plugins-official" = true;
+          "pr-review-toolkit@claude-plugins-official" = true;
           "rust-analyzer@claude-code-lsps" = true;
           "nixd@claude-code-lsps" = true;
           "vtsls@claude-code-lsps" = true;
           "ast-grep@ast-grep-marketplace" = true;
-        };
+        }
+        // localEnabledPlugins;
       };
       marketplaces = {
         claude-plugins-official = claudePluginsOfficial;
         inherit (sources) claude-code-lsps;
         ast-grep-marketplace = sources.ast-grep-skill;
+        dlrobson-plugins = pluginMarketplace;
       };
-      plugins = [
-        "${anthropicsClaude}/plugins/pr-review-toolkit"
-      ]
-      ++ localPlugins;
     };
 
     home = {

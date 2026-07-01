@@ -13,19 +13,6 @@
       "url": "https://github.com/ast-grep/agent-skill/archive/577f4d4507678f2c8cee150fae25e6ce309f70b1.tar.gz",
       "hash": "sha256-LgGFtPieyKtoru22AhHW8hvkJ8kCHO2Cr8rBOWGuxvY="
     },
-    "claude-code": {
-      "type": "Git",
-      "repository": {
-        "type": "GitHub",
-        "owner": "anthropics",
-        "repo": "claude-code"
-      },
-      "branch": "main",
-      "submodules": false,
-      "revision": "a56ff02e8592fb2ad056e60d6f4fa231724deabb",
-      "url": "https://github.com/anthropics/claude-code/archive/a56ff02e8592fb2ad056e60d6f4fa231724deabb.tar.gz",
-      "hash": "sha256-uFfwj0w6tKlWXkvG1BK1LxWqeAd5E1M6fhr0jvx1nAw="
-    },
     "claude-code-lsps": {
       "type": "Git",
       "repository": {
@@ -38,19 +25,6 @@
       "revision": "03956489c6eb27aed3066c79b34a788c3ed27943",
       "url": "https://github.com/boostvolt/claude-code-lsps/archive/03956489c6eb27aed3066c79b34a788c3ed27943.tar.gz",
       "hash": "sha256-3D1w7YDS371+7NsokN1KOjpOsrWPKgd/0ZQ7HEfzD04="
-    },
-    "claude-code-rules": {
-      "type": "Git",
-      "repository": {
-        "type": "GitHub",
-        "owner": "NikiforovAll",
-        "repo": "claude-code-rules"
-      },
-      "branch": "main",
-      "submodules": false,
-      "revision": "5f59d584f14fe5a837e9d6d4bcae7da088b7e6bc",
-      "url": "https://github.com/NikiforovAll/claude-code-rules/archive/5f59d584f14fe5a837e9d6d4bcae7da088b7e6bc.tar.gz",
-      "hash": "sha256-tfAYmS6tN0k3pi4HjWWdm672ouuNKyDDP3gxOWOjAbU="
     },
     "claude-plugins-official": {
       "type": "Git",
