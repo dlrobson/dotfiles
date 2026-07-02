@@ -50,20 +50,6 @@ in
         skipAutoPermissionPrompt = true;
         model = "claude-sonnet-5";
         effortLevel = "medium";
-        # plugin-dev's skills are only for when I'm actively building a
-        # plugin/skill; hiding them from the model's skill listing keeps the
-        # plugin available (still invocable as /plugin-dev:<name>) without
-        # paying their description tokens on every session.
-        skillOverrides = {
-          "plugin-dev:create-plugin" = "user-invocable-only";
-          "plugin-dev:agent-development" = "user-invocable-only";
-          "plugin-dev:command-development" = "user-invocable-only";
-          "plugin-dev:hook-development" = "user-invocable-only";
-          "plugin-dev:mcp-integration" = "user-invocable-only";
-          "plugin-dev:plugin-settings" = "user-invocable-only";
-          "plugin-dev:plugin-structure" = "user-invocable-only";
-          "plugin-dev:skill-development" = "user-invocable-only";
-        };
         attribution = {
           commit = "";
           pr = "";
@@ -74,7 +60,6 @@ in
           "claude-md-management@claude-plugins-official" = true;
           "claude-code-setup@claude-plugins-official" = true;
           "superpowers@claude-plugins-official" = true;
-          "plugin-dev@claude-plugins-official" = true;
           "pr-review-toolkit@claude-plugins-official" = true;
           "rust-analyzer@claude-code-lsps" = true;
           "nixd@claude-code-lsps" = true;

@@ -35,9 +35,9 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "c4d29764e820015ef913a00d1b8d7058aae11dce",
-      "url": "https://github.com/anthropics/claude-plugins-official/archive/c4d29764e820015ef913a00d1b8d7058aae11dce.tar.gz",
-      "hash": "sha256-nOTUrEs8McAgQejt6a9y1lpIEEgfXM8BiFfwj/FNOH4="
+      "revision": "6d578313aa15e37f0562afb7535f6d0d5e612040",
+      "url": "https://github.com/anthropics/claude-plugins-official/archive/6d578313aa15e37f0562afb7535f6d0d5e612040.tar.gz",
+      "hash": "sha256-cB3KY7jTCjiYOLrxiEO6QL3xNxfpFV1B04L+CDNbV8E="
     },
     "home-manager": {
       "type": "Git",
@@ -74,9 +74,9 @@
       },
       "branch": "release-26.05",
       "submodules": false,
-      "revision": "31f170f3435d322d7d8b26fcb1a6b5c21942c855",
-      "url": "https://github.com/NixOS/nixpkgs/archive/31f170f3435d322d7d8b26fcb1a6b5c21942c855.tar.gz",
-      "hash": "sha256-vzL19ORZ3SAD74iB8cP7TaKNNqttluXZzMYbfF99bwU="
+      "revision": "b477a0c31fdf8486e23da3ff6a771c2622f4434a",
+      "url": "https://github.com/NixOS/nixpkgs/archive/b477a0c31fdf8486e23da3ff6a771c2622f4434a.tar.gz",
+      "hash": "sha256-+mewxdWQ1rA/E17tE5hc9t7XzSqAueV/0hC6TMV7TJY="
     },
     "nixpkgs-unstable": {
       "type": "Git",
@@ -100,9 +100,9 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "7c51b9a79c050caeb463ac2dd5c0e7483f533884",
-      "url": "https://github.com/dlrobson/plugin-marketplace/archive/7c51b9a79c050caeb463ac2dd5c0e7483f533884.tar.gz",
-      "hash": "sha256-5pCFyYOPczitnv7ybA4XpEw/SvSZ4KLqT+oxun57V9U="
+      "revision": "c654eed258743c2d9b193fe537f1f1d17bfb9407",
+      "url": "https://github.com/dlrobson/plugin-marketplace/archive/c654eed258743c2d9b193fe537f1f1d17bfb9407.tar.gz",
+      "hash": "sha256-6cDKxqzDFJXNTgJnhZ4vG4GFk0iDxgQYLttwotXn/Wg="
     }
   },
   "version": 8
