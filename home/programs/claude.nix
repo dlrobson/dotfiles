@@ -49,6 +49,7 @@ in
         agentPushNotifEnabled = true;
         skipAutoPermissionPrompt = true;
         model = "claude-sonnet-5";
+        effortLevel = "medium";
         # plugin-dev's skills are only for when I'm actively building a
         # plugin/skill; hiding them from the model's skill listing keeps the
         # plugin available (still invocable as /plugin-dev:<name>) without
