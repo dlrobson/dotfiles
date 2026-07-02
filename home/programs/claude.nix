@@ -50,6 +50,10 @@ in
         skipAutoPermissionPrompt = true;
         model = "claude-sonnet-5";
         effortLevel = "medium";
+        # Default 1% budget truncates a handful of skill descriptions (full
+        # listing is ~1.7% of context); actual cost is negligible either way
+        # (~3.3k tokens total), so raise the cap to stop the startup warning.
+        skillListingBudgetFraction = 0.02;
         attribution = {
           commit = "";
           pr = "";
