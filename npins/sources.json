@@ -35,9 +35,9 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "6d578313aa15e37f0562afb7535f6d0d5e612040",
-      "url": "https://github.com/anthropics/claude-plugins-official/archive/6d578313aa15e37f0562afb7535f6d0d5e612040.tar.gz",
-      "hash": "sha256-cB3KY7jTCjiYOLrxiEO6QL3xNxfpFV1B04L+CDNbV8E="
+      "revision": "36cfea46b6b1d46111eb8d93ff595162a1a6cb56",
+      "url": "https://github.com/anthropics/claude-plugins-official/archive/36cfea46b6b1d46111eb8d93ff595162a1a6cb56.tar.gz",
+      "hash": "sha256-89ki8Ib2pufZ4Y2wI9bxYWViTaoFc0aiTJJo1D8iQCs="
     },
     "home-manager": {
       "type": "Git",
@@ -74,9 +74,9 @@
       },
       "branch": "release-26.05",
       "submodules": false,
-      "revision": "b477a0c31fdf8486e23da3ff6a771c2622f4434a",
-      "url": "https://github.com/NixOS/nixpkgs/archive/b477a0c31fdf8486e23da3ff6a771c2622f4434a.tar.gz",
-      "hash": "sha256-+mewxdWQ1rA/E17tE5hc9t7XzSqAueV/0hC6TMV7TJY="
+      "revision": "29991789ffe3576905a799232e567c58f6acfd49",
+      "url": "https://github.com/NixOS/nixpkgs/archive/29991789ffe3576905a799232e567c58f6acfd49.tar.gz",
+      "hash": "sha256-90Tu1MvnQGIE3QPFKds78jqhs2B9vkxiz19hzEoV34o="
     },
     "nixpkgs-unstable": {
       "type": "Git",
