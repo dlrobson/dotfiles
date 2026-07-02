@@ -1,9 +1,27 @@
-{ config, ... }:
+{ config, pkgs, ... }:
 
 let
   sources = import ../../npins;
   nixvimFlake = import sources.nixvim;
   nixvimLib = nixvimFlake.lib.nixvim;
+
+  # Transitional VSCode-style chords, added one at a time as they're needed.
+  # Each entry is independent - delete individually as vim-native habits take
+  # over (see the description for the vim-native equivalent of each).
+  vscodeKeymaps = [
+    {
+      key = "<C-p>";
+      mode = "n";
+      action = nixvimLib.mkRaw "require('fzf-lua').files";
+      options.desc = "VSCode Quick Open (vim-native: :e + tab-complete, or :FzfLua files)";
+    }
+    {
+      key = "<C-S-f>";
+      mode = "n";
+      action = nixvimLib.mkRaw "require('fzf-lua').live_grep";
+      options.desc = "VSCode Find in Files (vim-native: :grep + :copen, or :FzfLua live_grep)";
+    }
+  ];
 in
 {
   imports = [
@@ -20,6 +38,12 @@ in
     viAlias = true;
     vimAlias = true;
     defaultEditor = true;
+
+    # Matches VSCode's "Monokai" (workbench.colorTheme in settings.json) -
+    # not nixvim's `colorschemes.vscode`, which is a Dark+ port and doesn't
+    # match this theme.
+    colorscheme = "monokai";
+    extraPlugins = [ pkgs.vimPlugins.vim-monokai ];
 
     plugins = {
       # Live gutter signs for uncommitted hunks vs HEAD - no push/commit needed.
@@ -70,6 +94,8 @@ in
       };
     };
 
+    keymaps = vscodeKeymaps;
+
     lsp.keymaps = [
       {
         key = "gd";
@@ -82,6 +108,23 @@ in
       {
         key = "gO";
         action = nixvimLib.mkRaw "require('fzf-lua').lsp_document_symbols";
+      }
+      # VSCode transitional duplicates of gd/gr above - delete independently
+      # once F12/Shift+F12 stop getting reached for.
+      {
+        key = "<F12>";
+        action = nixvimLib.mkRaw "require('fzf-lua').lsp_definitions";
+      }
+      {
+        key = "<S-F12>";
+        action = nixvimLib.mkRaw "require('fzf-lua').lsp_references";
+      }
+      # VSCode transitional: rename symbol (vim-native: vim.lsp.buf.rename()
+      # via a keymap of your choosing - delete this once <F2> stops getting
+      # reached for).
+      {
+        key = "<F2>";
+        lspBufAction = "rename";
       }
     ];
   };
