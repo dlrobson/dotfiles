@@ -80,6 +80,11 @@ in
     };
 
     home = {
+      # known_marketplaces.json is fully derived from `marketplaces` above, so
+      # always overwrite it rather than backing up (avoids "would be
+      # clobbered" failures when a stale .backup already exists).
+      file."${config.programs.claude-code.configDir}/plugins/known_marketplaces.json".force = true;
+
       # Runtime deps for the `nix` plugin's mcp-nixos server, which launches
       # via `UV_PYTHON=$(which python3) uvx mcp-nixos`
       # (see plugin-marketplace/plugins/nix/.mcp.json). uvx runs the server;
