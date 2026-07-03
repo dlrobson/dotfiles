@@ -39,8 +39,18 @@ in
     vimAlias = true;
     defaultEditor = true;
 
-    # Default leader is backslash - space is far more reachable.
-    globals.mapleader = " ";
+    # Fixes tmux zoom/unzoom (or any terminal resize) leaving one window
+    # squeezed to 1 column: a window with winfixwidth set (e.g. a sidebar
+    # plugin's file panel) refuses to shrink, so all the size change gets
+    # dumped onto the other window instead of being shared. `wincmd =`
+    # rebalances every window that isn't fixed-width/height back to equal
+    # size; re-running it on every resize keeps this from compounding.
+    autoCmd = [
+      {
+        event = "VimResized";
+        command = "wincmd =";
+      }
+    ];
 
     # Moved off monokai-pro: its DiffAdd/DiffChange/DiffDelete/override
     # highlights are cached to disk (~/.cache/nvim/monokai-pro-<filter>.json),
