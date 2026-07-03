@@ -42,50 +42,31 @@ in
     # Default leader is backslash - space is far more reachable.
     globals.mapleader = " ";
 
-    # Matches VSCode's "Monokai" (workbench.colorTheme in settings.json).
-    # `filter = "classic"` is the original Monokai palette (not the muted
-    # "Pro" one). Not `colorschemes.vscode` (a Dark+ port - different theme),
-    # and not vim-monokai (a pre-Treesitter colorscheme with almost no
-    # Treesitter/LSP-semantic-token highlight groups, which is why namespace
-    # qualifiers and type names were rendering as the same flat color).
-    colorschemes.monokai-pro = {
+    # Moved off monokai-pro: its DiffAdd/DiffChange/DiffDelete/override
+    # highlights are cached to disk (~/.cache/nvim/monokai-pro-<filter>.json),
+    # outside Nix's control - config changes weren't taking effect even after
+    # rebuilding + restarting, and deleting the cache file didn't resolve it
+    # either. gruvbox.nvim's DiffAdd/DiffChange/DiffDelete are bg-only by
+    # default (only DiffText sets fg, intentionally, for the exact changed
+    # word) - no override needed for syntax highlighting to show through on
+    # changed lines.
+    colorschemes.gruvbox = {
       enable = true;
-      settings = {
-        filter = "classic";
-        # Upstream's DiffAdd/DiffChange/DiffDelete set an explicit fg (a
-        # green/orange/pink blend) on top of bg, which overrides every
-        # token's actual syntax color on that line - changed lines render
-        # as one flat color instead of keeping syntax highlighting, unlike
-        # VSCode's diff view. Drop fg so syntax highlighting shows through;
-        # keep only the background tint (+ bold for the exact changed text).
-        override = nixvimLib.mkRaw ''
-          function(scheme)
-            return {
-              DiffAdd = { bg = scheme.diffEditor.insertedLineBackground },
-              DiffChange = { bg = scheme.diffEditor.modifiedLineBackground },
-              DiffDelete = { bg = scheme.diffEditor.removedLineBackground },
-              DiffText = { bg = scheme.diffEditor.modifiedLineBackground, bold = true },
-            }
-          end
-        '';
-      };
+      settings.contrast = "soft";
     };
 
-    # <leader>tt toggles between the dark ("classic") and light ("light")
-    # Monokai Pro filters, also flipping vim.o.background so other
-    # background-aware plugins/highlights follow along.
+    # <leader>tt toggles dark/light background and reapplies gruvbox, which
+    # reads vim.o.background directly at load time.
     keymaps = vscodeKeymaps ++ [
       {
         key = "<leader>tt";
         action = nixvimLib.mkRaw ''
           function()
-            local mp = require('monokai-pro')
-            local next_filter = mp.get_config().filter == 'light' and 'classic' or 'light'
-            vim.o.background = next_filter == 'light' and 'light' or 'dark'
-            mp.set_filter(next_filter)
+            vim.o.background = vim.o.background == "light" and "dark" or "light"
+            vim.cmd.colorscheme("gruvbox")
           end
         '';
-        options.desc = "Toggle Monokai Pro dark/light";
+        options.desc = "Toggle dark/light background";
       }
     ];
 
