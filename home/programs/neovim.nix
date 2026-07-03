@@ -55,6 +55,11 @@ in
         indent.enable = true;
       };
 
+      # File icons for fzf-lua's picker and diffview's file panel. Ghostty
+      # (our terminal) has built-in Nerd Font symbol fallback since 1.2, so
+      # no font/terminal config is needed for these to render.
+      web-devicons.enable = true;
+
       # Live gutter signs for uncommitted hunks vs HEAD - no push/commit needed.
       gitsigns = {
         enable = true;
