@@ -46,6 +46,15 @@ in
     extraPlugins = [ pkgs.vimPlugins.vim-monokai ];
 
     plugins = {
+      # Syntax highlighting - installs all grammar parsers via Nix (reproducible,
+      # no runtime compilation). Without this, buffers (including diffview's
+      # panes) render as plain text regardless of colorscheme.
+      treesitter = {
+        enable = true;
+        highlight.enable = true;
+        indent.enable = true;
+      };
+
       # Live gutter signs for uncommitted hunks vs HEAD - no push/commit needed.
       gitsigns = {
         enable = true;
