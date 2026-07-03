@@ -5,7 +5,11 @@
     enable = true;
     mouse = true;
     historyLimit = 100000;
-    terminal = "xterm-256color";
+    # tmux's own terminfo entry (not xterm-256color) - correctly declares key
+    # capabilities so special keys like Home/End pass through to programs
+    # running inside tmux (e.g. Neovim). RGB/extended-keys below are separate:
+    # they describe the *outer* terminal (Ghostty), not this.
+    terminal = "tmux-256color";
     extraConfig = ''
       set -g focus-events on
       set -g automatic-rename off
