@@ -50,6 +50,15 @@ in
         event = "VimResized";
         command = "wincmd =";
       }
+      # Line wrapping breaks diff alignment on narrow windows: a wrapped line
+      # spills onto extra screen rows, throwing off the row-for-row alignment
+      # diff mode depends on. OptionSet fires exactly when a window enters or
+      # exits diff mode, so this only touches diff windows, not normal ones.
+      {
+        event = "OptionSet";
+        pattern = "diff";
+        command = "if &diff | setlocal nowrap | endif";
+      }
     ];
 
     # Moved off monokai-pro: its DiffAdd/DiffChange/DiffDelete/override
