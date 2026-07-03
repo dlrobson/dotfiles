@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, ... }:
 
 let
   sources = import ../../npins;
@@ -39,11 +39,37 @@ in
     vimAlias = true;
     defaultEditor = true;
 
-    # Matches VSCode's "Monokai" (workbench.colorTheme in settings.json) -
-    # not nixvim's `colorschemes.vscode`, which is a Dark+ port and doesn't
-    # match this theme.
-    colorscheme = "monokai";
-    extraPlugins = [ pkgs.vimPlugins.vim-monokai ];
+    # Default leader is backslash - space is far more reachable.
+    globals.mapleader = " ";
+
+    # Matches VSCode's "Monokai" (workbench.colorTheme in settings.json).
+    # `filter = "classic"` is the original Monokai palette (not the muted
+    # "Pro" one). Not `colorschemes.vscode` (a Dark+ port - different theme),
+    # and not vim-monokai (a pre-Treesitter colorscheme with almost no
+    # Treesitter/LSP-semantic-token highlight groups, which is why namespace
+    # qualifiers and type names were rendering as the same flat color).
+    colorschemes.monokai-pro = {
+      enable = true;
+      settings.filter = "classic";
+    };
+
+    # <leader>tt toggles between the dark ("classic") and light ("light")
+    # Monokai Pro filters, also flipping vim.o.background so other
+    # background-aware plugins/highlights follow along.
+    keymaps = vscodeKeymaps ++ [
+      {
+        key = "<leader>tt";
+        action = nixvimLib.mkRaw ''
+          function()
+            local mp = require('monokai-pro')
+            local next_filter = mp.get_config().filter == 'light' and 'classic' or 'light'
+            vim.o.background = next_filter == 'light' and 'light' or 'dark'
+            mp.set_filter(next_filter)
+          end
+        '';
+        options.desc = "Toggle Monokai Pro dark/light";
+      }
+    ];
 
     plugins = {
       # Syntax highlighting - installs all grammar parsers via Nix (reproducible,
@@ -116,8 +142,6 @@ in
         package = null;
       };
     };
-
-    keymaps = vscodeKeymaps;
 
     lsp.keymaps = [
       {
