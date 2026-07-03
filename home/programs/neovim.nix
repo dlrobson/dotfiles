@@ -50,7 +50,25 @@ in
     # qualifiers and type names were rendering as the same flat color).
     colorschemes.monokai-pro = {
       enable = true;
-      settings.filter = "classic";
+      settings = {
+        filter = "classic";
+        # Upstream's DiffAdd/DiffChange/DiffDelete set an explicit fg (a
+        # green/orange/pink blend) on top of bg, which overrides every
+        # token's actual syntax color on that line - changed lines render
+        # as one flat color instead of keeping syntax highlighting, unlike
+        # VSCode's diff view. Drop fg so syntax highlighting shows through;
+        # keep only the background tint (+ bold for the exact changed text).
+        override = nixvimLib.mkRaw ''
+          function(scheme)
+            return {
+              DiffAdd = { bg = scheme.diffEditor.insertedLineBackground },
+              DiffChange = { bg = scheme.diffEditor.modifiedLineBackground },
+              DiffDelete = { bg = scheme.diffEditor.removedLineBackground },
+              DiffText = { bg = scheme.diffEditor.modifiedLineBackground, bold = true },
+            }
+          end
+        '';
+      };
     };
 
     # <leader>tt toggles between the dark ("classic") and light ("light")
