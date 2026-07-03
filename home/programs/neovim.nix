@@ -85,6 +85,15 @@ in
     # own direnv environment (see e.g. ouster-perception/.envrc: `use nix`).
     # `package = null` stops Nixvim from adding its own copy to PATH; a
     # server only activates if its binary is already on PATH.
+    #
+    # `lsp.servers.<name>.enable` alone only calls `vim.lsp.enable(name)` - it
+    # supplies no cmd/filetypes/root_markers unless set explicitly. Neovim's
+    # own built-in bundled configs cover only a handful of servers, so
+    # plugins.lspconfig (nvim-lspconfig) is needed for the rest (basedpyright,
+    # vtsls, nixd) to actually have a cmd/filetypes/root_markers registered at
+    # all - it ships default configs, it doesn't enable/start anything itself.
+    plugins.lspconfig.enable = true;
+
     lsp.servers = {
       clangd = {
         enable = true;
