@@ -176,63 +176,65 @@ in
     # all - it ships default configs, it doesn't enable/start anything itself.
     plugins.lspconfig.enable = true;
 
-    # Shows inferred types/parameter names inline, matching VSCode's default.
-    # Only applies in buffers whose attached server actually supports it.
-    lsp.inlayHints.enable = true;
+    lsp = {
+      # Shows inferred types/parameter names inline, matching VSCode's default.
+      # Only applies in buffers whose attached server actually supports it.
+      inlayHints.enable = true;
 
-    lsp.servers = {
-      clangd = {
-        enable = true;
-        package = null;
+      servers = {
+        clangd = {
+          enable = true;
+          package = null;
+        };
+        rust_analyzer = {
+          enable = true;
+          package = null;
+        };
+        basedpyright = {
+          enable = true;
+          package = null;
+        };
+        vtsls = {
+          enable = true;
+          package = null;
+        };
+        nixd = {
+          enable = true;
+          package = null;
+        };
       };
-      rust_analyzer = {
-        enable = true;
-        package = null;
-      };
-      basedpyright = {
-        enable = true;
-        package = null;
-      };
-      vtsls = {
-        enable = true;
-        package = null;
-      };
-      nixd = {
-        enable = true;
-        package = null;
-      };
+
+      keymaps = [
+        {
+          key = "gd";
+          action = nixvimLib.mkRaw "require('fzf-lua').lsp_definitions";
+        }
+        {
+          key = "gr";
+          action = nixvimLib.mkRaw "require('fzf-lua').lsp_references";
+        }
+        {
+          key = "gO";
+          action = nixvimLib.mkRaw "require('fzf-lua').lsp_document_symbols";
+        }
+        # VSCode transitional duplicates of gd/gr above - delete independently
+        # once F12/Shift+F12 stop getting reached for.
+        {
+          key = "<F12>";
+          action = nixvimLib.mkRaw "require('fzf-lua').lsp_definitions";
+        }
+        {
+          key = "<S-F12>";
+          action = nixvimLib.mkRaw "require('fzf-lua').lsp_references";
+        }
+        # VSCode transitional: rename symbol (vim-native: vim.lsp.buf.rename()
+        # via a keymap of your choosing - delete this once <F2> stops getting
+        # reached for).
+        {
+          key = "<F2>";
+          lspBufAction = "rename";
+        }
+      ];
     };
-
-    lsp.keymaps = [
-      {
-        key = "gd";
-        action = nixvimLib.mkRaw "require('fzf-lua').lsp_definitions";
-      }
-      {
-        key = "gr";
-        action = nixvimLib.mkRaw "require('fzf-lua').lsp_references";
-      }
-      {
-        key = "gO";
-        action = nixvimLib.mkRaw "require('fzf-lua').lsp_document_symbols";
-      }
-      # VSCode transitional duplicates of gd/gr above - delete independently
-      # once F12/Shift+F12 stop getting reached for.
-      {
-        key = "<F12>";
-        action = nixvimLib.mkRaw "require('fzf-lua').lsp_definitions";
-      }
-      {
-        key = "<S-F12>";
-        action = nixvimLib.mkRaw "require('fzf-lua').lsp_references";
-      }
-      # VSCode transitional: rename symbol (vim-native: vim.lsp.buf.rename()
-      # via a keymap of your choosing - delete this once <F2> stops getting
-      # reached for).
-      {
-        key = "<F2>";
-        lspBufAction = "rename";
-      }
-    ];
   };
 }
