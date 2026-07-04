@@ -16,7 +16,11 @@ let
       options.desc = "VSCode Quick Open (vim-native: :e + tab-complete, or :FzfLua files)";
     }
     {
-      key = "<C-S-f>";
+      # Not <C-S-f>: legacy terminal protocols encode Ctrl+letter as a
+      # single control byte with no way to also flag Shift, so it was
+      # indistinguishable from plain Ctrl+F regardless of terminal/tmux
+      # config. Leader-based avoids that whole class of problem.
+      key = "<leader>/";
       mode = "n";
       action = nixvimLib.mkRaw "require('fzf-lua').live_grep";
       options.desc = "VSCode Find in Files (vim-native: :grep + :copen, or :FzfLua live_grep)";
