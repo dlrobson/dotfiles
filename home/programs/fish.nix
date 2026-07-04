@@ -42,7 +42,6 @@
       grb = "git rebase --update-refs";
       grbo = "git rebase --update-refs --onto";
       claude-haiku = "claude --model claude-haiku-4-5 --effort low";
-      claude-haiku-xhigh = "claude --model claude-haiku-4-5 --effort xhigh";
       claude-haiku-max = "claude --model claude-haiku-4-5 --effort max";
       claude-sonnet = "claude --model claude-sonnet-5 --effort high";
       claude-opus = "claude --model claude-opus-4-8 --effort high";
