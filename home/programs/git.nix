@@ -27,6 +27,8 @@ in
 
     settings = {
       core.editor = "vi";
+      diff.tool = "difftastic";
+      difftool.prompt = false;
       fetch.prune = true;
       init.defaultBranch = "main";
       pull.rebase = true;
