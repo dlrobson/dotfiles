@@ -13,6 +13,8 @@
       fzf_configure_bindings --history=
       bind \e\ct _fzf_search_current_token
       bind -M insert \e\ct _fzf_search_current_token
+      # Difftastic default context lines
+      set -gx DFT_CONTEXT 8
     '';
     plugins = [
       {
@@ -69,6 +71,18 @@
           echo "Deleting stale branches: $filtered_branches"
           git branch -D $filtered_branches
         end
+      '';
+      gdiff-full = ''
+        set -lx DFT_CONTEXT 999
+        git diff $argv
+      '';
+      gdiff-ctx = ''
+        if test (count $argv) -lt 1
+          echo "Usage: gdiff-ctx <context-lines>"
+          return 1
+        end
+        set -lx DFT_CONTEXT $argv[1]
+        git diff $argv[2..]
       '';
     };
   };
