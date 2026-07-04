@@ -1,12 +1,4 @@
-{
-  lib,
-  pkgs,
-  config,
-  ...
-}:
-let
-  cfg = config.home-manager-configuration;
-in
+{ pkgs, ... }:
 {
   home = {
     packages = with pkgs; [

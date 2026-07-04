@@ -1,9 +1,4 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+{ pkgs, ... }:
 
 # We sometimes may need to use NixGL on non-NixOS devices:
 # https://github.com/nix-community/nixGL/issues/114#issuecomment-2741822320

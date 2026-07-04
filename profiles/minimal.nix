@@ -1,9 +1,4 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+_:
 
 let
   homeDirectory = builtins.getEnv "HOME";
