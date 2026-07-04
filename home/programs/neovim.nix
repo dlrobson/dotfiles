@@ -10,7 +10,8 @@ let
   # over (see the description for the vim-native equivalent of each).
   vscodeKeymaps = [
     {
-      key = "<C-p>";
+      # Matches the terminal's own fuzzy file search binding.
+      key = "<C-M-f>";
       mode = "n";
       action = nixvimLib.mkRaw "require('fzf-lua').files";
       options.desc = "VSCode Quick Open (vim-native: :e + tab-complete, or :FzfLua files)";
