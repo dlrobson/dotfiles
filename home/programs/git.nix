@@ -17,7 +17,10 @@ in
   programs.difftastic = {
     enable = true;
     package = config.unstablePkgs.difftastic;
-    git.enable = true;
+    git = {
+      enable = true;
+      diffToolMode = true;
+    };
   };
 
   programs.git = {
@@ -27,7 +30,6 @@ in
 
     settings = {
       core.editor = "vi";
-      diff.tool = "difftastic";
       difftool.prompt = false;
       fetch.prune = true;
       init.defaultBranch = "main";
