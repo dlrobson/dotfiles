@@ -50,10 +50,6 @@ in
           settings = {
             theme = "dark:Catppuccin Frappe,light:Catppuccin Latte";
             term = "xterm-ghostty";
-            # Ghostty's own scrollback search claims this by default, so it
-            # never reaches tmux/Neovim's "Find in Files" mapping on the same
-            # key. `unbind` removes the binding and lets the key through.
-            keybind = [ "ctrl+shift+f=unbind" ];
           };
         };
 
