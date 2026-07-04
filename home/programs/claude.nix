@@ -34,6 +34,12 @@ in
     programs.claude-code = {
       enable = true;
       package = config.unstablePkgs.claude-code;
+      context = ''
+        # Global Claude Code Rules
+
+        ## Git workflow
+        When pushing a new branch upstream for the first time, return the PR creation URL (from `gh pr create`).
+      '';
       settings = {
         # Flicker-free alt-screen renderer with virtualized scrollback
         # (equivalent to CLAUDE_CODE_NO_FLICKER=1; toggle live via /tui).
