@@ -119,6 +119,52 @@ in
         '';
         options.desc = "Toggle dark/light background";
       }
+      # VSCode-style window switching (Ctrl+1, Ctrl+2, etc.)
+      {
+        key = "<C-1>";
+        action = nixvimLib.mkRaw "function() vim.cmd('wincmd 1') end";
+        options.desc = "Switch to window 1";
+      }
+      {
+        key = "<C-2>";
+        action = nixvimLib.mkRaw "function() vim.cmd('wincmd 2') end";
+        options.desc = "Switch to window 2";
+      }
+      {
+        key = "<C-3>";
+        action = nixvimLib.mkRaw "function() vim.cmd('wincmd 3') end";
+        options.desc = "Switch to window 3";
+      }
+      {
+        key = "<C-4>";
+        action = nixvimLib.mkRaw "function() vim.cmd('wincmd 4') end";
+        options.desc = "Switch to window 4";
+      }
+      {
+        key = "<C-5>";
+        action = nixvimLib.mkRaw "function() vim.cmd('wincmd 5') end";
+        options.desc = "Switch to window 5";
+      }
+      {
+        key = "<C-6>";
+        action = nixvimLib.mkRaw "function() vim.cmd('wincmd 6') end";
+        options.desc = "Switch to window 6";
+      }
+      {
+        key = "<C-7>";
+        action = nixvimLib.mkRaw "function() vim.cmd('wincmd 7') end";
+        options.desc = "Switch to window 7";
+      }
+      {
+        key = "<C-8>";
+        action = nixvimLib.mkRaw "function() vim.cmd('wincmd 8') end";
+        options.desc = "Switch to window 8";
+      }
+      {
+        key = "<C-9>";
+        action = nixvimLib.mkRaw "function() vim.cmd('wincmd 9') end";
+        options.desc = "Switch to window 9";
+      }
     ];
 
     plugins = {
