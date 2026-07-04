@@ -16,10 +16,7 @@ in
   programs.difftastic = {
     enable = true;
     package = config.unstablePkgs.difftastic;
-    git = {
-      enable = true;
-      diffToolMode = true;
-    };
+    git.enable = true;
   };
 
   programs.git = {
@@ -29,6 +26,9 @@ in
 
     settings = {
       core.editor = "vi";
+      # `git diff` uses difftastic (via programs.difftastic.git.enable above);
+      # `git difftool` uses Neovim's built-in diff mode instead.
+      diff.tool = "nvimdiff";
       difftool.prompt = false;
       fetch.prune = true;
       init.defaultBranch = "main";
