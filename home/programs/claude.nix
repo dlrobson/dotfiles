@@ -57,6 +57,7 @@ in
         attribution = {
           commit = "";
           pr = "";
+          sessionUrl = false;
         };
         # Plugins resolved from the marketplaces registered below, keyed as
         # `plugin-id@marketplace-id`.
