@@ -9,9 +9,9 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "577f4d4507678f2c8cee150fae25e6ce309f70b1",
-      "url": "https://github.com/ast-grep/agent-skill/archive/577f4d4507678f2c8cee150fae25e6ce309f70b1.tar.gz",
-      "hash": "sha256-LgGFtPieyKtoru22AhHW8hvkJ8kCHO2Cr8rBOWGuxvY="
+      "revision": "c2a9bc154f4ffe08b25d28d5e852dfac8c0d0d8a",
+      "url": "https://github.com/ast-grep/agent-skill/archive/c2a9bc154f4ffe08b25d28d5e852dfac8c0d0d8a.tar.gz",
+      "hash": "sha256-awochSE2OupbsmaGx0xc7wHf0ovVMSdtHv4gZAGWOus="
     },
     "claude-code-lsps": {
       "type": "Git",
@@ -35,9 +35,9 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "358ee646f45b39424320d47abbb15554d4eb31e3",
-      "url": "https://github.com/anthropics/claude-plugins-official/archive/358ee646f45b39424320d47abbb15554d4eb31e3.tar.gz",
-      "hash": "sha256-bgTCpodIR1ozuYJ7zGCLckh4Fy5F3Tx9Tb671vOgo2w="
+      "revision": "8326199c6ec61fdcece33199b61bdaa4f9ae1570",
+      "url": "https://github.com/anthropics/claude-plugins-official/archive/8326199c6ec61fdcece33199b61bdaa4f9ae1570.tar.gz",
+      "hash": "sha256-yqeSnCGovv/6gbvukFuMzp1VGqXNVCLx59BY7FgWLFE="
     },
     "home-manager": {
       "type": "Git",
@@ -74,9 +74,9 @@
       },
       "branch": "release-26.05",
       "submodules": false,
-      "revision": "9119d5cdbc3445a519df54db8f2fc6c5ae9c8a2d",
-      "url": "https://github.com/NixOS/nixpkgs/archive/9119d5cdbc3445a519df54db8f2fc6c5ae9c8a2d.tar.gz",
-      "hash": "sha256-eeD/9iTcpP2TQooogv0OcXnmAgyCHcbGqheJo6FP92w="
+      "revision": "230911bdb9e26d476542ac961352f7c20b0724bb",
+      "url": "https://github.com/NixOS/nixpkgs/archive/230911bdb9e26d476542ac961352f7c20b0724bb.tar.gz",
+      "hash": "sha256-fINeT3icpJNLreCx62GJ66zhSTMQip6LRtxRywpaCGI="
     },
     "nixpkgs-unstable": {
       "type": "Git",
@@ -87,9 +87,9 @@
       },
       "branch": "nixos-unstable",
       "submodules": false,
-      "revision": "b5aa0fbd538984f6e3d201be0005b4463d8b09f8",
-      "url": "https://github.com/NixOS/nixpkgs/archive/b5aa0fbd538984f6e3d201be0005b4463d8b09f8.tar.gz",
-      "hash": "sha256-oPXCU/SSUokcGaJREHibG1CBX3+s/W7orDWQOZDsEeQ="
+      "revision": "65179426c83bb3f6bc14898b42ea1c6f01d374b0",
+      "url": "https://github.com/NixOS/nixpkgs/archive/65179426c83bb3f6bc14898b42ea1c6f01d374b0.tar.gz",
+      "hash": "sha256-xnJJk+ct+D2+wdRxj1wk36w5zV9RVESwRqcklPdt3fM="
     },
     "nixvim": {
       "type": "Git",
@@ -100,9 +100,9 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "e52f93e175e63e4b9bfefd53b051a18f12217bed",
-      "url": "https://github.com/nix-community/nixvim/archive/e52f93e175e63e4b9bfefd53b051a18f12217bed.tar.gz",
-      "hash": "sha256-09BjomDm95T6kMWbzceSwOvnsyUGYAUJ0kvfx4jcPww="
+      "revision": "f138b5b7271936845e8d99d66dbe914ca911b876",
+      "url": "https://github.com/nix-community/nixvim/archive/f138b5b7271936845e8d99d66dbe914ca911b876.tar.gz",
+      "hash": "sha256-npPFGVTfa6PUV2vD2ftOfutEiWVhYSPfkYpwuA8Ux1k="
     },
     "plugin-marketplace": {
       "type": "Git",
