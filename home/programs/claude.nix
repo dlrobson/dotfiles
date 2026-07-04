@@ -91,6 +91,11 @@ in
       # clobbered" failures when a stale .backup already exists).
       file."${config.programs.claude-code.configDir}/plugins/known_marketplaces.json".force = true;
 
+      # CLAUDE.md is derived from the repo, so always overwrite rather than
+      # backing up (avoids "would be clobbered" failures when a stale .backup
+      # already exists).
+      file."${config.home.homeDirectory}/.claude/CLAUDE.md".force = true;
+
       # Runtime deps for the `nix` plugin's mcp-nixos server, which launches
       # via `UV_PYTHON=$(which python3) uvx mcp-nixos`
       # (see plugin-marketplace/plugins/nix/.mcp.json). uvx runs the server;
