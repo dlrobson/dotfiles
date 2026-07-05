@@ -77,12 +77,18 @@ in
           # uid; the Nix-store-owned config file resolves to nobody:nogroup
           # inside the sandbox, and OpenSSH refuses to use it). Excluding
           # these skips the sandboxed attempt + retry roundtrip entirely.
+          # nix-shell is excluded too: it needs real write access to
+          # ~/.cache/nix for npins' fetchTarball cache (sandboxed, this
+          # failed with "unable to open database file"), so it's simpler to
+          # run it unsandboxed outright rather than carve out a filesystem
+          # exception.
           excludedCommands = [
             "git push"
             "git pull"
             "git fetch"
             "git clone"
             "ssh"
+            "nix-shell"
           ];
           network = {
             allowedDomains = [
@@ -93,24 +99,27 @@ in
               "api.anthropic.com"
             ];
           };
-          # nix-shell (via npins' fetchTarball) writes its fetcher cache here;
-          # without this, every nix-shell invocation fails with "unable to
-          # open database file" since the sandbox denies the write.
-          filesystem = {
-            allowWrite = [ "~/.cache/nix" ];
-          };
         };
         # Pre-approved actions recurring across repos (surfaced by scanning
-        # each repo's .claude/settings.local.json). Bash commands are
-        # deliberately NOT listed here (e.g. nix-shell --run "check"/"build"/
-        # "run-tests"/"fix", git add/commit): with sandbox.enabled +
-        # autoAllowBashIfSandboxed both true above, every sandboxed Bash
-        # command already auto-runs without a prompt regardless of this
-        # list, so a Bash allow entry here would be functionally inert.
-        # Only non-Bash tool types (WebFetch, Skill, Agent, MCP tools) still
-        # go through normal permission resolution and need listing here.
+        # each repo's .claude/settings.local.json). Most Bash commands are
+        # deliberately NOT listed here (e.g. git add/commit): with
+        # sandbox.enabled + autoAllowBashIfSandboxed both true above, every
+        # sandboxed Bash command already auto-runs without a prompt
+        # regardless of this list, so an allow entry for them would be
+        # functionally inert. The nix-shell targets below are the exception:
+        # nix-shell is in sandbox.excludedCommands (runs unsandboxed), so it
+        # needs an explicit allow entry to skip the prompt too. Scoped to
+        # these known-safe targets rather than a `Bash(nix-shell *)`
+        # wildcard, since nix-shell runs unsandboxed now — a blanket rule
+        # would let arbitrary `nix-shell -p ... --run ...` invocations
+        # execute unprompted as well as unsandboxed.
         permissions = {
           allow = [
+            "Bash(nix-shell --run \"check\")"
+            "Bash(nix-shell --run \"build\")"
+            "Bash(nix-shell --run \"run-tests\")"
+            "Bash(nix-shell --run \"fix\")"
+            "Bash(nix-shell --run \"format\")"
             # Recurring in 2+ repos' local settings (audit-claude-settings);
             # the nix plugin is enabled globally but the MCP tool itself was
             # never allowlisted.
