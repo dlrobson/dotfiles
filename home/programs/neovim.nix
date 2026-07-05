@@ -66,19 +66,8 @@ in
     # response back, which is unreliable. Plain y/p keep using nvim's fast
     # local register; paste system-clipboard content with the terminal's own
     # paste keybinding instead of "+p.
-    extraConfigLua = ''
-      local osc52 = require('vim.ui.clipboard.osc52')
-      vim.g.clipboard = {
-        name = 'osc52',
-        copy = {
-          ['+'] = osc52.copy('+'),
-          ['*'] = osc52.copy('*'),
-        },
-        paste = {
-          ['+'] = osc52.paste('+'),
-          ['*'] = osc52.paste('*'),
-        },
-      }
+    extraConfigLuaPre = ''
+      vim.g.clipboard = 'osc52'
     '';
 
     # Fixes tmux zoom/unzoom (or any terminal resize) leaving one window
