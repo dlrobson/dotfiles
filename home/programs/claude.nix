@@ -176,15 +176,20 @@ in
     };
 
     home = {
-      # known_marketplaces.json is fully derived from `marketplaces` above, so
-      # always overwrite it rather than backing up (avoids "would be
-      # clobbered" failures when a stale .backup already exists).
-      file."${config.programs.claude-code.configDir}/plugins/known_marketplaces.json".force = true;
-
-      # CLAUDE.md is derived from the repo, so always overwrite rather than
-      # backing up (avoids "would be clobbered" failures when a stale .backup
-      # already exists).
-      file."${config.home.homeDirectory}/.claude/CLAUDE.md".force = true;
+      # These three are all fully derived from settings above, so always
+      # overwrite rather than backing up (avoids "would be clobbered"
+      # failures when a stale real file/.backup already exists — this bit
+      # settings.json specifically: a pre-existing real file at that path,
+      # e.g. one Claude Code itself wrote before this repo managed it, made
+      # every activation silently skip re-linking it ("Existing file
+      # '.../.claude/settings.json' would be clobbered" in the
+      # home-manager-admin.service journal) instead of failing loudly, so
+      # config changes there never actually took effect).
+      file = {
+        "${config.programs.claude-code.configDir}/plugins/known_marketplaces.json".force = true;
+        "${config.home.homeDirectory}/.claude/CLAUDE.md".force = true;
+        "${config.home.homeDirectory}/.claude/settings.json".force = true;
+      };
 
       # Runtime deps for the `nix` plugin's mcp-nixos server, which launches
       # via `UV_PYTHON=$(which python3) uvx mcp-nixos`
