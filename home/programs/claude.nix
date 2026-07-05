@@ -76,6 +76,12 @@ in
               "api.anthropic.com"
             ];
           };
+          # nix-shell (via npins' fetchTarball) writes its fetcher cache here;
+          # without this, every nix-shell invocation fails with "unable to
+          # open database file" since the sandbox denies the write.
+          filesystem = {
+            allowWrite = [ "~/.cache/nix" ];
+          };
         };
         # Pre-approved actions recurring across repos (surfaced by scanning
         # each repo's .claude/settings.local.json), so routine validation
