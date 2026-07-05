@@ -97,6 +97,12 @@ in
             "Bash(nix-shell --run \"build\")"
             "Bash(nix-shell --run \"run-tests\")"
             "Bash(nix-shell --run \"fix\")"
+            "Bash(git add *)"
+            "Bash(git commit *)"
+            # Recurring in 2+ repos' local settings (audit-claude-settings);
+            # the nix plugin is enabled globally but the MCP tool itself was
+            # never allowlisted.
+            "mcp__plugin_nix_mcp-nixos__nix"
             "WebFetch(domain:tailscale.com)"
             "WebFetch(domain:mynixos.com)"
             "WebSearch"
