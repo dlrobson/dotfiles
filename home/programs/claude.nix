@@ -68,7 +68,7 @@ in
           autoAllowBashIfSandboxed = true;
           allowUnsandboxedCommands = false;
           network = {
-            allowedHosts = [
+            allowedDomains = [
               "github.com"
               "api.github.com"
               "objects.githubusercontent.com"
