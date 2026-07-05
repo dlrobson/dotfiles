@@ -72,6 +72,18 @@ in
           enabled = true;
           autoAllowBashIfSandboxed = true;
           allowUnsandboxedCommands = true;
+          # git commands that shell out to ssh always hit the ~/.ssh/config
+          # ownership issue above (bwrap's user namespace only maps our own
+          # uid; the Nix-store-owned config file resolves to nobody:nogroup
+          # inside the sandbox, and OpenSSH refuses to use it). Excluding
+          # these skips the sandboxed attempt + retry roundtrip entirely.
+          excludedCommands = [
+            "git push"
+            "git pull"
+            "git fetch"
+            "git clone"
+            "ssh"
+          ];
           network = {
             allowedDomains = [
               "github.com"
