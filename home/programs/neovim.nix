@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, lib, ... }:
 
 let
   sources = import ../../npins;
@@ -127,100 +127,16 @@ in
         '';
         options.desc = "Toggle dark/light background";
       }
-      # VSCode-style window switching (leader+1, leader+2, etc.)
-      # Uses leader prefix instead of Ctrl because terminals don't reliably
-      # send Ctrl+number keycodes.
-      {
-        key = "<leader>1";
+    ] ++ (lib.map (n: {
+        key = "<leader>${toString n}";
         action = nixvimLib.mkRaw ''
           function()
             local wins = vim.api.nvim_list_wins()
-            if 1 <= #wins then vim.api.nvim_set_current_win(wins[1]) end
+            if ${toString n} <= #wins then vim.api.nvim_set_current_win(wins[${toString n}]) end
           end
         '';
-        options.desc = "Switch to window 1";
-      }
-      {
-        key = "<leader>2";
-        action = nixvimLib.mkRaw ''
-          function()
-            local wins = vim.api.nvim_list_wins()
-            if 2 <= #wins then vim.api.nvim_set_current_win(wins[2]) end
-          end
-        '';
-        options.desc = "Switch to window 2";
-      }
-      {
-        key = "<leader>3";
-        action = nixvimLib.mkRaw ''
-          function()
-            local wins = vim.api.nvim_list_wins()
-            if 3 <= #wins then vim.api.nvim_set_current_win(wins[3]) end
-          end
-        '';
-        options.desc = "Switch to window 3";
-      }
-      {
-        key = "<leader>4";
-        action = nixvimLib.mkRaw ''
-          function()
-            local wins = vim.api.nvim_list_wins()
-            if 4 <= #wins then vim.api.nvim_set_current_win(wins[4]) end
-          end
-        '';
-        options.desc = "Switch to window 4";
-      }
-      {
-        key = "<leader>5";
-        action = nixvimLib.mkRaw ''
-          function()
-            local wins = vim.api.nvim_list_wins()
-            if 5 <= #wins then vim.api.nvim_set_current_win(wins[5]) end
-          end
-        '';
-        options.desc = "Switch to window 5";
-      }
-      {
-        key = "<leader>6";
-        action = nixvimLib.mkRaw ''
-          function()
-            local wins = vim.api.nvim_list_wins()
-            if 6 <= #wins then vim.api.nvim_set_current_win(wins[6]) end
-          end
-        '';
-        options.desc = "Switch to window 6";
-      }
-      {
-        key = "<leader>7";
-        action = nixvimLib.mkRaw ''
-          function()
-            local wins = vim.api.nvim_list_wins()
-            if 7 <= #wins then vim.api.nvim_set_current_win(wins[7]) end
-          end
-        '';
-        options.desc = "Switch to window 7";
-      }
-      {
-        key = "<leader>8";
-        action = nixvimLib.mkRaw ''
-          function()
-            local wins = vim.api.nvim_list_wins()
-            if 8 <= #wins then vim.api.nvim_set_current_win(wins[8]) end
-          end
-        '';
-        options.desc = "Switch to window 8";
-      }
-      {
-        key = "<leader>9";
-        action = nixvimLib.mkRaw ''
-          function()
-            local wins = vim.api.nvim_list_wins()
-            if 9 <= #wins then vim.api.nvim_set_current_win(wins[9]) end
-          end
-        '';
-        options.desc = "Switch to window 9";
-      }
-    ];
+        options.desc = "Switch to window ${toString n}";
+      }) (lib.range 1 9));
 
     plugins = {
       # Syntax highlighting - installs all grammar parsers via Nix (reproducible,
