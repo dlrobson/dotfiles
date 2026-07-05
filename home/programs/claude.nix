@@ -140,6 +140,7 @@ in
             "mcp__plugin_nix_mcp-nixos__nix"
             "WebFetch(domain:tailscale.com)"
             "WebFetch(domain:mynixos.com)"
+            "WebFetch(domain:codeload.github.com)"
             "WebSearch"
             "Skill(superpowers:brainstorming)"
             "Skill(superpowers:writing-plans)"
