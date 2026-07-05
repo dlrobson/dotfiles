@@ -61,12 +61,17 @@ in
         # Always run Bash commands inside the bubblewrap sandbox (filesystem
         # writes confined to cwd/scratch, network confined to an allowlist).
         # autoAllowBashIfSandboxed skips the per-command permission prompt
-        # since the sandbox itself is the safety boundary; allowUnsandboxedCommands
-        # stays false so escaping the sandbox always requires explicit approval.
+        # since the sandbox itself is the safety boundary. allowUnsandboxedCommands
+        # is true so a sandbox-caused failure (e.g. writing outside cwd/scratch,
+        # a non-allowlisted host, or the ~/.ssh/config ownership issue under
+        # bwrap's uid remap) lets Claude retry with dangerouslyDisableSandbox
+        # instead of dead-ending — that retry still goes through the normal
+        # permission prompt, since autoAllowBashIfSandboxed only covers
+        # commands that stay inside the sandbox.
         sandbox = {
           enabled = true;
           autoAllowBashIfSandboxed = true;
-          allowUnsandboxedCommands = false;
+          allowUnsandboxedCommands = true;
           network = {
             allowedDomains = [
               "github.com"
@@ -84,14 +89,20 @@ in
           };
         };
         # Pre-approved actions recurring across repos (surfaced by scanning
-        # each repo's .claude/settings.local.json), so routine validation
-        # commands, doc lookups, and process skills don't re-prompt per repo.
+        # each repo's .claude/settings.local.json). Bash commands are
+        # deliberately NOT listed here (e.g. nix-shell --run "check"/"build"/
+        # "run-tests"/"fix", git add/commit): with sandbox.enabled +
+        # autoAllowBashIfSandboxed both true above, every sandboxed Bash
+        # command already auto-runs without a prompt regardless of this
+        # list, so a Bash allow entry here would be functionally inert.
+        # Only non-Bash tool types (WebFetch, Skill, Agent, MCP tools) still
+        # go through normal permission resolution and need listing here.
         permissions = {
-          # shell.nix/default.nix edits always prompt, so the nix-shell
-          # targets below can't be silently redefined then run unprompted
-          # in the same turn (residual risk: a pre-existing malicious
-          # shell.nix in a repo before it's ever read — acceptable here
-          # since these are all personal repos, not third-party checkouts).
+          # shell.nix/default.nix edits always prompt, so their nix-shell
+          # targets can't be silently redefined then run unprompted in the
+          # same turn (residual risk: a pre-existing malicious shell.nix in
+          # a repo before it's ever read — acceptable here since these are
+          # all personal repos, not third-party checkouts).
           ask = [
             "Edit(./shell.nix)"
             "Write(./shell.nix)"
@@ -99,12 +110,6 @@ in
             "Write(./default.nix)"
           ];
           allow = [
-            "Bash(nix-shell --run \"check\")"
-            "Bash(nix-shell --run \"build\")"
-            "Bash(nix-shell --run \"run-tests\")"
-            "Bash(nix-shell --run \"fix\")"
-            "Bash(git add *)"
-            "Bash(git commit *)"
             # Recurring in 2+ repos' local settings (audit-claude-settings);
             # the nix plugin is enabled globally but the MCP tool itself was
             # never allowlisted.
