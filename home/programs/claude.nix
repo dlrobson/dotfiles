@@ -58,6 +58,69 @@ in
         # listing is ~1.7% of context); actual cost is negligible either way
         # (~3.3k tokens total), so raise the cap to stop the startup warning.
         skillListingBudgetFraction = 0.02;
+        # Always run Bash commands inside the bubblewrap sandbox (filesystem
+        # writes confined to cwd/scratch, network confined to an allowlist).
+        # autoAllowBashIfSandboxed skips the per-command permission prompt
+        # since the sandbox itself is the safety boundary; allowUnsandboxedCommands
+        # stays false so escaping the sandbox always requires explicit approval.
+        sandbox = {
+          enabled = true;
+          autoAllowBashIfSandboxed = true;
+          allowUnsandboxedCommands = false;
+          network = {
+            allowedHosts = [
+              "github.com"
+              "api.github.com"
+              "objects.githubusercontent.com"
+              "registry.npmjs.org"
+              "api.anthropic.com"
+            ];
+          };
+        };
+        # Pre-approved actions recurring across repos (surfaced by scanning
+        # each repo's .claude/settings.local.json), so routine validation
+        # commands, doc lookups, and process skills don't re-prompt per repo.
+        permissions = {
+          # shell.nix/default.nix edits always prompt, so the nix-shell
+          # targets below can't be silently redefined then run unprompted
+          # in the same turn (residual risk: a pre-existing malicious
+          # shell.nix in a repo before it's ever read — acceptable here
+          # since these are all personal repos, not third-party checkouts).
+          ask = [
+            "Edit(./shell.nix)"
+            "Write(./shell.nix)"
+            "Edit(./default.nix)"
+            "Write(./default.nix)"
+          ];
+          allow = [
+            "Bash(nix-shell --run \"check\")"
+            "Bash(nix-shell --run \"build\")"
+            "Bash(nix-shell --run \"run-tests\")"
+            "Bash(nix-shell --run \"fix\")"
+            "WebFetch(domain:tailscale.com)"
+            "WebFetch(domain:mynixos.com)"
+            "WebSearch"
+            "Skill(superpowers:brainstorming)"
+            "Skill(superpowers:writing-plans)"
+            "Skill(superpowers:subagent-driven-development)"
+            "Skill(superpowers:systematic-debugging)"
+            "Skill(superpowers:test-driven-development)"
+            "Skill(superpowers:verification-before-completion)"
+            "Skill(superpowers:requesting-code-review)"
+            "Skill(superpowers:receiving-code-review)"
+            "Skill(superpowers:using-git-worktrees)"
+            "Skill(code-review)"
+            "Skill(simplify)"
+            "Skill(verify)"
+            "Skill(pr-review-toolkit:review-pr)"
+            "Agent(pr-review-toolkit:code-reviewer)"
+            "Agent(pr-review-toolkit:code-simplifier)"
+            "Agent(pr-review-toolkit:comment-analyzer)"
+            "Agent(pr-review-toolkit:pr-test-analyzer)"
+            "Agent(pr-review-toolkit:silent-failure-hunter)"
+            "Agent(pr-review-toolkit:type-design-analyzer)"
+          ];
+        };
         attribution = {
           commit = "";
           pr = "";
