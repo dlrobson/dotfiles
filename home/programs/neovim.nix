@@ -116,18 +116,21 @@ in
 
     # <leader>tt toggles dark/light background and reapplies gruvbox, which
     # reads vim.o.background directly at load time.
-    keymaps = vscodeKeymaps ++ [
-      {
-        key = "<leader>tt";
-        action = nixvimLib.mkRaw ''
-          function()
-            vim.o.background = vim.o.background == "light" and "dark" or "light"
-            vim.cmd.colorscheme("gruvbox")
-          end
-        '';
-        options.desc = "Toggle dark/light background";
-      }
-    ] ++ (lib.map (n: {
+    keymaps =
+      vscodeKeymaps
+      ++ [
+        {
+          key = "<leader>tt";
+          action = nixvimLib.mkRaw ''
+            function()
+              vim.o.background = vim.o.background == "light" and "dark" or "light"
+              vim.cmd.colorscheme("gruvbox")
+            end
+          '';
+          options.desc = "Toggle dark/light background";
+        }
+      ]
+      ++ (lib.map (n: {
         key = "<leader>${toString n}";
         action = nixvimLib.mkRaw ''
           function()
