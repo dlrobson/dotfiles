@@ -110,17 +110,6 @@ in
         # Only non-Bash tool types (WebFetch, Skill, Agent, MCP tools) still
         # go through normal permission resolution and need listing here.
         permissions = {
-          # shell.nix/default.nix edits always prompt, so their nix-shell
-          # targets can't be silently redefined then run unprompted in the
-          # same turn (residual risk: a pre-existing malicious shell.nix in
-          # a repo before it's ever read — acceptable here since these are
-          # all personal repos, not third-party checkouts).
-          ask = [
-            "Edit(./shell.nix)"
-            "Write(./shell.nix)"
-            "Edit(./default.nix)"
-            "Write(./default.nix)"
-          ];
           allow = [
             # Recurring in 2+ repos' local settings (audit-claude-settings);
             # the nix plugin is enabled globally but the MCP tool itself was
