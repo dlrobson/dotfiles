@@ -49,6 +49,10 @@ in
       # letter in it (then case-sensitive).
       ignorecase = true;
       smartcase = true;
+
+      # Alias the unnamed register to '+' so plain y/d/p use the system
+      # clipboard provider below, instead of requiring "+y/"+p explicitly.
+      clipboard = "unnamedplus";
     };
 
     # Copy from Neovim (even over SSH on a remote box) to the *local*
