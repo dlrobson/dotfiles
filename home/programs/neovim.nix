@@ -49,10 +49,6 @@ in
       # letter in it (then case-sensitive).
       ignorecase = true;
       smartcase = true;
-
-      # Alias the unnamed register to '+' so plain y/d/p use the system
-      # clipboard provider below, instead of requiring "+y/"+p explicitly.
-      clipboard = "unnamedplus";
     };
 
     # Copy from Neovim (even over SSH on a remote box) to the *local*
@@ -62,6 +58,14 @@ in
     # this goes straight to Neovim's native osc52 support instead. Requires
     # `allow-passthrough on` in tmux.nix (already set, for Claude Code's
     # notifications) so the escape sequence actually reaches Ghostty.
+    #
+    # Use "+y explicitly to copy (write-only, no response needed - reliable).
+    # Deliberately not aliasing the unnamed register via clipboard=unnamedplus:
+    # nvim's OSC52 provider has no local cache for reads, so every plain paste
+    # would send a live OSC52 query and block on tmux/terminal relaying the
+    # response back, which is unreliable. Plain y/p keep using nvim's fast
+    # local register; paste system-clipboard content with the terminal's own
+    # paste keybinding instead of "+p.
     globals.clipboard = "osc52";
 
     # Fixes tmux zoom/unzoom (or any terminal resize) leaving one window
