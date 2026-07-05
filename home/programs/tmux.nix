@@ -9,7 +9,7 @@
     # capabilities so special keys like Home/End pass through to programs
     # running inside tmux (e.g. Neovim). RGB/extended-keys below are separate:
     # they describe the *outer* terminal (Ghostty), not this.
-    terminal = "screen-256color";
+    terminal = "tmux-256color";
     extraConfig = ''
       set -g focus-events on
       set -g automatic-rename off
