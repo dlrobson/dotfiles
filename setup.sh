@@ -4,7 +4,7 @@ set -eu
 # Global variables
 PROFILE=""
 DRY_RUN=""
-REPO_ROOT=""
+REPO_ROOT="${REPO_ROOT:-}"
 
 _command_exists() {
     command -v "$1" >/dev/null 2>&1
@@ -14,25 +14,14 @@ _npins_path() {
     nix-instantiate --eval -E "(import $REPO_ROOT/npins).$1.outPath" | tr -d '"'
 }
 
-install_home_manager() {
-    if _command_exists home-manager; then
-        echo "home-manager is already installed."
-        return 0
-    fi
-
-    echo "Installing home-manager..."
-
-    if ! nix-env -iA home-manager -f "$(_npins_path home-manager)" -I "nixpkgs=$(_npins_path nixpkgs)"; then
-        echo "Error: Failed to install home-manager"
+_build_home_manager() {
+    local hm_out
+    if ! hm_out=$(nix-build "$(_npins_path home-manager)" -A home-manager -I "nixpkgs=$(_npins_path nixpkgs)" --no-out-link); then
+        echo "Error: Failed to build home-manager" >&2
         return 1
     fi
 
-    if ! _command_exists home-manager; then
-        echo "Error: home-manager installation failed"
-        return 1
-    fi
-
-    return 0
+    echo "$hm_out/bin/home-manager"
 }
 
 fix_sandbox_permissions() {
@@ -54,6 +43,7 @@ deploy() {
     local profile="$1"
     local dry_run_flag="$2"
     local profile_file="$REPO_ROOT/profiles/${profile}.nix"
+    local hm_bin
 
     if [ ! -f "$profile_file" ]; then
         echo "Error: unknown profile: $profile"
@@ -64,9 +54,14 @@ deploy() {
         return 1
     fi
 
+    echo "Building home-manager..."
+    if ! hm_bin="$(_build_home_manager)"; then
+        return 1
+    fi
+
     echo "Deploying configuration for: $profile"
 
-    local hm_cmd="home-manager switch -b backup -f $profile_file -I home-manager=$(_npins_path home-manager) -I nixpkgs=$(_npins_path nixpkgs)"
+    local hm_cmd="$hm_bin switch -b backup -f $profile_file -I home-manager=$(_npins_path home-manager) -I nixpkgs=$(_npins_path nixpkgs)"
     if [ -n "$dry_run_flag" ]; then
         hm_cmd="$hm_cmd -n"
         echo "Running in dry-run mode - no changes will be applied"
@@ -122,17 +117,12 @@ parse_arguments() {
 }
 
 main() {
-    REPO_ROOT=$(dirname "$(readlink -f "$0")")
+    REPO_ROOT="${REPO_ROOT:-$(dirname "$(readlink -f "$0")")}"
     parse_arguments "$@"
 
     if ! _command_exists nix; then
         echo "Error: Nix is required but not installed."
         echo "Please install Nix first: https://nixos.org/download.html"
-        exit 1
-    fi
-
-    if ! install_home_manager; then
-        echo "Failed to install home-manager"
         exit 1
     fi
 
