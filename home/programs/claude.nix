@@ -9,20 +9,6 @@ let
   sources = import ../../npins;
   pluginMarketplace = sources.plugin-marketplace;
   claudePluginsOfficial = sources.claude-plugins-official;
-  # Pinned to the last known-good nixpkgs-unstable revision (claude-code
-  # 2.1.197), frozen separately from the rolling unstablePkgs pin. 2.1.201
-  # introduced a regression where the running app itself deletes the
-  # home-manager-managed ~/.claude/settings.json symlink and replaces it
-  # with a plain file containing only whatever single field it last wrote
-  # (e.g. `{"agentPushNotifEnabled": true}`), discarding the rest of the
-  # config until the next rebuild. Bump this pin (`npins update
-  # nixpkgs-unstable-claude-code-pin` won't touch it since it's frozen; use
-  # `npins add ... --name nixpkgs-unstable-claude-code-pin --at <rev>
-  # --frozen` again) once a release without this bug is confirmed.
-  claudeCodeNixpkgs = import sources.nixpkgs-unstable-claude-code-pin {
-    config.allowUnfree = true;
-    inherit (pkgs.stdenv.hostPlatform) system;
-  };
   # Enable every plugin listed in the marketplace's manifest automatically,
   # so new plugins added to the repo don't need to be listed here by hand.
   localMarketplaceManifest = builtins.fromJSON (
@@ -47,7 +33,7 @@ in
   config = {
     programs.claude-code = {
       enable = true;
-      package = claudeCodeNixpkgs.claude-code;
+      package = config.unstablePkgs.claude-code;
       context = ''
         # Global Claude Code Rules
 
@@ -230,7 +216,7 @@ in
         Service = {
           Type = "oneshot";
           ExecStart = pkgs.writeShellScript "claude-window-trigger" ''
-            export PATH="${claudeCodeNixpkgs.claude-code}/bin:$PATH"
+            export PATH="${config.unstablePkgs.claude-code}/bin:$PATH"
             claude -p "hi" --output-format text --system-prompt "" --model claude-haiku-4-5-20251001
           '';
         };
