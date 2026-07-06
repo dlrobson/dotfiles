@@ -165,6 +165,7 @@ in
           "nixd@claude-code-lsps" = true;
           "vtsls@claude-code-lsps" = true;
           "ast-grep@ast-grep-marketplace" = true;
+          "engram@engram" = true;
         }
         // localEnabledPlugins;
       };
@@ -173,6 +174,7 @@ in
         inherit (sources) claude-code-lsps;
         ast-grep-marketplace = sources.ast-grep-skill;
         dlrobson-plugins = pluginMarketplace;
+        inherit (sources) engram;
       };
     };
 
