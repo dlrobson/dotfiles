@@ -50,7 +50,6 @@ in
         tui = "fullscreen";
         cleanupPeriodDays = 60;
         autoMemoryEnabled = false;
-        autoDreamEnabled = true;
         remoteControlAtStartup = true;
         agentPushNotifEnabled = true;
         skipAutoPermissionPrompt = true;
