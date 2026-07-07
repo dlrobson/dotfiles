@@ -136,6 +136,12 @@ in
         # nix-shell script names, they're always invoked with varying
         # remote/branch/flag arguments.
         permissions = {
+          deny = [
+            # Hard block, backstopping the "never run sudo" rule in `context`
+            # above (a prose instruction the model could ignore or have
+            # overridden mid-conversation) with harness-level enforcement.
+            "Bash(sudo *)"
+          ];
           ask = [
             # Wildcarded (not exact-match): "Bash(git push)" alone only
             # matches the bare argument-free command, so `git push origin
