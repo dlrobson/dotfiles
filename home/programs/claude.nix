@@ -38,7 +38,8 @@ in
         # Global Claude Code Rules
 
         ## Git workflow
-        When pushing a new branch upstream for the first time, return the PR creation URL (from `gh pr create`).
+        Whenever pushing to a remote branch, surface the URL the remote prints in the `git push`
+        output (e.g. GitHub's "Create a pull request" hint line), not just on the first push.
 
         ## Safety
         Never run `sudo`. Ask the user to run the privileged command themselves.
@@ -48,7 +49,7 @@ in
         # (equivalent to CLAUDE_CODE_NO_FLICKER=1; toggle live via /tui).
         tui = "fullscreen";
         cleanupPeriodDays = 60;
-        autoMemoryEnabled = true;
+        autoMemoryEnabled = false;
         autoDreamEnabled = true;
         remoteControlAtStartup = true;
         agentPushNotifEnabled = true;
@@ -108,6 +109,22 @@ in
               "registry.npmjs.org"
               "api.anthropic.com"
             ];
+          };
+          # Sandboxed commands otherwise have unrestricted filesystem read
+          # access, so explicitly deny the credential stores that matter most:
+          # SSH private keys (including the agenix decrypt key) and the gh
+          # CLI's stored OAuth token.
+          credentials = {
+            files =
+              map
+                (path: {
+                  inherit path;
+                  mode = "deny";
+                })
+                [
+                  "~/.ssh/"
+                  "~/.config/gh/hosts.yml"
+                ];
           };
         };
         # Pre-approved actions recurring across repos. Most Bash commands need
