@@ -168,6 +168,7 @@ in
           "claude-md-management@claude-plugins-official" = true;
           "claude-code-setup@claude-plugins-official" = true;
           "superpowers@claude-plugins-official" = true;
+          "plugin-dev@claude-plugins-official" = true;
           "pr-review-toolkit@claude-plugins-official" = true;
           "rust-analyzer@claude-code-lsps" = true;
           "nixd@claude-code-lsps" = true;
