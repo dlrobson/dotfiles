@@ -73,7 +73,7 @@ in
           autoAllowBashIfSandboxed = true;
           allowUnsandboxedCommands = true;
           allowedWritePaths = [
-            "~/.cache/nix"
+            "${config.home.homeDirectory}/.cache/nix"
           ];
           network = {
             allowedDomains = [
