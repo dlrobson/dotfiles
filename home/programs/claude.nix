@@ -39,6 +39,9 @@ in
 
         ## Git workflow
         When pushing a new branch upstream for the first time, return the PR creation URL (from `gh pr create`).
+
+        ## Safety
+        Never run `sudo`. Ask the user to run the privileged command themselves.
       '';
       settings = {
         # Flicker-free alt-screen renderer with virtualized scrollback
@@ -72,6 +75,20 @@ in
           enabled = true;
           autoAllowBashIfSandboxed = true;
           allowUnsandboxedCommands = true;
+          # These all evaluate npins-pinned sources (nixpkgs/home-manager)
+          # via fetchTarball, and even a cache-hit store query goes through
+          # the daemon on a multi-user install — nix-shell via shell.nix,
+          # nix-build/nix-instantiate via setup.sh. The sandbox blocks the
+          # daemon socket outright (no allowUnixSockets entry — opening it
+          # would let fixed-output derivations bypass network.allowedDomains
+          # entirely), so a sandboxed attempt always fails first with a
+          # confusing, not-obviously-sandbox-related error before falling
+          # back to unsandboxed; excluding them skips the doomed attempt.
+          excludedCommands = [
+            "nix-shell"
+            "nix-build"
+            "nix-instantiate"
+          ];
           filesystem = {
             allowWrite = [
               "${config.home.homeDirectory}/.cache/nix"
