@@ -154,10 +154,15 @@ in
           ];
           allow = [
             "Bash(nix-shell --run check)"
+            "Bash(nix-shell --run \"check\")"
             "Bash(nix-shell --run build)"
+            "Bash(nix-shell --run \"build\")"
             "Bash(nix-shell --run run-tests)"
+            "Bash(nix-shell --run \"run-tests\")"
             "Bash(nix-shell --run fix)"
+            "Bash(nix-shell --run \"fix\")"
             "Bash(nix-shell --run format)"
+            "Bash(nix-shell --run \"format\")"
             "Bash(git fetch *)"
             "Bash(git pull *)"
             # Recurring in 2+ repos' local settings (audit-claude-settings);
