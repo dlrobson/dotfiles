@@ -128,7 +128,7 @@ If the user confirms:
    comment style already present in its `settings` block (explain *why* a
    rule exists, not just what it does, matching the file's current
    comments).
-2. Validate with `nix-shell --run check` and `nix-shell --run run-tests`
+2. Validate with `check` and `run-tests` (provided on `PATH` by direnv)
    before reporting success.
 3. Remind the user that `home-manager switch` is still required to apply the
    change (per this repo's convention — never run it automatically).

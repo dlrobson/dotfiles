@@ -47,10 +47,6 @@ in
         # Flicker-free alt-screen renderer with virtualized scrollback
         # (equivalent to CLAUDE_CODE_NO_FLICKER=1; toggle live via /tui).
         tui = "fullscreen";
-        # Retain sessions/tasks/backups for 60 days (default is shorter), so
-        # older sessions remain scrollable and backups recoverable.
-        # Note: the nixpkgs claude-code wrapper already sets DISABLE_AUTOUPDATER=1,
-        # so no env entry is needed to stop the bundled updater.
         cleanupPeriodDays = 60;
         autoMemoryEnabled = true;
         autoDreamEnabled = true;
@@ -104,11 +100,6 @@ in
             "git pull *"
             "git push *"
           ];
-          filesystem = {
-            allowWrite = [
-              "${config.home.homeDirectory}/.cache/nix"
-            ];
-          };
           network = {
             allowedDomains = [
               "github.com"
@@ -119,22 +110,12 @@ in
             ];
           };
         };
-        # Pre-approved actions recurring across repos (surfaced by scanning
-        # each repo's .claude/settings.local.json). Most Bash commands are
-        # deliberately NOT listed here (e.g. git add/commit): with
-        # sandbox.enabled + autoAllowBashIfSandboxed both true above, every
-        # sandboxed Bash command already auto-runs without a prompt
-        # regardless of this list, so an allow entry for them would be
-        # functionally inert. The nix-shell/git targets below are the
-        # exception: they're in sandbox.excludedCommands (run unsandboxed),
-        # so they need an explicit allow entry to skip the prompt too. The
-        # nix-shell entries are exact-match on purpose, scoped to these
-        # known-safe targets rather than a `Bash(nix-shell *)` wildcard,
-        # since a blanket rule would let arbitrary `nix-shell -p ... --run
-        # ...` invocations execute unprompted as well as unsandboxed. git
-        # fetch/pull get a trailing wildcard instead, since unlike the fixed
-        # nix-shell script names, they're always invoked with varying
-        # remote/branch/flag arguments.
+        # Pre-approved actions recurring across repos. Most Bash commands need
+        # no entry: with sandbox.enabled + autoAllowBashIfSandboxed, every
+        # sandboxed command already auto-runs (dev-shell commands like
+        # check/run-tests included — direnv puts them on PATH). Only the
+        # unsandboxed commands in sandbox.excludedCommands need an allow entry
+        # to skip the prompt — hence git fetch/pull below.
         permissions = {
           deny = [
             # Hard block, backstopping the "never run sudo" rule in `context`
@@ -143,31 +124,12 @@ in
             "Bash(sudo *)"
           ];
           ask = [
-            # Wildcarded (not exact-match): "Bash(git push)" alone only
-            # matches the bare argument-free command, so `git push origin
-            # main` etc. wouldn't have hit this ask rule at all.
             "Bash(git push *)"
-            # Destructive: rewrites the working tree/index in place with no
-            # undo. Confirmed unprompted (autoAllowBashIfSandboxed) before
-            # this rule existed.
             "Bash(git reset *)"
           ];
           allow = [
-            "Bash(nix-shell --run check)"
-            "Bash(nix-shell --run \"check\")"
-            "Bash(nix-shell --run build)"
-            "Bash(nix-shell --run \"build\")"
-            "Bash(nix-shell --run run-tests)"
-            "Bash(nix-shell --run \"run-tests\")"
-            "Bash(nix-shell --run fix)"
-            "Bash(nix-shell --run \"fix\")"
-            "Bash(nix-shell --run format)"
-            "Bash(nix-shell --run \"format\")"
             "Bash(git fetch *)"
             "Bash(git pull *)"
-            # Recurring in 2+ repos' local settings (audit-claude-settings);
-            # the nix plugin is enabled globally but the MCP tool itself was
-            # never allowlisted.
             "mcp__plugin_nix_mcp-nixos__nix"
             "WebFetch(domain:tailscale.com)"
             "WebFetch(domain:mynixos.com)"
