@@ -84,10 +84,25 @@ in
           # entirely), so a sandboxed attempt always fails first with a
           # confusing, not-obviously-sandbox-related error before falling
           # back to unsandboxed; excluding them skips the doomed attempt.
+          #
+          # git fetch/pull/push all use the SSH remote (origin is
+          # git@github.com:...), which is doubly broken under bwrap: (1)
+          # ~/.ssh/config is a home-manager symlink into /nix/store, owned by
+          # root on the host — bwrap's user namespace only maps our own uid,
+          # so root-owned files appear as nobody:nogroup inside the sandbox,
+          # which fails OpenSSH's "owned by self or root" strict-permissions
+          # check; (2) even bypassing that, the sandboxed network namespace
+          # has no path for a non-proxy-aware raw TCP/DNS client like ssh
+          # (confirmed: "Could not resolve hostname" inside the sandbox).
+          # Fixing that would mean an SSH ProxyCommand through the sandbox's
+          # SOCKS proxy, which is fragile and still wouldn't fix (1).
           excludedCommands = [
-            "nix-shell"
-            "nix-build"
-            "nix-instantiate"
+            "nix-shell *"
+            "nix-build *"
+            "nix-instantiate *"
+            "git fetch *"
+            "git pull *"
+            "git push *"
           ];
           filesystem = {
             allowWrite = [
@@ -110,23 +125,31 @@ in
         # sandbox.enabled + autoAllowBashIfSandboxed both true above, every
         # sandboxed Bash command already auto-runs without a prompt
         # regardless of this list, so an allow entry for them would be
-        # functionally inert. The nix-shell targets below are the exception:
-        # nix-shell is in sandbox.excludedCommands (runs unsandboxed), so it
-        # needs an explicit allow entry to skip the prompt too. Scoped to
-        # these known-safe targets rather than a `Bash(nix-shell *)`
-        # wildcard, since nix-shell runs unsandboxed now — a blanket rule
-        # would let arbitrary `nix-shell -p ... --run ...` invocations
-        # execute unprompted as well as unsandboxed.
+        # functionally inert. The nix-shell/git targets below are the
+        # exception: they're in sandbox.excludedCommands (run unsandboxed),
+        # so they need an explicit allow entry to skip the prompt too. The
+        # nix-shell entries are exact-match on purpose, scoped to these
+        # known-safe targets rather than a `Bash(nix-shell *)` wildcard,
+        # since a blanket rule would let arbitrary `nix-shell -p ... --run
+        # ...` invocations execute unprompted as well as unsandboxed. git
+        # fetch/pull get a trailing wildcard instead, since unlike the fixed
+        # nix-shell script names, they're always invoked with varying
+        # remote/branch/flag arguments.
         permissions = {
           ask = [
-            "Bash(git push)"
+            # Wildcarded (not exact-match): "Bash(git push)" alone only
+            # matches the bare argument-free command, so `git push origin
+            # main` etc. wouldn't have hit this ask rule at all.
+            "Bash(git push *)"
           ];
           allow = [
-            "Bash(nix-shell --run \"check\")"
-            "Bash(nix-shell --run \"build\")"
-            "Bash(nix-shell --run \"run-tests\")"
-            "Bash(nix-shell --run \"fix\")"
-            "Bash(nix-shell --run \"format\")"
+            "Bash(nix-shell --run check)"
+            "Bash(nix-shell --run build)"
+            "Bash(nix-shell --run run-tests)"
+            "Bash(nix-shell --run fix)"
+            "Bash(nix-shell --run format)"
+            "Bash(git fetch *)"
+            "Bash(git pull *)"
             # Recurring in 2+ repos' local settings (audit-claude-settings);
             # the nix plugin is enabled globally but the MCP tool itself was
             # never allowlisted.
@@ -197,9 +220,9 @@ in
       # home-manager-admin.service journal) instead of failing loudly, so
       # config changes there never actually took effect).
       file = {
-        "${config.programs.claude-code.configDir}/plugins/known_marketplaces.json".mode = "0444";
-        "${config.home.homeDirectory}/.claude/CLAUDE.md".mode = "0444";
-        "${config.home.homeDirectory}/.claude/settings.json".mode = "0444";
+        "${config.programs.claude-code.configDir}/plugins/known_marketplaces.json".force = true;
+        "${config.home.homeDirectory}/.claude/CLAUDE.md".force = true;
+        "${config.home.homeDirectory}/.claude/settings.json".force = true;
       };
 
       # Runtime deps for the `nix` plugin's mcp-nixos server, which launches
