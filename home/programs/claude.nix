@@ -72,9 +72,11 @@ in
           enabled = true;
           autoAllowBashIfSandboxed = true;
           allowUnsandboxedCommands = true;
-          allowedWritePaths = [
-            "${config.home.homeDirectory}/.cache"
-          ];
+          filesystem = {
+            allowWrite = [
+              "${config.home.homeDirectory}/.cache/nix"
+            ];
+          };
           network = {
             allowedDomains = [
               "github.com"
