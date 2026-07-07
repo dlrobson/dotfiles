@@ -72,23 +72,8 @@ in
           enabled = true;
           autoAllowBashIfSandboxed = true;
           allowUnsandboxedCommands = true;
-          # git commands that shell out to ssh always hit the ~/.ssh/config
-          # ownership issue above (bwrap's user namespace only maps our own
-          # uid; the Nix-store-owned config file resolves to nobody:nogroup
-          # inside the sandbox, and OpenSSH refuses to use it). Excluding
-          # these skips the sandboxed attempt + retry roundtrip entirely.
-          # nix-shell is excluded too: it needs real write access to
-          # ~/.cache/nix for npins' fetchTarball cache (sandboxed, this
-          # failed with "unable to open database file"), so it's simpler to
-          # run it unsandboxed outright rather than carve out a filesystem
-          # exception.
-          excludedCommands = [
-            "git push"
-            "git pull"
-            "git fetch"
-            "git clone"
-            "ssh"
-            "nix-shell"
+          allowedWritePaths = [
+            "~/.cache/nix"
           ];
           network = {
             allowedDomains = [
@@ -114,6 +99,9 @@ in
         # would let arbitrary `nix-shell -p ... --run ...` invocations
         # execute unprompted as well as unsandboxed.
         permissions = {
+          ask = [
+            "Bash(git push)"
+          ];
           allow = [
             "Bash(nix-shell --run \"check\")"
             "Bash(nix-shell --run \"build\")"
@@ -127,6 +115,7 @@ in
             "WebFetch(domain:tailscale.com)"
             "WebFetch(domain:mynixos.com)"
             "WebFetch(domain:codeload.github.com)"
+            "WebFetch(domain:raw.githubusercontent.com)"
             "WebSearch"
             "Skill(superpowers:brainstorming)"
             "Skill(superpowers:writing-plans)"
