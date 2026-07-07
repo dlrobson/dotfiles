@@ -147,6 +147,10 @@ in
             # matches the bare argument-free command, so `git push origin
             # main` etc. wouldn't have hit this ask rule at all.
             "Bash(git push *)"
+            # Destructive: rewrites the working tree/index in place with no
+            # undo. Confirmed unprompted (autoAllowBashIfSandboxed) before
+            # this rule existed.
+            "Bash(git reset *)"
           ];
           allow = [
             "Bash(nix-shell --run check)"
