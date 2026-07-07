@@ -7,6 +7,8 @@
 - Don't run `home-manager switch` — the user applies changes themselves.
 
 ## Validation
-- `nix-shell --run check` — lint (nixfmt --check, statix, deadnix)
-- `nix-shell --run run-tests` — builds both profiles (minimal, desktop) via `home-manager build`
+- `check` — lint (nixfmt --check, statix, deadnix)
+- `run-tests` — builds both profiles (minimal, desktop) via `home-manager build`
+
+These are provided on `PATH` by the `.envrc` (`use nix`) direnv environment — call them directly, no `nix-shell --run` wrapper needed.
 - To confirm generated output, inspect the built store path, e.g. `<result>/home-files/.config/git/config` (pattern generalizes to any dotfile, e.g. `.config/fish/config.fish`)
