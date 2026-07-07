@@ -197,9 +197,9 @@ in
       # home-manager-admin.service journal) instead of failing loudly, so
       # config changes there never actually took effect).
       file = {
-        "${config.programs.claude-code.configDir}/plugins/known_marketplaces.json".force = true;
-        "${config.home.homeDirectory}/.claude/CLAUDE.md".force = true;
-        "${config.home.homeDirectory}/.claude/settings.json".force = true;
+        "${config.programs.claude-code.configDir}/plugins/known_marketplaces.json".mode = "0444";
+        "${config.home.homeDirectory}/.claude/CLAUDE.md".mode = "0444";
+        "${config.home.homeDirectory}/.claude/settings.json".mode = "0444";
       };
 
       # Runtime deps for the `nix` plugin's mcp-nixos server, which launches
