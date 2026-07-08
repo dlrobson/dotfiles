@@ -24,6 +24,14 @@ config.color_scheme = scheme_for_appearance(wezterm.gui.get_appearance())
 -- upstream limitation (wezterm/wezterm#5398), not something fixable from
 -- config. `wezterm cli proxy` just streams the mux protocol over stdio, so
 -- real `ssh` (with its full agent/cert/key support) does all the auth work.
+--
+-- Leaving ssh_domains unset doesn't mean "no ssh domains": wezterm defaults
+-- it to wezterm.default_ssh_domains(), which auto-generates one per Host in
+-- ~/.ssh/config - including "nixos-server", using the same broken libssh
+-- client. That auto-generated domain shadows the unix domain below (same
+-- name), silently undoing this workaround, so it must be disabled explicitly.
+config.ssh_domains = {}
+
 config.unix_domains = {
 	{
 		name = "nixos-server",
