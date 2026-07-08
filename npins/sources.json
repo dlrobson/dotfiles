@@ -129,9 +129,9 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "9d0b1cf272174f15f93c14f7afe50649222524d0",
-      "url": "https://github.com/dlrobson/plugin-marketplace/archive/9d0b1cf272174f15f93c14f7afe50649222524d0.tar.gz",
-      "hash": "sha256-5pCFyYOPczitnv7ybA4XpEw/SvSZ4KLqT+oxun57V9U="
+      "revision": "70454376d35650b3aab4a7499e0ea94d4f68bd3e",
+      "url": "https://github.com/dlrobson/plugin-marketplace/archive/70454376d35650b3aab4a7499e0ea94d4f68bd3e.tar.gz",
+      "hash": "sha256-HlBpdOoRYdESpE0Ls7QKf1CqWAOsUhwJX0HCy4T/lZ8="
     }
   },
   "version": 8

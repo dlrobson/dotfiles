@@ -59,6 +59,7 @@ pkgs.mkShell {
     pkgs.statix
     pkgs.deadnix
     hm.home-manager
+    unstablePkgs.npins
     check
     fix
     format
