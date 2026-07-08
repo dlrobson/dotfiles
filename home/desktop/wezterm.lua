@@ -39,4 +39,27 @@ config.unix_domains = {
 	},
 }
 
+-- Splits the current pane and attaches the new one directly to the
+-- nixos-server mux domain, rather than `wezterm connect` popping a whole new
+-- top-level window. Matches Ghostty's own default new_split:right/down keys
+-- (Ctrl+Shift+O / Ctrl+Shift+E) rather than inventing new ones.
+config.keys = {
+	{
+		key = "o",
+		mods = "CTRL|SHIFT",
+		action = wezterm.action.SplitPane({
+			direction = "Right",
+			domain = { DomainName = "nixos-server" },
+		}),
+	},
+	{
+		key = "e",
+		mods = "CTRL|SHIFT",
+		action = wezterm.action.SplitPane({
+			direction = "Down",
+			domain = { DomainName = "nixos-server" },
+		}),
+	},
+}
+
 return config
