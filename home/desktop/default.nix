@@ -83,15 +83,10 @@ in
       home = {
         file = {
           ".config/Code/User/prompts/spec-sidecar.instructions.md".source = ./spec-sidecar.instructions.md;
+          # WezTerm itself (needed on every profile, not just desktop) is
+          # installed in programs/packages.nix; this is just the GUI config.
           ".config/wezterm/wezterm.lua".source = ./wezterm.lua;
         };
-
-        # Trialing as a Ghostty alternative: better native SSH multiplexing
-        # (built-in panes/tabs/SSH domains instead of relying on tmux, which
-        # has its own OSC52/OSC9 passthrough bugs over SSH - see neovim.nix).
-        packages = [
-          (if isNixOS then config.unstablePkgs.wezterm else config.lib.nixGL.wrap config.unstablePkgs.wezterm)
-        ];
       };
     }
 
