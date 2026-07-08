@@ -14,4 +14,15 @@ end
 
 config.color_scheme = scheme_for_appearance(wezterm.gui.get_appearance())
 
+-- `wezterm connect nixos-server` attaches to a persistent mux session on the
+-- remote (survives disconnects/reboots of the local machine), instead of
+-- `wezterm ssh` which is just a plain, non-multiplexed SSH connection.
+config.ssh_domains = {
+	{
+		name = "nixos-server",
+		remote_address = "nixos-server",
+		multiplexing = "WezTerm",
+	},
+}
+
 return config
