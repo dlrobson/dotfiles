@@ -39,6 +39,38 @@ fix_sandbox_permissions() {
     fi
 }
 
+check_userns_restriction() {
+    local sysctl_path="/proc/sys/kernel/apparmor_restrict_unprivileged_userns"
+    local value
+
+    [ -f "$sysctl_path" ] || return 0
+    value="$(cat "$sysctl_path" 2>/dev/null || true)"
+    [ "$value" = "1" ] || return 0
+
+    cat <<'EOF'
+
+WARNING: Unprivileged user namespaces are restricted on this machine
+(kernel.apparmor_restrict_unprivileged_userns=1). This breaks any
+unprivileged sandboxing tool built on bwrap/unshare - e.g. Claude Code's
+command sandbox, and some browser/Flatpak/Snap sandboxes - with errors like:
+    bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted
+
+To fix it:
+    sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+Make it persist across reboots:
+    echo 'kernel.apparmor_restrict_unprivileged_userns=0' | sudo tee /etc/sysctl.d/99-userns.conf
+
+Implications: any unprivileged local process can create user/network/mount
+namespaces. This is the attack surface Ubuntu's restriction (added ~23.10)
+was added to close, since unprivileged user namespaces have been a
+recurring privilege-escalation vector. Reasonable on a single-user machine
+that doesn't run untrusted code; revert anytime by setting the same value
+back to 1.
+
+EOF
+}
+
 deploy() {
     local profile="$1"
     local dry_run_flag="$2"
@@ -134,6 +166,8 @@ main() {
     if [ -z "$DRY_RUN" ]; then
         fix_sandbox_permissions
     fi
+
+    check_userns_restriction
 
     echo "Configuration for '$PROFILE' deployed. Ensure fish or bash is your default shell."
 }
