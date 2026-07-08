@@ -52,23 +52,45 @@ in
     };
 
     # Copy from Neovim (even over SSH on a remote box) to the *local*
-    # machine's clipboard, no X11/Wayland forwarding needed. Explicit rather
-    # than relying on Neovim's automatic fallback chain: inside tmux, that
-    # chain prefers tmux's own clipboard relay before ever trying osc52 -
-    # this goes straight to Neovim's native osc52 support instead. Requires
-    # `allow-passthrough on` in tmux.nix (already set, for Claude Code's
-    # notifications) so the escape sequence actually reaches Ghostty.
+    # machine's clipboard, no X11/Wayland forwarding needed.
+    #
+    # This tmux+Ghostty combo hits an upstream tmux bug where tmux's native
+    # OSC52 relay (the Ms/set-clipboard mechanism) silently drops the
+    # sequence (confirmed: raw OSC52 reaches Ghostty fine outside tmux, but
+    # not inside, even with set-clipboard/terminal-features/allow-passthrough
+    # all correctly configured - matches tmux/tmux#4599, unresolved upstream).
+    # The one relay that does work is tmux's `allow-passthrough` DCS
+    # envelope, but Neovim's built-in OSC52 provider never uses it (it always
+    # writes the raw sequence) - so this defines a custom clipboard provider
+    # that wraps the OSC52 escape in that envelope whenever $TMUX is set.
     #
     # Use "+y explicitly to copy (write-only, no response needed - reliable).
     # Deliberately not aliasing the unnamed register via clipboard=unnamedplus:
-    # nvim's OSC52 provider has no local cache for reads, so every plain paste
-    # would send a live OSC52 query and block on tmux/terminal relaying the
-    # response back, which is unreliable. Plain y/p keep using nvim's fast
-    # local register; paste system-clipboard content with the terminal's own
-    # paste keybinding instead of "+p.
-    extraConfigVim = ''
-      let g:clipboard = 'osc52'
-      let g:termfeatures = {'tmux': v:false, 'osc52': v:true}
+    # OSC52 has no local cache for reads, so every plain paste would send a
+    # live OSC52 query and block on tmux/terminal relaying the response back,
+    # which is unreliable. Plain y/p keep using nvim's fast local register;
+    # paste system-clipboard content with the terminal's own paste
+    # keybinding instead of "+p.
+    extraConfigLua = ''
+      local function copy(reg)
+        local clipboard = reg == '+' and 'c' or 'p'
+        return function(lines)
+          local seq = string.format('\027]52;%s;%s\027\\', clipboard, vim.base64.encode(table.concat(lines, '\n')))
+          if vim.env.TMUX then
+            seq = '\027Ptmux;' .. seq:gsub('\027', '\027\027') .. '\027\\'
+          end
+          vim.api.nvim_ui_send(seq)
+        end
+      end
+
+      vim.g.clipboard = {
+        name = 'OSC 52 (tmux passthrough-aware)',
+        copy = { ['+'] = copy('+'), ['*'] = copy('*') },
+        paste = {
+          ['+'] = require('vim.ui.clipboard.osc52').paste('+'),
+          ['*'] = require('vim.ui.clipboard.osc52').paste('*'),
+        },
+      }
     '';
 
     # Fixes tmux zoom/unzoom (or any terminal resize) leaving one window
