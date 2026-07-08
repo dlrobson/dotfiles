@@ -1,6 +1,7 @@
 { pkgs, config, ... }:
 let
   isNixOS = builtins.pathExists "/etc/nixos";
+  isDesktop = config.home-manager-desktop-configuration.enable;
 in
 {
   home = {
@@ -24,8 +25,15 @@ in
         # Ghostty-alternative GUI trial): WezTerm's SSH multiplexing
         # requires the exact same wezterm version to be present and on
         # PATH on the remote host too, so the SSH backend can launch it
-        # there as the mux server.
-        (if isNixOS then config.unstablePkgs.wezterm else config.lib.nixGL.wrap config.unstablePkgs.wezterm)
+        # there as the mux server. Only nixGL-wrap on non-NixOS *desktop*
+        # machines - that's for wezterm-gui's OpenGL rendering, which a
+        # headless mux-server host never needs.
+        (
+          if isDesktop && !isNixOS then
+            config.lib.nixGL.wrap config.unstablePkgs.wezterm
+          else
+            config.unstablePkgs.wezterm
+        )
       ];
   };
 }
