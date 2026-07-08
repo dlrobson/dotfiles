@@ -17,11 +17,17 @@ config.color_scheme = scheme_for_appearance(wezterm.gui.get_appearance())
 -- `wezterm connect nixos-server` attaches to a persistent mux session on the
 -- remote (survives disconnects/reboots of the local machine), instead of
 -- `wezterm ssh` which is just a plain, non-multiplexed SSH connection.
-config.ssh_domains = {
+--
+-- Deliberately a unix domain with a proxy_command through the system `ssh`
+-- binary, not a built-in `ssh_domains` entry: wezterm's own SSH client
+-- (libssh-based) rejects pubkey auth that plain `ssh` accepts fine - a known
+-- upstream limitation (wezterm/wezterm#5398), not something fixable from
+-- config. `wezterm cli proxy` just streams the mux protocol over stdio, so
+-- real `ssh` (with its full agent/cert/key support) does all the auth work.
+config.unix_domains = {
 	{
 		name = "nixos-server",
-		remote_address = "nixos-server",
-		multiplexing = "WezTerm",
+		proxy_command = { "ssh", "nixos-server", "--", "wezterm", "cli", "proxy" },
 	},
 }
 
