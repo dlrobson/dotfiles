@@ -49,7 +49,7 @@ config.keys = {
 		mods = "CTRL|SHIFT",
 		action = wezterm.action.SplitPane({
 			direction = "Right",
-			domain = { DomainName = "nixos-server" },
+			command = { domain = { DomainName = "nixos-server" } },
 		}),
 	},
 	{
@@ -57,7 +57,7 @@ config.keys = {
 		mods = "CTRL|SHIFT",
 		action = wezterm.action.SplitPane({
 			direction = "Down",
-			domain = { DomainName = "nixos-server" },
+			command = { domain = { DomainName = "nixos-server" } },
 		}),
 	},
 }
