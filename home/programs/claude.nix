@@ -178,6 +178,38 @@ in
           pr = "";
           sessionUrl = false;
         };
+        # Desktop/tmux/Ghostty notifications when Claude finishes or needs
+        # attention. Native here (not a marketplace plugin) because it's
+        # specific to this machine: the dbus bus path, this tmux config's
+        # @claude_done indicator, and Ghostty's OSC 777 escape sequence.
+        hooks = {
+          Stop = [
+            {
+              matcher = "";
+              hooks = [
+                {
+                  type = "command";
+                  command = ''
+                    DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus" notify-send 'Claude Code' 'Claude finished' 2>/dev/null || true; [ -n "$TMUX_PANE" ] && tmux set-window-option -t "$TMUX_PANE" @claude_done " !"; seq=$(printf '\033]777;notify;Claude Code;Claude finished\007'); jq -nc --arg seq "$seq" '{terminalSequence: $seq}'
+                  '';
+                }
+              ];
+            }
+          ];
+          Notification = [
+            {
+              matcher = "";
+              hooks = [
+                {
+                  type = "command";
+                  command = ''
+                    DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus" notify-send 'Claude Code' 'Claude needs your attention' 2>/dev/null || true; [ -n "$TMUX_PANE" ] && tmux set-window-option -t "$TMUX_PANE" @claude_done " !"; seq=$(printf '\033]777;notify;Claude Code;Claude needs your attention\007'); jq -nc --arg seq "$seq" '{terminalSequence: $seq}'
+                  '';
+                }
+              ];
+            }
+          ];
+        };
         # Plugins resolved from the marketplaces registered below, keyed as
         # `plugin-id@marketplace-id`.
         enabledPlugins = {
