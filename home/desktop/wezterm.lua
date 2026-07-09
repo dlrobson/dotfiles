@@ -39,26 +39,33 @@ config.unix_domains = {
 	},
 }
 
--- Splits the current pane and attaches the new one directly to the
--- nixos-server mux domain, rather than `wezterm connect` popping a whole new
--- top-level window. Matches Ghostty's own default new_split:right/down keys
--- (Ctrl+Shift+O / Ctrl+Shift+E) rather than inventing new ones.
+-- SplitPane can't jump straight from a local pane into a different mux
+-- domain in one step - wezterm requires the pane being split to already
+-- belong to that domain (confirmed by hitting its "pane_id 0 is not a
+-- ClientPane" error). So entry into the domain has to happen first, via
+-- AttachDomain, which imports nixos-server's tabs/panes into *this* window
+-- (unlike `wezterm connect`, which always opens a separate top-level
+-- window) - spawning a default pane as a new tab if none exist yet.
 config.keys = {
+	{
+		key = "u",
+		mods = "CTRL|SHIFT",
+		action = wezterm.action.AttachDomain("nixos-server"),
+	},
+	-- Once inside that domain's tab, these are plain splits with no domain
+	-- override - they default to splitting within whatever domain the
+	-- current pane already belongs to, so they correctly do a *remote*
+	-- split there while still behaving as ordinary local splits everywhere
+	-- else. Matches Ghostty's own default new_split:right/down keys.
 	{
 		key = "o",
 		mods = "CTRL|SHIFT",
-		action = wezterm.action.SplitPane({
-			direction = "Right",
-			command = { domain = { DomainName = "nixos-server" } },
-		}),
+		action = wezterm.action.SplitPane({ direction = "Right" }),
 	},
 	{
 		key = "e",
 		mods = "CTRL|SHIFT",
-		action = wezterm.action.SplitPane({
-			direction = "Down",
-			command = { domain = { DomainName = "nixos-server" } },
-		}),
+		action = wezterm.action.SplitPane({ direction = "Down" }),
 	},
 }
 
