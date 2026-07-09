@@ -39,6 +39,17 @@ config.unix_domains = {
 	},
 }
 
+-- Silently reattach any pre-existing nixos-server tabs/panes on every
+-- launch (e.g. from a previous session that outlived a local disconnect) -
+-- that's the actual point of a mux domain. domain:attach() (unlike the
+-- AttachDomain key assignment below) does NOT spawn a pane when the domain
+-- is empty, so this is a no-op rather than cluttering every startup with a
+-- fresh remote tab when there's nothing to reattach to.
+wezterm.on("gui-startup", function()
+	local mux = wezterm.mux
+	mux.get_domain("nixos-server"):attach()
+end)
+
 -- SplitPane can't jump straight from a local pane into a different mux
 -- domain in one step - wezterm requires the pane being split to already
 -- belong to that domain (confirmed by hitting its "pane_id 0 is not a
@@ -46,9 +57,13 @@ config.unix_domains = {
 -- AttachDomain, which imports nixos-server's tabs/panes into *this* window
 -- (unlike `wezterm connect`, which always opens a separate top-level
 -- window) - spawning a default pane as a new tab if none exist yet.
+--
+-- Bound to Ctrl+Shift+A, not the more obvious U: Ctrl+Shift+U is both
+-- wezterm's own default CharSelect binding *and* IBus's system-wide Unicode
+-- entry shortcut on Linux, so it never even reached wezterm's key handler.
 config.keys = {
 	{
-		key = "u",
+		key = "a",
 		mods = "CTRL|SHIFT",
 		action = wezterm.action.AttachDomain("nixos-server"),
 	},
