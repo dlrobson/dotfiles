@@ -80,14 +80,8 @@ in
         };
       };
 
-      home = {
-        file = {
-          ".config/Code/User/prompts/spec-sidecar.instructions.md".source = ./spec-sidecar.instructions.md;
-          # WezTerm itself (needed on every profile, not just desktop) is
-          # installed in programs/packages.nix; this is just the GUI config.
-          ".config/wezterm/wezterm.lua".source = ./wezterm.lua;
-        };
-      };
+      home.file.".config/Code/User/prompts/spec-sidecar.instructions.md".source =
+        ./spec-sidecar.instructions.md;
     }
 
     (mkIf isGnomeRunning {
