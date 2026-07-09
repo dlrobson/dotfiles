@@ -14,6 +14,13 @@ end
 
 config.color_scheme = scheme_for_appearance(wezterm.gui.get_appearance())
 
+-- Native Wayland has a real crashing bug in wezterm's IME cursor-positioning
+-- code (panic: "window.rs: ... set_text_cursor_position ... Window should
+-- exist", SIGABRT) - several similar Wayland-only panics are open upstream.
+-- Falling back to XWayland/X11 avoids that code path entirely; this is
+-- wezterm's own documented troubleshooting step for Wayland instability.
+config.enable_wayland = false
+
 -- `wezterm connect nixos-server` attaches to a persistent mux session on the
 -- remote (survives disconnects/reboots of the local machine), instead of
 -- `wezterm ssh` which is just a plain, non-multiplexed SSH connection.
