@@ -30,7 +30,7 @@ in
   };
 
   config.programs.codex = {
-    enable = true;
+    enable = lib.mkDefault false;
     package = config.unstablePkgs.codex;
     # Same global rules as Claude Code — single source of truth.
     context = config.programs.claude-code.context;
