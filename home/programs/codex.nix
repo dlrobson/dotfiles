@@ -16,12 +16,30 @@ let
       (builtins.attrNames (lib.filterAttrs (_: type: type == "directory") (builtins.readDir pluginsDir)));
 in
 {
-  programs.codex = {
+  options.codex-trusted-projects = lib.mkOption {
+    type = lib.types.listOf lib.types.str;
+    default = [ ];
+    description = ''
+      Absolute paths to mark as trusted Codex projects. Codex's `projects`
+      trust map only matches a cwd or git-repo-root path exactly — no
+      prefix/glob matching — so every repo root that should skip the
+      interactive trust prompt needs its own entry here. Machine-specific,
+      so set per-deployment (e.g. in the consuming flake/config that imports
+      this repo's `home/` module) rather than hardcoded in this file.
+    '';
+  };
+
+  config.programs.codex = {
     enable = true;
     package = config.unstablePkgs.codex;
     # Same global rules as Claude Code — single source of truth.
     context = config.programs.claude-code.context;
     plugins = map (name: pluginsDir + "/${name}") codexPluginNames;
-    settings.mcp_servers = builtins.fromJSON (builtins.readFile "${pluginsDir}/nix/.mcp.json");
+    settings = {
+      mcp_servers = builtins.fromJSON (builtins.readFile "${pluginsDir}/nix/.mcp.json");
+      projects = lib.genAttrs config.codex-trusted-projects (_: {
+        trust_level = "trusted";
+      });
+    };
   };
 }
