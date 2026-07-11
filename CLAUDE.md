@@ -1,5 +1,15 @@
 # CLAUDE.md
 
+## Repo usage
+This repo is consumed as a library, not just built standalone. Other repos pin this repo
+via npins and `imports = [ "${sources.dotfiles}/home" ]` into their own home-manager user
+configs. Because of that:
+- Options meant to vary per deployment (e.g. `codex-trusted-projects`,
+  `claude-window-trigger.schedule`, `et-server.enable`) default to off/empty here — the
+  consuming repo sets real values, not this one.
+- `run-tests` only builds `profiles/{minimal,desktop}.nix` standalone; it won't catch
+  issues that only surface when a consumer overrides these options.
+
 ## Config changes
 - All config changes go through home-manager nix files (`home/programs/*.nix`) — never imperative commands like `git config --local` or `git config --global` (`~/.config/git` is read-only anyway).
 - Don't invent home-manager option names. Verify first with the nixos MCP tool (`source: home-manager`, action `search`/`browse`).
