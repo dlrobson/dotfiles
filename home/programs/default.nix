@@ -4,6 +4,7 @@
   imports = [
     ./bash.nix
     ./claude.nix
+    ./codex.nix
     ./direnv.nix
     ./et.nix
     ./fish.nix
