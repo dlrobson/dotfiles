@@ -213,11 +213,11 @@ in
         # Plugins resolved from the marketplaces registered below, keyed as
         # `plugin-id@marketplace-id`.
         enabledPlugins = {
-          "claude-md-management@claude-plugins-official" = true;
-          "claude-code-setup@claude-plugins-official" = true;
-          "superpowers@claude-plugins-official" = true;
-          "plugin-dev@claude-plugins-official" = true;
-          "pr-review-toolkit@claude-plugins-official" = true;
+          "claude-md-management@anthropic-plugins" = true;
+          "claude-code-setup@anthropic-plugins" = true;
+          "superpowers@anthropic-plugins" = true;
+          "plugin-dev@anthropic-plugins" = true;
+          "pr-review-toolkit@anthropic-plugins" = true;
           "rust-analyzer@claude-code-lsps" = true;
           "nixd@claude-code-lsps" = true;
           "vtsls@claude-code-lsps" = true;
@@ -227,7 +227,13 @@ in
         // localEnabledPlugins;
       };
       marketplaces = {
-        claude-plugins-official = claudePluginsOfficial;
+        # Named away from the upstream "claude-plugins-official" id: Claude
+        # Code's reserved-name check for that name fires even when the
+        # source genuinely is anthropics/claude-plugins-official (it's a
+        # nix-store directory source, not a recognized GitHub-org source),
+        # so keeping the reserved name here just breaks marketplace loading.
+        # https://github.com/anthropics/claude-code/issues/18329
+        anthropic-plugins = claudePluginsOfficial;
         inherit (sources) claude-code-lsps;
         ast-grep-marketplace = sources.ast-grep-skill;
         dlrobson-plugins = pluginMarketplace;
