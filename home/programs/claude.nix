@@ -213,11 +213,11 @@ in
         # Plugins resolved from the marketplaces registered below, keyed as
         # `plugin-id@marketplace-id`.
         enabledPlugins = {
-          "claude-md-management@anthropic-plugins" = true;
-          "claude-code-setup@anthropic-plugins" = true;
-          "superpowers@anthropic-plugins" = true;
-          "plugin-dev@anthropic-plugins" = true;
-          "pr-review-toolkit@anthropic-plugins" = true;
+          "claude-md-management@claude-plugins-official-mirror" = true;
+          "claude-code-setup@claude-plugins-official-mirror" = true;
+          "superpowers@claude-plugins-official-mirror" = true;
+          "plugin-dev@claude-plugins-official-mirror" = true;
+          "pr-review-toolkit@claude-plugins-official-mirror" = true;
           "rust-analyzer@claude-code-lsps" = true;
           "nixd@claude-code-lsps" = true;
           "vtsls@claude-code-lsps" = true;
@@ -227,13 +227,16 @@ in
         // localEnabledPlugins;
       };
       marketplaces = {
-        # Named away from the upstream "claude-plugins-official" id: Claude
-        # Code's reserved-name check for that name fires even when the
-        # source genuinely is anthropics/claude-plugins-official (it's a
-        # nix-store directory source, not a recognized GitHub-org source),
-        # so keeping the reserved name here just breaks marketplace loading.
+        # Named away from "claude-plugins-official": Claude Code hardcodes
+        # an exact-match set of reserved marketplace names (including
+        # "claude-plugins-official" and, as of 2.1.209, "anthropic-plugins")
+        # and refuses to load any of them from a source it can't verify as
+        # the anthropics GitHub org - which a vendored nix-store directory
+        # source never satisfies, even when the content genuinely is
+        # anthropics/claude-plugins-official. Any name outside that fixed
+        # set (exact string match, not a substring/pattern check) works.
         # https://github.com/anthropics/claude-code/issues/18329
-        anthropic-plugins = claudePluginsOfficial;
+        claude-plugins-official-mirror = claudePluginsOfficial;
         inherit (sources) claude-code-lsps;
         ast-grep-marketplace = sources.ast-grep-skill;
         dlrobson-plugins = pluginMarketplace;
