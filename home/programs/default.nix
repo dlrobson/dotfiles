@@ -7,7 +7,6 @@
     ./codex-plugins.nix
     ./codex.nix
     ./direnv.nix
-    ./et.nix
     ./fish.nix
     ./git.nix
     ./neovim.nix
