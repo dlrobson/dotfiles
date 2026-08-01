@@ -42,12 +42,14 @@
       grbo = "git rebase --update-refs --onto";
       # cursorbench: not ranked
       claude-haiku = "claude --model claude-haiku-4-5";
-      # cursorbench: 54.9% | 27,469 tokens | 53 steps
+      # cursorbench: 52.4% | 26,200 tokens | 46 steps
       claude-sonnet-medium = "claude --model claude-sonnet-5 --effort medium";
-      # cursorbench: 58.4% | 58,228 tokens | 86 steps
-      claude-sonnet-xhigh = "claude --model claude-sonnet-5 --effort xhigh";
-      # cursorbench: 62.1% | 55,622 tokens | 54 steps
-      claude-opus = "claude --model claude-opus-4-8 --effort xhigh";
+      # cursorbench: 62.8% | 18,529 tokens | 37 steps
+      claude-opus-low = "claude --model claude-opus-5 --effort low";
+      # cursorbench: 66.7% | 27,932 tokens | 48 steps
+      claude-opus-high = "claude --model claude-opus-5 --effort high";
+      # cursorbench: 69.3% | 54,239 tokens | 72 steps
+      claude-opus-xhigh = "claude --model claude-opus-5 --effort xhigh";
     };
     functions = {
       clean_branches = ''
