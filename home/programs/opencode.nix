@@ -23,20 +23,34 @@ let
   # Marketplaces don't agree on where a plugin lives: `dlrobson-plugins` and
   # `claude-plugins-official-mirror` nest under `plugins/`, `ast-grep-marketplace`
   # puts it at the top level, and `engram` *is* the plugin. Probe the three
-  # layouts for one that has a `skills/` directory; a marketplace whose plugins
-  # ship no skills (e.g. `claude-code-lsps`, superseded here by `lsp = true`)
-  # simply contributes nothing.
-  skillsDirOf =
-    name: marketplace:
+  # layouts for one that has the requested subdirectory; a plugin that ships
+  # none of it (e.g. `claude-code-lsps`, whose value is superseded here by
+  # `lsp = true`) simply contributes nothing.
+  contentDirOf =
+    kind: name: marketplace:
     let
       src = claudeCfg.marketplaces.${marketplace};
-      candidates = map (dir: "${dir}/skills") [
+      candidates = map (dir: "${dir}/${kind}") [
         "${src}/plugins/${name}"
         "${src}/${name}"
         "${src}"
       ];
     in
     lib.findFirst builtins.pathExists null candidates;
+
+  contentDirs =
+    kind:
+    lib.filter (dir: dir != null) (
+      map (
+        ref:
+        let
+          parts = lib.splitString "@" ref;
+        in
+        contentDirOf kind (builtins.head parts) (lib.last parts)
+      ) enabledPlugins
+    );
+
+  skillsDirOf = contentDirOf "skills";
 
   # Skill directory names are unique across the enabled set today. If two
   # plugins ever ship the same skill name, `listToAttrs` keeps the last — which
@@ -60,6 +74,53 @@ let
     ) enabledPlugins
   );
 
+  # Claude and opencode both define agents as markdown with YAML frontmatter,
+  # but the dialects differ, so the files can't be linked through as skills are:
+  #   - `name`  — opencode takes the identifier from the filename instead
+  #   - `model` — opencode wants `provider/model`; Claude's `opus`/`inherit`
+  #                are meaningless to it. Dropping the key inherits the default
+  #                model, which is the intent of `inherit` anyway.
+  #   - `color` — no opencode equivalent
+  #   - `tools` — both harnesses have the key but disagree on names and shape:
+  #                Claude writes `["Read", "Grep"]`, opencode wants
+  #                `{ read = true; grep = true; }`. Carrying the value across
+  #                unchanged risks a misparsed restriction, which is worse than
+  #                none, so it is dropped and the agents inherit full tool
+  #                access. Five of the twelve are narrower upstream (e.g.
+  #                `skill-reviewer` is read-only), so this is more permissive
+  #                than intended — the global `permission` block below still
+  #                applies either way. Translating properly means an allowlist,
+  #                i.e. explicitly disabling every unlisted tool.
+  #   - `mode`  — required here, absent there. Without `mode: subagent` these
+  #                would register as primary (Tab-switchable) agents, but they
+  #                exist to be dispatched by a primary agent, not talked to.
+  # The rewrite happens at build time, so the result is a plain store path with
+  # no runtime translation step.
+  #
+  # Only top-level keys are stripped: the `^` anchors matter because a block
+  # scalar (`description: |`, as `code-simplifier` uses) indents its content,
+  # so a body line can never be mistaken for a key.
+  rewriteAgents =
+    dirs:
+    pkgs.runCommand "opencode-agents" { } ''
+      mkdir -p "$out"
+      for dir in ${lib.escapeShellArgs dirs}; do
+        for file in "$dir"/*.md; do
+          [ -e "$file" ] || continue
+          awk '
+            NR == 1 && $0 == "---" { inFrontmatter = 1; print; next }
+            inFrontmatter && $0 == "---" {
+              print "mode: subagent"; print; inFrontmatter = 0; next
+            }
+            inFrontmatter && /^(name|model|color|tools):/ { next }
+            { print }
+          ' "$file" > "$out/$(basename "$file")"
+        done
+      done
+    '';
+
+  agentsDir = rewriteAgents (contentDirs "agents");
+
   # Same `.mcp.json` that `claude.nix` (via the `nix` plugin) and `codex.nix`
   # read — one source of truth for the mcp-nixos server. opencode's schema
   # differs from Claude's, so translate rather than splat: it wants a `type`
@@ -74,6 +135,14 @@ let
   };
 in
 {
+  # Bypasses `programs.opencode.agents`, which gates on `lib.isPath` and so
+  # silently ignores a derivation (`skills` uses `lib.hm.strings.isPathLike`,
+  # which does accept one — hence the inconsistency between the two here).
+  config.xdg.configFile."opencode/agents" = {
+    source = agentsDir;
+    recursive = true;
+  };
+
   config.programs.opencode = {
     # Unconditional, unlike `programs.codex.enable`: Codex is opt-in because
     # its `projects` trust map is inherently per-deployment, whereas opencode
