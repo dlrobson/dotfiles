@@ -10,6 +10,7 @@
     ./fish.nix
     ./git.nix
     ./neovim.nix
+    ./opencode.nix
     ./packages.nix
     ./rbw.nix
     ./ssh.nix
