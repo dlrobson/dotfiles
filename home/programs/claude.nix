@@ -152,15 +152,6 @@ in
             "WebFetch(domain:codeload.github.com)"
             "WebFetch(domain:raw.githubusercontent.com)"
             "WebSearch"
-            "Skill(superpowers:brainstorming)"
-            "Skill(superpowers:writing-plans)"
-            "Skill(superpowers:subagent-driven-development)"
-            "Skill(superpowers:systematic-debugging)"
-            "Skill(superpowers:test-driven-development)"
-            "Skill(superpowers:verification-before-completion)"
-            "Skill(superpowers:requesting-code-review)"
-            "Skill(superpowers:receiving-code-review)"
-            "Skill(superpowers:using-git-worktrees)"
             "Skill(code-review)"
             "Skill(simplify)"
             "Skill(verify)"
@@ -215,7 +206,6 @@ in
         enabledPlugins = {
           "claude-md-management@claude-plugins-official-mirror" = true;
           "claude-code-setup@claude-plugins-official-mirror" = true;
-          "superpowers@superpowers-dev" = true;
           "plugin-dev@claude-plugins-official-mirror" = true;
           "pr-review-toolkit@claude-plugins-official-mirror" = true;
           "rust-analyzer@claude-code-lsps" = true;
@@ -241,14 +231,6 @@ in
         ast-grep-marketplace = sources.ast-grep-skill;
         dlrobson-plugins = pluginMarketplace;
         inherit (sources) engram;
-        # `claude-plugins-official` lists superpowers as a remote `url` source
-        # rather than vendoring it, so consuming it from there means Claude
-        # Code fetches the repo at runtime — and leaves nothing on disk for
-        # `opencode.nix` to install skills from. Pinning it via npins instead
-        # keeps the fetch declarative and lets both agents share one version.
-        # The repo is itself a marketplace (`.claude-plugin/marketplace.json`,
-        # name "superpowers-dev", plugin source "./"), hence the id below.
-        superpowers-dev = sources.superpowers;
       };
     };
 
