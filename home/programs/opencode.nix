@@ -8,23 +8,56 @@ let
   sources = import ../../npins;
   pluginsDir = "${sources.plugin-marketplace}/plugins";
 
+  claudeCfg = config.programs.claude-code;
+
   subDirs =
     dir: builtins.attrNames (lib.filterAttrs (_: type: type == "directory") (builtins.readDir dir));
 
   # opencode consumes bare skill directories rather than plugin manifests, so
-  # every `plugins/*/skills/*` in the marketplace is usable as-is (the
-  # SKILL.md frontmatter contract is the same one Claude Code uses). Discovered
-  # rather than listed so new marketplace skills need no edit here.
+  # any `SKILL.md` tree Claude Code already uses works here unchanged — the
+  # frontmatter contract is the same. Rather than maintain a second list of
+  # what to install, derive it from the plugins `claude.nix` already enables,
+  # so the two agents can't silently drift apart.
+  enabledPlugins = lib.attrNames (lib.filterAttrs (_: v: v) claudeCfg.settings.enabledPlugins);
+
+  # Marketplaces don't agree on where a plugin lives: `dlrobson-plugins` and
+  # `claude-plugins-official-mirror` nest under `plugins/`, `ast-grep-marketplace`
+  # puts it at the top level, and `engram` *is* the plugin. Probe the three
+  # layouts for one that has a `skills/` directory; a marketplace whose plugins
+  # ship no skills (e.g. `claude-code-lsps`, superseded here by `lsp = true`)
+  # simply contributes nothing.
+  skillsDirOf =
+    name: marketplace:
+    let
+      src = claudeCfg.marketplaces.${marketplace};
+      candidates = map (dir: "${dir}/skills") [
+        "${src}/plugins/${name}"
+        "${src}/${name}"
+        "${src}"
+      ];
+    in
+    lib.findFirst builtins.pathExists null candidates;
+
+  # Skill directory names are unique across the enabled set today. If two
+  # plugins ever ship the same skill name, `listToAttrs` keeps the last — which
+  # would silently shadow one, so `run-tests` output is worth a glance when
+  # enabling a new marketplace.
   marketplaceSkills = lib.listToAttrs (
     lib.concatMap (
-      plugin:
+      ref:
       let
-        skillsDir = "${pluginsDir}/${plugin}/skills";
+        parts = lib.splitString "@" ref;
+        skillsDir = skillsDirOf (builtins.head parts) (lib.last parts);
       in
-      lib.optionals (builtins.pathExists skillsDir) (
-        map (skill: lib.nameValuePair skill "${skillsDir}/${skill}") (subDirs skillsDir)
+      lib.optionals (skillsDir != null) (
+        map (skill: lib.nameValuePair skill "${skillsDir}/${skill}") (
+          # A `skills/` tree can hold non-skill directories of shared assets
+          # (engram's `_shared`), which opencode would reject for having no
+          # frontmatter — a `SKILL.md` is what makes a directory a skill.
+          lib.filter (skill: builtins.pathExists "${skillsDir}/${skill}/SKILL.md") (subDirs skillsDir)
+        )
       )
-    ) (subDirs pluginsDir)
+    ) enabledPlugins
   );
 
   # Same `.mcp.json` that `claude.nix` (via the `nix` plugin) and `codex.nix`
@@ -78,10 +111,28 @@ in
       mcp = lib.mapAttrs toOpencodeMcp (
         builtins.fromJSON (builtins.readFile "${pluginsDir}/nix/.mcp.json")
       );
-      # No `permission` block yet: opencode's rules are pattern matches, not an
-      # OS sandbox like `claude.nix`'s bubblewrap config, so nothing carries
-      # over directly. Its defaults (prompt on edit/bash) apply until the
-      # allowlist is ported deliberately.
+      # Ported from `claude.nix`'s `settings.permissions`, with one structural
+      # difference: there is no bubblewrap equivalent here. Claude Code can
+      # afford to auto-run everything because the sandbox is the safety
+      # boundary; opencode has only these pattern rules, so they *are* the
+      # boundary. Rules are evaluated last-match-wins, hence the `"*"`
+      # catch-all first and the specific overrides after it.
+      permission = {
+        bash = {
+          "*" = "allow";
+          # Backstops the "never run sudo" rule in the shared `context` above
+          # (prose the model could ignore) with harness-level enforcement,
+          # mirroring the `Bash(sudo *)` deny in `claude.nix`.
+          "sudo *" = "deny";
+          "git push *" = "ask";
+          "git reset *" = "ask";
+        };
+        edit = "allow";
+        webfetch = "allow";
+        # Reaching outside the project is the one thing the missing sandbox
+        # made cheap to do by accident, so keep a prompt on it.
+        external_directory = "ask";
+      };
     };
   };
 }
