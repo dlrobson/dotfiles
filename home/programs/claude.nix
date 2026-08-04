@@ -6,19 +6,6 @@
 }:
 let
   cfg = config.claude-window-trigger;
-  sources = import ../../npins;
-  pluginMarketplace = sources.plugin-marketplace;
-  claudePluginsOfficial = sources.claude-plugins-official;
-  # Enable every plugin listed in the marketplace's manifest automatically,
-  # so new plugins added to the repo don't need to be listed here by hand.
-  localMarketplaceManifest = builtins.fromJSON (
-    builtins.readFile "${pluginMarketplace}/.claude-plugin/marketplace.json"
-  );
-  localEnabledPlugins = lib.listToAttrs (
-    map (
-      plugin: lib.nameValuePair "${plugin.name}@dlrobson-plugins" true
-    ) localMarketplaceManifest.plugins
-  );
 in
 {
   options.claude-window-trigger = {
@@ -210,46 +197,10 @@ in
             }
           ];
         };
-        # Plugins resolved from the marketplaces registered below, keyed as
-        # `plugin-id@marketplace-id`.
-        enabledPlugins = {
-          "claude-md-management@claude-plugins-official-mirror" = true;
-          "claude-code-setup@claude-plugins-official-mirror" = true;
-          "superpowers@superpowers-dev" = true;
-          "plugin-dev@claude-plugins-official-mirror" = true;
-          "pr-review-toolkit@claude-plugins-official-mirror" = true;
-          "rust-analyzer@claude-code-lsps" = true;
-          "nixd@claude-code-lsps" = true;
-          "vtsls@claude-code-lsps" = true;
-          "ast-grep@ast-grep-marketplace" = true;
-          "engram@engram" = true;
-        }
-        // localEnabledPlugins;
+        # Declared in `agent-plugins.nix`, shared with opencode.
+        enabledPlugins = lib.genAttrs config.agentPlugins.enabled (_: true);
       };
-      marketplaces = {
-        # Named away from "claude-plugins-official": Claude Code hardcodes
-        # an exact-match set of reserved marketplace names (including
-        # "claude-plugins-official" and, as of 2.1.209, "anthropic-plugins")
-        # and refuses to load any of them from a source it can't verify as
-        # the anthropics GitHub org - which a vendored nix-store directory
-        # source never satisfies, even when the content genuinely is
-        # anthropics/claude-plugins-official. Any name outside that fixed
-        # set (exact string match, not a substring/pattern check) works.
-        # https://github.com/anthropics/claude-code/issues/18329
-        claude-plugins-official-mirror = claudePluginsOfficial;
-        inherit (sources) claude-code-lsps;
-        ast-grep-marketplace = sources.ast-grep-skill;
-        dlrobson-plugins = pluginMarketplace;
-        inherit (sources) engram;
-        # `claude-plugins-official` lists superpowers as a remote `url` source
-        # rather than vendoring it, so consuming it from there means Claude
-        # Code fetches the repo at runtime — and leaves nothing on disk for
-        # `opencode.nix` to install skills from. Pinning it via npins instead
-        # keeps the fetch declarative and lets both agents share one version.
-        # The repo is itself a marketplace (`.claude-plugin/marketplace.json`,
-        # name "superpowers-dev", plugin source "./"), hence the id below.
-        superpowers-dev = sources.superpowers;
-      };
+      inherit (config.agentPlugins) marketplaces;
     };
 
     home = {

@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ./agent-plugins.nix
     ./bash.nix
     ./claude.nix
     ./codex-plugins.nix

@@ -8,17 +8,14 @@ let
   sources = import ../../npins;
   pluginsDir = "${sources.plugin-marketplace}/plugins";
 
-  claudeCfg = config.programs.claude-code;
-
   subDirs =
     dir: builtins.attrNames (lib.filterAttrs (_: type: type == "directory") (builtins.readDir dir));
 
   # opencode consumes bare skill directories rather than plugin manifests, so
   # any `SKILL.md` tree Claude Code already uses works here unchanged — the
-  # frontmatter contract is the same. Rather than maintain a second list of
-  # what to install, derive it from the plugins `claude.nix` already enables,
-  # so the two agents can't silently drift apart.
-  enabledPlugins = lib.attrNames (lib.filterAttrs (_: v: v) claudeCfg.settings.enabledPlugins);
+  # frontmatter contract is the same. Both agents read the same registry
+  # (`agent-plugins.nix`) rather than one reading the other's settings.
+  inherit (config.agentPlugins) enabled;
 
   # Marketplaces don't agree on where a plugin lives: `dlrobson-plugins` and
   # `claude-plugins-official-mirror` nest under `plugins/`, `ast-grep-marketplace`
@@ -29,7 +26,7 @@ let
   contentDirOf =
     kind: name: marketplace:
     let
-      src = claudeCfg.marketplaces.${marketplace};
+      src = config.agentPlugins.marketplaces.${marketplace};
       candidates = map (dir: "${dir}/${kind}") [
         "${src}/plugins/${name}"
         "${src}/${name}"
@@ -47,7 +44,7 @@ let
           parts = lib.splitString "@" ref;
         in
         contentDirOf kind (builtins.head parts) (lib.last parts)
-      ) enabledPlugins
+      ) enabled
     );
 
   skillsDirOf = contentDirOf "skills";
@@ -86,7 +83,7 @@ let
           lib.filter (lib.hasSuffix ".js") (builtins.attrNames (builtins.readDir dir))
         )
       )
-    ) enabledPlugins
+    ) enabled
   );
 
   # Skill directory names are unique across the enabled set today. If two
@@ -108,7 +105,7 @@ let
           lib.filter (skill: builtins.pathExists "${skillsDir}/${skill}/SKILL.md") (subDirs skillsDir)
         )
       )
-    ) (lib.filter (ref: !hasNativePlugin ref) enabledPlugins)
+    ) (lib.filter (ref: !hasNativePlugin ref) enabled)
   );
 
   # Claude and opencode both define agents as markdown with YAML frontmatter,
@@ -118,16 +115,8 @@ let
   #                are meaningless to it. Dropping the key inherits the default
   #                model, which is the intent of `inherit` anyway.
   #   - `color` — no opencode equivalent
-  #   - `tools` — both harnesses have the key but disagree on names and shape:
-  #                Claude writes `["Read", "Grep"]`, opencode wants
-  #                `{ read = true; grep = true; }`. Carrying the value across
-  #                unchanged risks a misparsed restriction, which is worse than
-  #                none, so it is dropped and the agents inherit full tool
-  #                access. Five of the twelve are narrower upstream (e.g.
-  #                `skill-reviewer` is read-only), so this is more permissive
-  #                than intended — the global `permission` block below still
-  #                applies either way. Translating properly means an allowlist,
-  #                i.e. explicitly disabling every unlisted tool.
+  #   - `tools` — kept, but translated: both harnesses have the key and
+  #                disagree on names and shape. See `mapTools` below.
   #   - `mode`  — required here, absent there. Without `mode: subagent` these
   #                would register as primary (Tab-switchable) agents, but they
   #                exist to be dispatched by a primary agent, not talked to.
@@ -137,6 +126,7 @@ let
   # Only top-level keys are stripped: the `^` anchors matter because a block
   # scalar (`description: |`, as `code-simplifier` uses) indents its content,
   # so a body line can never be mistaken for a key.
+
   # opencode's tool ids, read out of the binary rather than the docs. An
   # allowlist has to name every one of them: opencode treats an unlisted tool
   # as *enabled*, so restricting to a few means explicitly disabling the rest.
