@@ -165,11 +165,9 @@ let
   # `claude.nix`'s Stop/Notification hooks. Binary paths are substituted in so
   # the plugin doesn't depend on whatever PATH opencode inherits.
   #
-  # The Ghostty OSC 777 sequence from the Claude hooks is deliberately not
-  # ported: Claude Code has a hook protocol for handing a terminal sequence
-  # back to the harness to emit, whereas an opencode plugin would have to
-  # write the escape to the tty itself, mid-TUI-render. notify-send already
-  # covers the desktop notification, so the OSC path is redundant here.
+  # opencode has no native notification support (the `notify` strings in the
+  # binary are HTTP methods and the autoupdate setting), so all three targets
+  # — OSC 777, notify-send, tmux — are the plugin's own doing.
   notifyPlugin = pkgs.replaceVars ./opencode-notify.js {
     notifySend = "${pkgs.libnotify}/bin/notify-send";
     tmux = "${pkgs.tmux}/bin/tmux";
