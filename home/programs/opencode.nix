@@ -52,6 +52,43 @@ let
 
   skillsDirOf = contentDirOf "skills";
 
+  # A plugin that ships a native opencode plugin (superpowers vendors
+  # `.opencode/plugins/superpowers.js`) is left to install itself. Its plugin
+  # pushes its own skills directory onto `config.skills.paths` at runtime, so
+  # copying the same skills in through the `skills` option as well would
+  # register every one of them twice. It also injects a bootstrap preamble
+  # translating skill instructions to opencode's tool names — the thing we
+  # hand-rewrite for agents — so upstream's own translation is preferable to
+  # ours.
+  nativePluginDirOf = contentDirOf ".opencode/plugins";
+
+  hasNativePlugin =
+    ref:
+    let
+      parts = lib.splitString "@" ref;
+    in
+    nativePluginDirOf (builtins.head parts) (lib.last parts) != null;
+
+  # Vendored from the pinned source rather than declared in `settings.plugin`,
+  # which takes npm specs that Bun resolves over the network at startup —
+  # upstream's documented `superpowers@git+https://...` install. The plugin
+  # resolves its skills relative to its own realpath, which stays inside the
+  # store path through the symlink, so linking the file alone is enough.
+  nativePluginFiles = lib.listToAttrs (
+    lib.concatMap (
+      ref:
+      let
+        parts = lib.splitString "@" ref;
+        dir = nativePluginDirOf (builtins.head parts) (lib.last parts);
+      in
+      lib.optionals (dir != null) (
+        map (file: lib.nameValuePair "opencode/plugins/${file}" { source = "${dir}/${file}"; }) (
+          lib.filter (lib.hasSuffix ".js") (builtins.attrNames (builtins.readDir dir))
+        )
+      )
+    ) enabledPlugins
+  );
+
   # Skill directory names are unique across the enabled set today. If two
   # plugins ever ship the same skill name, `listToAttrs` keeps the last — which
   # would silently shadow one, so `run-tests` output is worth a glance when
@@ -71,7 +108,7 @@ let
           lib.filter (skill: builtins.pathExists "${skillsDir}/${skill}/SKILL.md") (subDirs skillsDir)
         )
       )
-    ) enabledPlugins
+    ) (lib.filter (ref: !hasNativePlugin ref) enabledPlugins)
   );
 
   # Claude and opencode both define agents as markdown with YAML frontmatter,
@@ -285,7 +322,8 @@ in
     # Local plugin files are auto-discovered from this directory; the
     # `settings.plugin` config key is for npm packages only.
     "opencode/plugins/notify.js".source = notifyPlugin;
-  };
+  }
+  // nativePluginFiles;
 
   config.programs.opencode = {
     # Unconditional, unlike `programs.codex.enable`: Codex is opt-in because
