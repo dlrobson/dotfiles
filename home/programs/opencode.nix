@@ -100,9 +100,15 @@ let
   # Only top-level keys are stripped: the `^` anchors matter because a block
   # scalar (`description: |`, as `code-simplifier` uses) indents its content,
   # so a body line can never be mistaken for a key.
-  rewriteAgents =
-    dirs:
-    pkgs.runCommand "opencode-agents" { } ''
+  rewriteMarkdown =
+    {
+      name,
+      dirs,
+      dropKeys,
+      addLines ? [ ],
+      substitutions ? [ ],
+    }:
+    pkgs.runCommand name { } ''
       mkdir -p "$out"
       for dir in ${lib.escapeShellArgs dirs}; do
         for file in "$dir"/*.md; do
@@ -110,16 +116,50 @@ let
           awk '
             NR == 1 && $0 == "---" { inFrontmatter = 1; print; next }
             inFrontmatter && $0 == "---" {
-              print "mode: subagent"; print; inFrontmatter = 0; next
+              ${lib.concatMapStrings (line: ''print "${line}"; '') addLines}print
+              inFrontmatter = 0; next
             }
-            inFrontmatter && /^(name|model|color|tools):/ { next }
+            inFrontmatter && /^(${dropKeys}):/ { next }
             { print }
-          ' "$file" > "$out/$(basename "$file")"
+          ' "$file" ${
+            lib.concatMapStringsSep " " (expr: "| sed ${lib.escapeShellArg expr}") substitutions
+          } > "$out/$(basename "$file")"
         done
       done
     '';
 
-  agentsDir = rewriteAgents (contentDirs "agents");
+  agentsDir = rewriteMarkdown {
+    name = "opencode-agents";
+    dirs = contentDirs "agents";
+    dropKeys = "name|model|color|tools";
+    addLines = [ "mode: subagent" ];
+  };
+
+  # Commands need a smaller frontmatter delta than agents: `description` is
+  # common to both and nothing has to be added (opencode takes the prompt from
+  # the body). `argument-hint` has no opencode equivalent, and `allowed-tools`
+  # is dropped for the same names-and-shape mismatch as `tools` above.
+  #
+  # The body needs three exact-string fixes. `$ARGUMENTS` and the bare agent
+  # names it dispatches (`code-reviewer`, ...) already match opencode, so
+  # nothing else carries over badly:
+  #   1. Seven usage examples invoke the command by its Claude-qualified name.
+  #      opencode derives the name from the filename, so `/review-pr`.
+  #   2. opencode has no `/agents` listing; subagents surface via `@` mentions.
+  #   3. "Agents use appropriate models for their complexity" was true under
+  #      Claude Code (code-reviewer on opus, rest inheriting) but is false here
+  #      — dropping `model` puts all of them on the default. Leaving the claim
+  #      in would assert a differentiation that no longer exists.
+  commandsDir = rewriteMarkdown {
+    name = "opencode-commands";
+    dirs = contentDirs "commands";
+    dropKeys = "argument-hint|allowed-tools";
+    substitutions = [
+      "s|/pr-review-toolkit:review-pr|/review-pr|g"
+      "s|^- All agents available in `/agents` list$|- All agents available via `@` mentions|"
+      "/^- Agents use appropriate models for their complexity$/d"
+    ];
+  };
 
   # Same `.mcp.json` that `claude.nix` (via the `nix` plugin) and `codex.nix`
   # read — one source of truth for the mcp-nixos server. opencode's schema
@@ -138,9 +178,15 @@ in
   # Bypasses `programs.opencode.agents`, which gates on `lib.isPath` and so
   # silently ignores a derivation (`skills` uses `lib.hm.strings.isPathLike`,
   # which does accept one — hence the inconsistency between the two here).
-  config.xdg.configFile."opencode/agents" = {
-    source = agentsDir;
-    recursive = true;
+  config.xdg.configFile = {
+    "opencode/agents" = {
+      source = agentsDir;
+      recursive = true;
+    };
+    "opencode/commands" = {
+      source = commandsDir;
+      recursive = true;
+    };
   };
 
   config.programs.opencode = {
