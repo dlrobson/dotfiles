@@ -295,81 +295,159 @@ let
     command = [ server.command ] ++ (server.args or [ ]);
     enabled = true;
   };
+  webCfg = config.opencode-web;
 in
 {
+  # `opencode serve` is a headless agent with this module's `permission` block
+  # and no OS sandbox, so anything that can reach it can run commands as the
+  # user. Its only protection is HTTP basic auth from OPENCODE_SERVER_PASSWORD,
+  # sent in cleartext — opencode terminates no TLS. Hence: off by default,
+  # bound to loopback unless told otherwise, and an assertion below rather than
+  # a comment warning against the unauthenticated-on-a-network combination.
+  #
+  # Machine-specific, so set per-deployment (the consuming config knows its own
+  # tailnet address and where the secret lives) rather than hardcoded here.
+  options.opencode-web = {
+    enable = lib.mkEnableOption "the opencode web server";
+
+    hostname = lib.mkOption {
+      type = lib.types.str;
+      default = "127.0.0.1";
+      example = "100.64.0.1";
+      description = ''
+        Address to bind to. Defaults to loopback. Prefer a Tailscale address
+        over `0.0.0.0`: it keeps the server off the local network and behind
+        the tailnet's own encryption and authentication, leaving basic auth as
+        defence in depth rather than the only defence.
+      '';
+    };
+
+    port = lib.mkOption {
+      type = lib.types.port;
+      default = 4096;
+      description = ''
+        Port to listen on. opencode itself would pick a random one, which is
+        awkward to bookmark or firewall.
+      '';
+    };
+
+    environmentFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
+      default = null;
+      example = "/run/agenix/opencode-web";
+      description = ''
+        Path to a systemd EnvironmentFile supplying `OPENCODE_SERVER_PASSWORD`
+        (and optionally `OPENCODE_SERVER_USERNAME`, which defaults to
+        `opencode`). Keeps the secret out of the world-readable Nix store, so
+        this is a path the consuming deployment provides — this repo owns no
+        secrets of its own.
+      '';
+    };
+  };
+
   # Bypasses `programs.opencode.agents`, which gates on `lib.isPath` and so
   # silently ignores a derivation (`skills` uses `lib.hm.strings.isPathLike`,
   # which does accept one — hence the inconsistency between the two here).
-  config.xdg.configFile = {
-    "opencode/agents" = {
-      source = agentsDir;
-      recursive = true;
-    };
-    "opencode/commands" = {
-      source = commandsDir;
-      recursive = true;
-    };
-    # Local plugin files are auto-discovered from this directory; the
-    # `settings.plugin` config key is for npm packages only.
-    "opencode/plugins/notify.js".source = notifyPlugin;
-  }
-  // nativePluginFiles;
+  config = {
+    xdg.configFile = {
+      "opencode/agents" = {
+        source = agentsDir;
+        recursive = true;
+      };
+      "opencode/commands" = {
+        source = commandsDir;
+        recursive = true;
+      };
+      # Local plugin files are auto-discovered from this directory; the
+      # `settings.plugin` config key is for npm packages only.
+      "opencode/plugins/notify.js".source = notifyPlugin;
+    }
+    // nativePluginFiles;
 
-  config.programs.opencode = {
-    enable = true;
-    package = config.unstablePkgs.opencode;
-
-    # Same global rules as Claude Code — single source of truth.
-    # The module writes this to `~/.config/opencode/AGENTS.md`.
-    context = config.programs.claude-code.context;
-
-    # Runtime deps for the mcp-nixos server below, which launches via
-    # `UV_PYTHON=$(which python3) uvx mcp-nixos`. Wrapped onto opencode's own
-    # PATH so the module stands alone, even though `claude.nix` also installs
-    # them globally for the same reason.
-    extraPackages = [
-      pkgs.uv
-      pkgs.python3
+    # Refusing to build beats printing a warning nobody reads: an unauthenticated
+    # server on loopback is a reasonable local convenience, but the moment it is
+    # reachable from elsewhere the password stops being optional.
+    assertions = [
+      {
+        assertion = webCfg.enable -> (webCfg.hostname == "127.0.0.1" || webCfg.environmentFile != null);
+        message = ''
+          opencode-web.hostname is "${webCfg.hostname}" but no environmentFile is
+          set, so the server would accept unauthenticated requests from the
+          network — and it can run shell commands. Set
+          `opencode-web.environmentFile` to a file defining
+          OPENCODE_SERVER_PASSWORD.
+        '';
+      }
     ];
 
-    skills = marketplaceSkills;
+    programs.opencode = {
+      enable = true;
+      package = config.unstablePkgs.opencode;
 
-    settings = {
-      # Anthropic prohibits third-party harnesses from using Claude Pro/Max
-      # OAuth (https://code.claude.com/docs/en/legal-and-compliance), so
-      # opencode can't spend the subscription — point it at opencode Zen's
-      # free tier instead. The API key is entered interactively via `/connect`
-      # and stored in ~/.local/share/opencode/auth.json, so there's nothing to
-      # manage here. Note Zen's free models may retain data for training;
-      # don't point opencode at anything sensitive.
-      model = "opencode/deepseek-v4-flash-free";
-      # Built in, so no equivalent of the `claude-code-lsps` marketplace
-      # plugins is needed.
-      lsp = true;
-      mcp = lib.mapAttrs toOpencodeMcp (
-        builtins.fromJSON (builtins.readFile "${pluginsDir}/nix/.mcp.json")
-      );
-      # Ported from `claude.nix`'s `settings.permissions`, with one structural
-      # difference: there is no bubblewrap equivalent here. Claude Code can
-      # afford to auto-run everything because the sandbox is the safety
-      # boundary; opencode has only these pattern rules, so they *are* the
-      # boundary. Rules are evaluated last-match-wins, hence the `"*"`
-      # catch-all first and the specific overrides after it.
-      permission = {
-        bash = {
-          "*" = "allow";
-          # Backstops the "never run sudo" rule in the shared `context` above
-          # (prose the model could ignore) with harness-level enforcement,
-          # mirroring the `Bash(sudo *)` deny in `claude.nix`.
-          "sudo *" = "deny";
-          "git push *" = "ask";
-          "git reset *" = "ask";
+      web = {
+        inherit (webCfg) enable environmentFile;
+        # These override the `server` block in opencode.json, which is left unset
+        # so there is one place to look.
+        extraArgs = [
+          "--hostname"
+          webCfg.hostname
+          "--port"
+          (toString webCfg.port)
+        ];
+      };
+
+      # Same global rules as Claude Code — single source of truth.
+      # The module writes this to `~/.config/opencode/AGENTS.md`.
+      context = config.programs.claude-code.context;
+
+      # Runtime deps for the mcp-nixos server below, which launches via
+      # `UV_PYTHON=$(which python3) uvx mcp-nixos`. Wrapped onto opencode's own
+      # PATH so the module stands alone, even though `claude.nix` also installs
+      # them globally for the same reason.
+      extraPackages = [
+        pkgs.uv
+        pkgs.python3
+      ];
+
+      skills = marketplaceSkills;
+
+      settings = {
+        # Anthropic prohibits third-party harnesses from using Claude Pro/Max
+        # OAuth (https://code.claude.com/docs/en/legal-and-compliance), so
+        # opencode can't spend the subscription — point it at opencode Zen's
+        # free tier instead. The API key is entered interactively via `/connect`
+        # and stored in ~/.local/share/opencode/auth.json, so there's nothing to
+        # manage here. Note Zen's free models may retain data for training;
+        # don't point opencode at anything sensitive.
+        model = "opencode/deepseek-v4-flash-free";
+        # Built in, so no equivalent of the `claude-code-lsps` marketplace
+        # plugins is needed.
+        lsp = true;
+        mcp = lib.mapAttrs toOpencodeMcp (
+          builtins.fromJSON (builtins.readFile "${pluginsDir}/nix/.mcp.json")
+        );
+        # Ported from `claude.nix`'s `settings.permissions`, with one structural
+        # difference: there is no bubblewrap equivalent here. Claude Code can
+        # afford to auto-run everything because the sandbox is the safety
+        # boundary; opencode has only these pattern rules, so they *are* the
+        # boundary. Rules are evaluated last-match-wins, hence the `"*"`
+        # catch-all first and the specific overrides after it.
+        permission = {
+          bash = {
+            "*" = "allow";
+            # Backstops the "never run sudo" rule in the shared `context` above
+            # (prose the model could ignore) with harness-level enforcement,
+            # mirroring the `Bash(sudo *)` deny in `claude.nix`.
+            "sudo *" = "deny";
+            "git push *" = "ask";
+            "git reset *" = "ask";
+          };
+          edit = "allow";
+          webfetch = "allow";
+          # Reaching outside the project is the one thing the missing sandbox
+          # made cheap to do by accident, so keep a prompt on it.
+          external_directory = "ask";
         };
-        edit = "allow";
-        webfetch = "allow";
-        # Reaching outside the project is the one thing the missing sandbox
-        # made cheap to do by accident, so keep a prompt on it.
-        external_directory = "ask";
       };
     };
   };
