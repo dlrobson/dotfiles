@@ -100,6 +100,38 @@ let
   # Only top-level keys are stripped: the `^` anchors matter because a block
   # scalar (`description: |`, as `code-simplifier` uses) indents its content,
   # so a body line can never be mistaken for a key.
+  # opencode's tool ids, read out of the binary rather than the docs. An
+  # allowlist has to name every one of them: opencode treats an unlisted tool
+  # as *enabled*, so restricting to a few means explicitly disabling the rest.
+  # The cost of that is this list going stale — a tool added upstream is
+  # silently granted to restricted agents until it's added here.
+  opencodeTools = [
+    "bash"
+    "edit"
+    "write"
+    "read"
+    "grep"
+    "glob"
+    "list"
+    "patch"
+    "task"
+    "skill"
+    "webfetch"
+    "websearch"
+    "todowrite"
+    "question"
+    "lsp"
+  ];
+
+  # Claude's tool names lowercase directly onto opencode's for everything our
+  # agents actually use (Read, Write, Grep, Glob, Bash, WebSearch, WebFetch).
+  # These are the few that don't.
+  toolAliases = [
+    "askuserquestion=question"
+    "ls=list"
+    "notebookread=read"
+  ];
+
   rewriteMarkdown =
     {
       name,
@@ -107,13 +139,21 @@ let
       dropKeys,
       addLines ? [ ],
       substitutions ? [ ],
+      mapTools ? false,
     }:
     pkgs.runCommand name { } ''
       mkdir -p "$out"
       for dir in ${lib.escapeShellArgs dirs}; do
         for file in "$dir"/*.md; do
           [ -e "$file" ] || continue
-          awk '
+          awk -v mapTools=${if mapTools then "1" else "0"} \
+              -v allTools=${lib.escapeShellArg (lib.concatStringsSep " " opencodeTools)} \
+              -v aliases=${lib.escapeShellArg (lib.concatStringsSep " " toolAliases)} '
+            BEGIN {
+              split(allTools, toolList, " ")
+              n = split(aliases, pairs, " ")
+              for (i = 1; i <= n; i++) { split(pairs[i], kv, "="); alias[kv[1]] = kv[2] }
+            }
             NR == 1 && $0 == "---" { inFrontmatter = 1; print; next }
             inFrontmatter && $0 == "---" {
               ${lib.concatMapStrings (line: ''print "${line}"; '') addLines}print
@@ -125,6 +165,30 @@ let
             # invalid YAML. Keep skipping until the next top-level key, which
             # is the only thing that can appear unindented inside frontmatter.
             inFrontmatter && /^(${dropKeys}):/ { dropping = 1; next }
+            # Claude declares an allowlist; opencode wants a per-tool mapping
+            # and treats anything unlisted as enabled, so the allowlist has to
+            # be expanded into explicit false for every other tool. Handles
+            # both spellings upstream uses — ["Read", "Grep"] and Read, Grep —
+            # and strips any Bash(git add:*) argument pattern, which opencode
+            # expresses through `permission.bash` rather than per agent.
+            mapTools && inFrontmatter && /^tools:/ {
+              value = substr($0, 7)
+              gsub(/[][""]/, "", value)
+              delete allowed
+              count = split(value, requested, ",")
+              for (i = 1; i <= count; i++) {
+                tool = requested[i]
+                sub(/\(.*/, "", tool)
+                gsub(/^[ \t]+|[ \t]+$/, "", tool)
+                tool = tolower(tool)
+                if (tool in alias) tool = alias[tool]
+                if (tool != "") allowed[tool] = 1
+              }
+              print "tools:"
+              for (i = 1; i in toolList; i++)
+                print "  " toolList[i] ": " (toolList[i] in allowed ? "true" : "false")
+              next
+            }
             # Some upstream descriptions are unquoted scalars containing ": "
             # (silent-failure-hunter embeds "Examples:" and "Context:"), which
             # YAML reads as a nested mapping and rejects — the file is already
@@ -149,8 +213,9 @@ let
   agentsDir = rewriteMarkdown {
     name = "opencode-agents";
     dirs = contentDirs "agents";
-    dropKeys = "name|model|color|tools";
+    dropKeys = "name|model|color";
     addLines = [ "mode: subagent" ];
+    mapTools = true;
   };
 
   # Commands need a smaller frontmatter delta than agents: `description` is
