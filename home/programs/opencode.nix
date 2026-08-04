@@ -161,6 +161,20 @@ let
     ];
   };
 
+  # Desktop/tmux notification on session.idle — the opencode counterpart to
+  # `claude.nix`'s Stop/Notification hooks. Binary paths are substituted in so
+  # the plugin doesn't depend on whatever PATH opencode inherits.
+  #
+  # The Ghostty OSC 777 sequence from the Claude hooks is deliberately not
+  # ported: Claude Code has a hook protocol for handing a terminal sequence
+  # back to the harness to emit, whereas an opencode plugin would have to
+  # write the escape to the tty itself, mid-TUI-render. notify-send already
+  # covers the desktop notification, so the OSC path is redundant here.
+  notifyPlugin = pkgs.replaceVars ./opencode-notify.js {
+    notifySend = "${pkgs.libnotify}/bin/notify-send";
+    tmux = "${pkgs.tmux}/bin/tmux";
+  };
+
   # Same `.mcp.json` that `claude.nix` (via the `nix` plugin) and `codex.nix`
   # read — one source of truth for the mcp-nixos server. opencode's schema
   # differs from Claude's, so translate rather than splat: it wants a `type`
@@ -187,6 +201,9 @@ in
       source = commandsDir;
       recursive = true;
     };
+    # Local plugin files are auto-discovered from this directory; the
+    # `settings.plugin` config key is for npm packages only.
+    "opencode/plugins/notify.js".source = notifyPlugin;
   };
 
   config.programs.opencode = {
