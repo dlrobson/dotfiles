@@ -117,9 +117,27 @@ let
             NR == 1 && $0 == "---" { inFrontmatter = 1; print; next }
             inFrontmatter && $0 == "---" {
               ${lib.concatMapStrings (line: ''print "${line}"; '') addLines}print
-              inFrontmatter = 0; next
+              inFrontmatter = 0; dropping = 0; next
             }
-            inFrontmatter && /^(${dropKeys}):/ { next }
+            # A dropped key takes its value with it. The value can span lines
+            # — `create-plugin` writes `allowed-tools:` above a bracketed list
+            # on twelve following lines — and leaving those behind produces
+            # invalid YAML. Keep skipping until the next top-level key, which
+            # is the only thing that can appear unindented inside frontmatter.
+            inFrontmatter && /^(${dropKeys}):/ { dropping = 1; next }
+            # Some upstream descriptions are unquoted scalars containing ": "
+            # (silent-failure-hunter embeds "Examples:" and "Context:"), which
+            # YAML reads as a nested mapping and rejects — the file is already
+            # invalid upstream, Claude Code just parses leniently. Re-emit
+            # those as a block scalar, which needs no escaping and preserves
+            # the text byte for byte. Values that are already quoted or
+            # already block scalars are left alone.
+            inFrontmatter && /^description: / && $0 !~ /^description: *["\047|>]/ \
+              && substr($0, 14) ~ /: / {
+              print "description: |-"; print "  " substr($0, 14); next
+            }
+            inFrontmatter && /^[A-Za-z_-]+:/ { dropping = 0 }
+            inFrontmatter && dropping { next }
             { print }
           ' "$file" ${
             lib.concatMapStringsSep " " (expr: "| sed ${lib.escapeShellArg expr}") substitutions
