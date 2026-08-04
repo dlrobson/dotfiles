@@ -12,10 +12,6 @@ in
   # `opencode.nix` reading them back out — which made Claude's harness config
   # double as the cross-agent registry, so disabling a plugin for a
   # Claude-specific reason silently changed what opencode installed.
-  #
-  # Codex deliberately does not read this: it only supports plugins carrying a
-  # `.codex-plugin/plugin.json` manifest (today just `agenix`), so it keeps its
-  # own narrower scan in `codex.nix`.
   options.agentPlugins = {
     marketplaces = lib.mkOption {
       type = with lib.types; attrsOf (either package path);

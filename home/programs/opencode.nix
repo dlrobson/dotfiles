@@ -283,8 +283,8 @@ let
     tmux = "${pkgs.tmux}/bin/tmux";
   };
 
-  # Same `.mcp.json` that `claude.nix` (via the `nix` plugin) and `codex.nix`
-  # read — one source of truth for the mcp-nixos server. opencode's schema
+  # The same `.mcp.json` that `claude.nix` uses via the `nix` plugin — one
+  # source of truth for the mcp-nixos server. opencode's schema
   # differs from Claude's, so translate rather than splat: it wants a `type`
   # discriminator and a single flat argv instead of `command` + `args`.
   # home-manager's opencode module has this exact translation internally, but
@@ -316,13 +316,10 @@ in
   // nativePluginFiles;
 
   config.programs.opencode = {
-    # Unconditional, unlike `programs.codex.enable`: Codex is opt-in because
-    # its `projects` trust map is inherently per-deployment, whereas opencode
-    # has no equivalent machine-specific state.
     enable = true;
     package = config.unstablePkgs.opencode;
 
-    # Same global rules as Claude Code and Codex — single source of truth.
+    # Same global rules as Claude Code — single source of truth.
     # The module writes this to `~/.config/opencode/AGENTS.md`.
     context = config.programs.claude-code.context;
 
