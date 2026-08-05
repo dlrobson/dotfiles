@@ -4,8 +4,9 @@
 This repo is consumed as a library, not just built standalone. Other repos pin this repo
 via npins and `imports = [ "${sources.dotfiles}/home" ]` into their own home-manager user
 configs. Because of that:
-- Options meant to vary per deployment (e.g. `claude-window-trigger.schedule`)
-  default to off/empty here — the consuming repo sets real values, not this one.
+- Options meant to vary per deployment (e.g. `opencode.enable`,
+  `claude-window-trigger.schedule`) default to off/empty here — the consuming
+  repo sets real values, not this one.
 - `run-tests` only builds `profiles/{minimal,desktop}.nix` standalone; it won't catch
   issues that only surface when a consumer overrides these options.
 

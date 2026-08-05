@@ -295,60 +295,69 @@ let
     command = [ server.command ] ++ (server.args or [ ]);
     enabled = true;
   };
-  webCfg = config.opencode-web;
+  cfg = config.opencode;
+  webCfg = cfg.web;
 in
 {
-  # `opencode serve` is a headless agent with this module's `permission` block
-  # and no OS sandbox, so anything that can reach it can run commands as the
-  # user. Its only protection is HTTP basic auth from OPENCODE_SERVER_PASSWORD,
-  # sent in cleartext — opencode terminates no TLS. Hence: off by default,
-  # bound to loopback unless told otherwise, and an assertion below rather than
-  # a comment warning against the unauthenticated-on-a-network combination.
-  #
-  # Machine-specific, so set per-deployment (the consuming config knows its own
-  # tailnet address and where the secret lives) rather than hardcoded here.
-  options.opencode-web = {
-    enable = lib.mkEnableOption "the opencode web server";
+  options.opencode = {
+    # Off by default so a consuming deployment opts in, matching how
+    # `claude-window-trigger` is handled. Note `run-tests` builds this repo's
+    # profiles standalone, so with opencode disabled here nothing exercises the
+    # config — a consumer that enables it is the only real test.
+    enable = lib.mkEnableOption "opencode";
 
-    hostname = lib.mkOption {
-      type = lib.types.str;
-      default = "127.0.0.1";
-      example = "100.64.0.1";
-      description = ''
-        Address to bind to. Defaults to loopback. Prefer a Tailscale address
-        over `0.0.0.0`: it keeps the server off the local network and behind
-        the tailnet's own encryption and authentication, leaving basic auth as
-        defence in depth rather than the only defence.
-      '';
-    };
+    # `opencode serve` is a headless agent carrying the `permission` block
+    # below and no OS sandbox, so anything that reaches it can run commands as
+    # the user. Its only protection is HTTP basic auth from
+    # OPENCODE_SERVER_PASSWORD, sent in cleartext — opencode terminates no TLS.
+    # Hence loopback unless told otherwise, and an assertion rather than a
+    # comment warning against the unauthenticated-on-a-network combination.
+    #
+    # Machine-specific, so set per-deployment: the consuming config knows its
+    # own tailnet address and where the secret lives.
+    web = {
+      enable = lib.mkEnableOption "the opencode web server";
 
-    port = lib.mkOption {
-      type = lib.types.port;
-      default = 4096;
-      description = ''
-        Port to listen on. opencode itself would pick a random one, which is
-        awkward to bookmark or firewall.
-      '';
-    };
+      hostname = lib.mkOption {
+        type = lib.types.str;
+        default = "127.0.0.1";
+        example = "100.64.0.1";
+        description = ''
+          Address to bind to. Defaults to loopback. Prefer a Tailscale address
+          over `0.0.0.0`: it keeps the server off the local network and behind
+          the tailnet's own encryption and authentication, leaving basic auth as
+          defence in depth rather than the only defence.
+        '';
+      };
 
-    environmentFile = lib.mkOption {
-      type = lib.types.nullOr lib.types.path;
-      default = null;
-      example = "/run/agenix/opencode-web";
-      description = ''
-        Path to a systemd EnvironmentFile supplying `OPENCODE_SERVER_PASSWORD`
-        (and optionally `OPENCODE_SERVER_USERNAME`, which defaults to
-        `opencode`). Keeps the secret out of the world-readable Nix store, so
-        this is a path the consuming deployment provides — this repo owns no
-        secrets of its own.
-      '';
+      port = lib.mkOption {
+        type = lib.types.port;
+        default = 4096;
+        description = ''
+          Port to listen on. opencode itself would pick a random one, which is
+          awkward to bookmark or firewall.
+        '';
+      };
+
+      environmentFile = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
+        default = null;
+        example = "/run/agenix/opencode-web";
+        description = ''
+          Path to a systemd EnvironmentFile supplying `OPENCODE_SERVER_PASSWORD`
+          (and optionally `OPENCODE_SERVER_USERNAME`, which defaults to
+          `opencode`). Keeps the secret out of the world-readable Nix store, so
+          this is a path the consuming deployment provides — this repo owns no
+          secrets of its own.
+        '';
+      };
     };
   };
 
   # Bypasses `programs.opencode.agents`, which gates on `lib.isPath` and so
   # silently ignores a derivation (`skills` uses `lib.hm.strings.isPathLike`,
   # which does accept one — hence the inconsistency between the two here).
-  config = {
+  config = lib.mkIf cfg.enable {
     xdg.configFile = {
       "opencode/agents" = {
         source = agentsDir;
@@ -371,10 +380,10 @@ in
       {
         assertion = webCfg.enable -> (webCfg.hostname == "127.0.0.1" || webCfg.environmentFile != null);
         message = ''
-          opencode-web.hostname is "${webCfg.hostname}" but no environmentFile is
+          opencode.web.hostname is "${webCfg.hostname}" but no environmentFile is
           set, so the server would accept unauthenticated requests from the
           network — and it can run shell commands. Set
-          `opencode-web.environmentFile` to a file defining
+          `opencode.web.environmentFile` to a file defining
           OPENCODE_SERVER_PASSWORD.
         '';
       }
