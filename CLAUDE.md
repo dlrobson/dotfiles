@@ -7,8 +7,10 @@ configs. Because of that:
 - Options meant to vary per deployment (e.g. `opencode.enable`,
   `claude-window-trigger.schedule`) default to off/empty here — the consuming
   repo sets real values, not this one.
-- `run-tests` only builds `profiles/{minimal,desktop}.nix` standalone; it won't catch
-  issues that only surface when a consumer overrides these options.
+- `profiles/coverage.nix` exists so these paths are still built: it turns every
+  per-deployment option on with fake values and is part of `run-tests`. It is a
+  test fixture, not a deployment target — **add new per-deployment options to it
+  or they are untested.**
 
 ## Config changes
 - All config changes go through home-manager nix files (`home/programs/*.nix`) — never imperative commands like `git config --local` or `git config --global` (`~/.config/git` is read-only anyway).

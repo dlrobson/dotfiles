@@ -26,7 +26,7 @@ let
     name = "run-tests";
     runtimeInputs = [ hm.home-manager ];
     text = ''
-      for profile in minimal desktop; do
+      for profile in minimal desktop coverage; do
         echo "Testing home-manager profile: $profile"
         USER=$(id -un) home-manager build -f profiles/$profile.nix -I nixpkgs=${sources.nixpkgs}
       done
