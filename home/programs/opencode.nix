@@ -423,12 +423,17 @@ in
       settings = {
         # Anthropic prohibits third-party harnesses from using Claude Pro/Max
         # OAuth (https://code.claude.com/docs/en/legal-and-compliance), so
-        # opencode can't spend the subscription — point it at opencode Zen's
-        # free tier instead. The API key is entered interactively via `/connect`
-        # and stored in ~/.local/share/opencode/auth.json, so there's nothing to
-        # manage here. Note Zen's free models may retain data for training;
-        # don't point opencode at anything sensitive.
-        model = "opencode/deepseek-v4-flash-free";
+        # opencode can't spend the subscription — point it at opencode Go
+        # instead. The API key is entered interactively via `/connect` (select
+        # "OpenCode Go") and stored in ~/.local/share/opencode/auth.json, so
+        # there's nothing to manage here.
+        #
+        # `opencode-go/` is a separate provider from Zen's pay-as-you-go
+        # `opencode/`, not a billing flag on the same one — it has its own
+        # endpoint and its own model roster, so the prefix is load-bearing.
+        # The `-free` suffix is gone with it: Go's DeepSeek V4 Flash is the
+        # paid, quota-metered build, not the free tier's.
+        model = "opencode-go/deepseek-v4-flash";
         # Built in, so no equivalent of the `claude-code-lsps` marketplace
         # plugins is needed.
         lsp = true;
