@@ -455,15 +455,19 @@ in
             "sudo *" = "deny";
             "git push *" = "ask";
             "git reset *" = "ask";
+            "rm *" = "ask";
           };
           edit = "allow";
           webfetch = "allow";
           # Reaching outside the project is the one thing the missing sandbox
-          # made cheap to do by accident, so keep a prompt on it — except the
-          # nix store, which every flake/npins evaluation touches and opencode
-          # must always be able to read.
+          # made cheap to do by accident, so keep a prompt on it — except
+          # paths opencode routinely needs to read: the nix store (every
+          # flake/npins evaluation touches it), the active nix profiles,
+          # and scratch files in /tmp.
           external_directory = {
             "/nix/store/**" = "allow";
+            "/nix/var/nix/profiles/**" = "allow";
+            "/tmp/**" = "allow";
             "*" = "ask";
           };
         };
