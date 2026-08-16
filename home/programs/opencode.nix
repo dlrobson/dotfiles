@@ -459,8 +459,13 @@ in
           edit = "allow";
           webfetch = "allow";
           # Reaching outside the project is the one thing the missing sandbox
-          # made cheap to do by accident, so keep a prompt on it.
-          external_directory = "ask";
+          # made cheap to do by accident, so keep a prompt on it — except the
+          # nix store, which every flake/npins evaluation touches and opencode
+          # must always be able to read.
+          external_directory = {
+            "/nix/store/**" = "allow";
+            "*" = "ask";
+          };
         };
       };
     };
