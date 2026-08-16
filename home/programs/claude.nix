@@ -5,19 +5,28 @@
   ...
 }:
 let
-  cfg = config.claude-window-trigger;
+  cfg = config.claude;
+  windowTriggerCfg = config.claude-window-trigger;
 in
 {
-  options.claude-window-trigger = {
-    enable = lib.mkEnableOption "Claude Code usage window triggers";
-    schedule = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [ ];
-      description = "OnCalendar entries for the window trigger timer.";
+  options = {
+    claude = {
+      # Off by default so a consuming deployment opts in, mirroring
+      # `opencode.enable`.
+      enable = lib.mkEnableOption "Claude Code";
+    };
+
+    claude-window-trigger = {
+      enable = lib.mkEnableOption "Claude Code usage window triggers";
+      schedule = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        description = "OnCalendar entries for the window trigger timer.";
+      };
     };
   };
 
-  config = {
+  config = lib.mkIf cfg.enable {
     programs.claude-code = {
       enable = true;
       package = config.unstablePkgs.claude-code;
@@ -238,7 +247,7 @@ in
     };
 
     systemd.user = {
-      services.claude-window-trigger = lib.mkIf cfg.enable {
+      services.claude-window-trigger = lib.mkIf windowTriggerCfg.enable {
         Unit.Description = "Trigger Claude Code usage window";
         Service = {
           Type = "oneshot";
@@ -249,10 +258,10 @@ in
         };
       };
 
-      timers.claude-window-trigger = lib.mkIf cfg.enable {
+      timers.claude-window-trigger = lib.mkIf windowTriggerCfg.enable {
         Unit.Description = "Claude Code usage window trigger timer";
         Timer = {
-          OnCalendar = cfg.schedule;
+          OnCalendar = windowTriggerCfg.schedule;
           Persistent = true;
         };
         Install.WantedBy = [ "timers.target" ];

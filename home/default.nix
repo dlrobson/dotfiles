@@ -53,6 +53,7 @@ in
 
     home-manager-desktop-configuration.enable = cfg.profile == "desktop";
     home-manager-desktop-configuration.homeDirectory = cfg.homeDirectory;
+    claude.enable = cfg.profile == "desktop";
     claude-window-trigger.enable = cfg.profile == "desktop";
   };
 }
