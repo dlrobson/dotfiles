@@ -36,20 +36,9 @@
         inherit (pkgs.fishPlugins.fzf-fish) src;
       }
     ];
-    # Benchmark scores from https://cursor.com/cursorbench
     shellAbbrs = {
       grb = "git rebase --update-refs";
       grbo = "git rebase --update-refs --onto";
-      # cursorbench: not ranked
-      claude-haiku = "claude --model claude-haiku-4-5";
-      # cursorbench: 52.4% | 26,200 tokens | 46 steps
-      claude-sonnet-medium = "claude --model claude-sonnet-5 --effort medium";
-      # cursorbench: 62.8% | 18,529 tokens | 37 steps
-      claude-opus-low = "claude --model claude-opus-5 --effort low";
-      # cursorbench: 66.7% | 27,932 tokens | 48 steps
-      claude-opus-high = "claude --model claude-opus-5 --effort high";
-      # cursorbench: 69.3% | 54,239 tokens | 72 steps
-      claude-opus-xhigh = "claude --model claude-opus-5 --effort xhigh";
     };
     functions = {
       clean_branches = ''

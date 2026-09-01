@@ -212,6 +212,22 @@ in
       inherit (config.agentPlugins) marketplaces;
     };
 
+    # Benchmark scores from https://cursor.com/cursorbench. Lives here rather
+    # than fish.nix since the `claude` binary these abbreviations invoke is
+    # only on PATH when Claude Code is enabled.
+    programs.fish.shellAbbrs = {
+      # cursorbench: not ranked
+      claude-haiku = "claude --model claude-haiku-4-5";
+      # cursorbench: 52.4% | 26,200 tokens | 46 steps
+      claude-sonnet-medium = "claude --model claude-sonnet-5 --effort medium";
+      # cursorbench: 62.8% | 18,529 tokens | 37 steps
+      claude-opus-low = "claude --model claude-opus-5 --effort low";
+      # cursorbench: 66.7% | 27,932 tokens | 48 steps
+      claude-opus-high = "claude --model claude-opus-5 --effort high";
+      # cursorbench: 69.3% | 54,239 tokens | 72 steps
+      claude-opus-xhigh = "claude --model claude-opus-5 --effort xhigh";
+    };
+
     home = {
       # These three are all fully derived from settings above, so always
       # overwrite rather than backing up (avoids "would be clobbered"
