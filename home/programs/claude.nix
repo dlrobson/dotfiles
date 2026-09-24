@@ -212,20 +212,21 @@ in
       inherit (config.agentPlugins) marketplaces;
     };
 
-    # Benchmark scores from https://cursor.com/cursorbench. Lives here rather
-    # than fish.nix since the `claude` binary these abbreviations invoke is
-    # only on PATH when Claude Code is enabled.
+    # Benchmark scores from https://artificialanalysis.ai (Intelligence
+    # Index | cost per task, evaluated with fallback enabled). Lives here
+    # rather than fish.nix since the `claude` binary these abbreviations
+    # invoke is only on PATH when Claude Code is enabled.
     programs.fish.shellAbbrs = {
-      # cursorbench: not ranked
+      # AA: 17 | $0.21/task
       claude-haiku = "claude --model claude-haiku-4-5";
-      # cursorbench: 52.4% | 26,200 tokens | 46 steps
+      # AA: 28 | $1.00/task
       claude-sonnet-medium = "claude --model claude-sonnet-5 --effort medium";
-      # cursorbench: 62.8% | 18,529 tokens | 37 steps
-      claude-opus-low = "claude --model claude-opus-5 --effort low";
-      # cursorbench: 66.7% | 27,932 tokens | 48 steps
-      claude-opus-high = "claude --model claude-opus-5 --effort high";
-      # cursorbench: 69.3% | 54,239 tokens | 72 steps
-      claude-opus-xhigh = "claude --model claude-opus-5 --effort xhigh";
+      # AA: 42 | $0.55/task
+      claude-opus-low = "claude --model claude-opus-5-5 --effort low";
+      # AA: 51 | $1.34/task
+      claude-opus-medium = "claude --model claude-opus-5-5 --effort medium";
+      # AA: 56 | $3.46/task
+      claude-opus-xhigh = "claude --model claude-opus-5-5 --effort xhigh";
     };
 
     home = {
