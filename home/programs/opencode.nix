@@ -297,6 +297,7 @@ let
   };
   cfg = config.opencode;
   webCfg = cfg.web;
+  modelCfg = cfg.model;
 in
 {
   options.opencode = {
@@ -305,6 +306,43 @@ in
     # profiles standalone, so with opencode disabled here nothing exercises the
     # config — a consumer that enables it is the only real test.
     enable = lib.mkEnableOption "opencode";
+
+    # No default: the model names a provider, and which subscription a machine
+    # has is not something a shared dotfiles repo gets to decide. Left null the
+    # key is omitted from opencode.json entirely rather than asserted, so
+    # enabling opencode doesn't oblige a consumer to name a model it doesn't
+    # care about — opencode just picks for itself.
+    model = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      example = "opencode-go/deepseek-v4.1-flash";
+      description = ''
+        Model as `provider/model`, written to the `model` key in opencode.json.
+
+        A Claude subscription is usable here in principle. Anthropic's February
+        2026 restriction on third-party OAuth was partly lifted in May 2026,
+        when paid plans gained "Agent SDK credits" covering programmatic and
+        third-party agent use
+        (https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan).
+        Two caveats make it a weaker default than a flat-rate alternative.
+        Programmatic usage draws on that separate pool, which is capped, does
+        not roll over, and is not backed by the main subscription allowance once
+        exhausted (https://code.claude.com/docs/en/legal-and-compliance). And
+        opencode has no built-in subscription login — it needs a community
+        plugin, which is a standing "may stop working" risk.
+
+        OpenCode Go is the example here because it is a flat subscription with
+        a documented allowance, no terms ambiguity, and no plugin dependency.
+        Its API key is entered interactively via `/connect` (select "OpenCode
+        Go") and stored in ~/.local/share/opencode/auth.json, so there is
+        nothing to manage here. Anthropic has revised this policy three times
+        since February 2026, so re-check before relying on either.
+
+        The `opencode-go/` prefix is load-bearing: Go is a separate provider
+        from Zen's pay-as-you-go `opencode/`, with its own endpoint and its own
+        model roster — not a billing flag on the same one.
+      '';
+    };
 
     # `opencode serve` is a headless agent carrying the `permission` block
     # below and no OS sandbox, so anything that reaches it can run commands as
@@ -421,19 +459,6 @@ in
       skills = marketplaceSkills;
 
       settings = {
-        # Anthropic prohibits third-party harnesses from using Claude Pro/Max
-        # OAuth (https://code.claude.com/docs/en/legal-and-compliance), so
-        # opencode can't spend the subscription — point it at opencode Go
-        # instead. The API key is entered interactively via `/connect` (select
-        # "OpenCode Go") and stored in ~/.local/share/opencode/auth.json, so
-        # there's nothing to manage here.
-        #
-        # `opencode-go/` is a separate provider from Zen's pay-as-you-go
-        # `opencode/`, not a billing flag on the same one — it has its own
-        # endpoint and its own model roster, so the prefix is load-bearing.
-        # The `-free` suffix is gone with it: Go's DeepSeek V4 Flash is the
-        # paid, quota-metered build, not the free tier's.
-        model = "opencode-go/deepseek-v4-flash";
         # Built in, so no equivalent of the `claude-code-lsps` marketplace
         # plugins is needed.
         lsp = true;
@@ -471,7 +496,8 @@ in
             "*" = "ask";
           };
         };
-      };
+      }
+      // lib.optionalAttrs (modelCfg != null) { model = modelCfg; };
     };
   };
 }

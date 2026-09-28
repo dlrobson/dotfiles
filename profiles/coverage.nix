@@ -25,9 +25,11 @@ in
   };
 
   # Exercises the whole opencode module: skill discovery, the agent/command
-  # frontmatter rewriting, the tool allowlists, and the serve unit.
+  # frontmatter rewriting, the tool allowlists, the serve unit, and the
+  # optional `model` key.
   opencode = {
     enable = true;
+    model = "opencode-go/deepseek-v4.1-flash";
     web = {
       enable = true;
       hostname = "100.64.0.1";
