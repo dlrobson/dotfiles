@@ -37,6 +37,15 @@ in
     };
   };
 
+  # Exercises pi.nix: the package, both JSON files, and the `auth requires
+  # provider` assertion's passing branch.
+  pi = {
+    enable = true;
+    provider = "opencode-go";
+    model = "deepseek-v4.1-flash";
+    auth = "!cat /run/agenix/opencode-go";
+  };
+
   # `desktop` already enables the trigger, but leaves the schedule empty, so
   # the timer builds with no OnCalendar entry.
   claude-window-trigger.schedule = [ "*-*-* 06:00:00" ];
