@@ -21,6 +21,9 @@
       # shortcut works inside tmux; pair with a truecolor advert for the
       # Catppuccin theme to render with full 24-bit color.
       set -s extended-keys on
+      # Pi (and modern apps) parse CSI-u for modified keys; tmux defaults to the
+      # older xterm modifyOtherKeys format. Both Pi and Claude Code handle CSI-u.
+      set -s extended-keys-format csi-u
       set -as terminal-features 'xterm*:extkeys:RGB'
 
       # Open new panes/windows in the current pane's working directory
