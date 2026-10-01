@@ -12,6 +12,37 @@ let
   # only has to be exported if a consumer moves it. The module that will
   # eventually replace this file hardcodes the same string.
   configDir = "${config.home.homeDirectory}/.pi/agent";
+
+  # Skills this repo ships are authored under `./pi/skills/` and built into
+  # self-contained directories here; `home.file` symlinks each into
+  # `<agent-dir>/skills/` below.
+  authoredSkillsDir = ./pi/skills;
+
+  # The docs bundled with the exact Pi build this repo installs. Linking them
+  # into a skill as `pi-docs/` keeps the guidance in step with the harness it
+  # describes, rather than vendoring a copy that drifts on every pi update.
+  # Named away from `references/` so an authored skill can still ship its own.
+  piDocs = "${config.unstablePkgs.pi-coding-agent}/lib/node_modules/pi-monorepo/docs";
+
+  mkSkill =
+    name:
+    pkgs.runCommand "pi-skill-${name}" { } ''
+      mkdir -p "$out"
+      cp -r ${authoredSkillsDir}/${name}/. "$out/"
+      ln -s ${piDocs} "$out/pi-docs"
+    '';
+
+  authoredSkills = lib.mapAttrs (name: _: mkSkill name) (
+    lib.filterAttrs (_: type: type == "directory") (builtins.readDir authoredSkillsDir)
+  );
+
+  # Authored skills plus whatever a consuming deployment adds. Merged rather
+  # than replaced so a consumer cannot drop the shared ones by setting the
+  # option. Each is symlinked into Pi's conventional `<agent-dir>/skills/`,
+  # which makes `home.file` the GC root of the generation — the same shape
+  # `programs.opencode.skills` uses, rather than listing store paths in
+  # `settings.json`.
+  allSkills = authoredSkills // cfg.skills;
 in
 {
   options.pi = {
@@ -76,6 +107,29 @@ in
         secret service runs again.
       '';
     };
+
+    # Authored skills in this repo are wired by the module itself (see
+    # `authoredSkills` above); this option is the extension point for a
+    # consuming deployment's own skills. Values are merged with the shipped
+    # ones rather than replacing them.
+    skills = lib.mkOption {
+      type = lib.types.attrsOf (lib.types.either lib.types.package lib.types.path);
+      default = { };
+      example = {
+        pdf-tools = ./skills/pdf-tools;
+      };
+      description = ''
+        User-level skills to install, keyed by a local identifier. Pi derives
+        the real skill name from each directory's `SKILL.md`, so the key only
+        names the entry here.
+
+        Each value is a directory containing `SKILL.md` — a path in a consuming
+        repo or a derivation producing one. Symlinked into
+        {file}`<agent-dir>/skills/`, Pi's conventional skill directory, so Pi
+        discovers it through its normal discovery rather than through a
+        settings key.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -119,6 +173,9 @@ in
         };
       };
     }
+    // lib.mapAttrs' (
+      name: skill: lib.nameValuePair "${configDir}/skills/${name}" { source = skill; }
+    ) allSkills
     // lib.optionalAttrs (cfg.provider != null || cfg.model != null) {
       "${configDir}/settings.json".source = jsonFormat.generate "pi-settings.json" (
         {

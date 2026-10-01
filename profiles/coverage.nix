@@ -37,13 +37,15 @@ in
     };
   };
 
-  # Exercises pi.nix: the package, both JSON files, and the `auth requires
-  # provider` assertion's passing branch.
+  # Exercises pi.nix: the package, both JSON files, the shipped skill built by
+  # `authoredSkills`, a consumer-supplied `skills` entry, and the
+  # `auth requires provider` assertion's passing branch.
   pi = {
     enable = true;
     provider = "opencode-go";
     model = "deepseek-v4.1-flash";
     auth = "!cat /run/agenix/opencode-go";
+    skills.example = ./fixtures/example-skill;
   };
 
   # `desktop` already enables the trigger, but leaves the schedule empty, so
