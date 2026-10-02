@@ -176,12 +176,18 @@ in
     // lib.mapAttrs' (
       name: skill: lib.nameValuePair "${configDir}/skills/${name}" { source = skill; }
     ) allSkills
-    // lib.optionalAttrs (cfg.provider != null || cfg.model != null) {
+    // {
+      # Always written when Pi is enabled: `tuiMode` and `hideThinkingBlock`
+      # are preferences that apply whether or not a provider or model is
+      # configured, so they must not be gated behind those two keys.
       "${configDir}/settings.json".source = jsonFormat.generate "pi-settings.json" (
         {
           # Flicker-free alt-screen renderer, matching `tui = "fullscreen"` in
           # `claude.nix`.
           tuiMode = "fullscreen";
+          # Hide reasoning blocks in the transcript. Reasoning still runs — this
+          # only stops it being rendered, and `/thinking` can reveal the level.
+          hideThinkingBlock = true;
         }
         // lib.optionalAttrs (cfg.provider != null) { defaultProvider = cfg.provider; }
         // lib.optionalAttrs (cfg.model != null) { defaultModel = cfg.model; }
