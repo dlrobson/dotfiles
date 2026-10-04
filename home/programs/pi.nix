@@ -6,6 +6,7 @@
 }:
 let
   cfg = config.pi;
+  sources = import ../../npins;
   jsonFormat = pkgs.formats.json { };
 
   # Upstream default, kept as a path rather than a literal so `PI_CODING_AGENT_DIR`
@@ -209,11 +210,16 @@ in
           # Hide reasoning blocks in the transcript. Reasoning still runs — this
           # only stops it being rendered, and `/thinking` can reveal the level.
           hideThinkingBlock = true;
-          # Web search/fetch, GitHub cloning, PDF and video extraction. Pinned to
-          # an exact version: Pi compares the installed version against this spec
-          # and reinstalls when it changes, so an unpinned tag would float. Pi
-          # installs it into `<agent-dir>/npm` on first start, not into the store.
-          packages = [ "npm:pi-web-access@0.35.0" ];
+          # Web search/fetch, GitHub cloning, PDF and video extraction. The
+          # version comes from the `pi-web-access` npins pin, so `update-pins`
+          # bumps it (and its hash) without editing this file; Pi compares the
+          # installed version against this spec and reinstalls when it changes.
+          # `removePrefix` drops the pin's leading `v` (tag `v0.35.0` -> npm
+          # `0.35.0`). Pi installs the package into `<agent-dir>/npm` on first
+          # start, not into the store.
+          packages = [
+            "npm:pi-web-access@${lib.removePrefix "v" sources.pi-web-access.version}"
+          ];
         }
         // lib.optionalAttrs (cfg.provider != null) { defaultProvider = cfg.provider; }
         // lib.optionalAttrs (cfg.model != null) { defaultModel = cfg.model; }
