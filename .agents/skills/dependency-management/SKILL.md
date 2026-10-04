@@ -40,3 +40,7 @@ own dependencies at runtime (the npm packages Pi and opencode consume), pin the
 source/version and let the tool install — don't reach for `buildNpmPackage` or a
 fixed-output derivation just to get it into the store, since that adds a
 build-time hash you would have to bump by hand.
+
+Some ecosystems have no lockfile tool — VS Code marketplace extensions, for
+example — so a hand-maintained hash is unavoidable there. The rule is about not
+introducing one where a tool could maintain it instead.
