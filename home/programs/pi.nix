@@ -108,6 +108,22 @@ in
       '';
     };
 
+    context = lib.mkOption {
+      type = lib.types.either lib.types.lines lib.types.path;
+      default = ./agent-rules.md;
+      defaultText = lib.literalExpression "./agent-rules.md";
+      description = ''
+        Global rules written to {file}`AGENTS.md` in Pi's agent directory,
+        which Pi loads for every working directory. Either inline text or a
+        path to a file.
+
+        Defaults to the shared {file}`agent-rules.md` — the same rules Claude
+        Code and opencode use — so no harness owns the source. Override it to
+        give Pi its own.
+      '';
+      example = lib.literalExpression "./AGENTS.md";
+    };
+
     # Authored skills in this repo are wired by the module itself (see
     # `authoredSkills` above); this option is the extension point for a
     # consuming deployment's own skills. Values are merged with the shipped
@@ -147,16 +163,21 @@ in
     ];
 
     home.file = {
-      # `context` is Claude Code's global-rules string, read back out rather
-      # than duplicated — the module writes it to ~/.config/opencode/AGENTS.md
-      # the same way (see `opencode.nix`). Pi's equivalent file is AGENTS.md in
-      # the agent directory, which it loads for every working directory.
-      # Empty when Claude Code is disabled, and an empty context file is
-      # indistinguishable from none, so skip it rather than link a blank one.
+      # Pi's global rules are AGENTS.md in the agent directory, which it loads
+      # for every working directory. `pi.context` defaults to the shared
+      # `agent-rules.md` (the same file Claude Code and opencode use), so a
+      # consumer can override it to give Pi its own rules. A path is linked
+      # as-is; an empty context is indistinguishable from none, so skip it
+      # rather than link a blank file.
     }
-    // lib.optionalAttrs (config.programs.claude-code.context != "") {
-      "${configDir}/AGENTS.md".text = config.programs.claude-code.context;
-    }
+    // (
+      if lib.isPath cfg.context then
+        { "${configDir}/AGENTS.md".source = cfg.context; }
+      else
+        lib.optionalAttrs (cfg.context != "") {
+          "${configDir}/AGENTS.md".text = cfg.context;
+        }
+    )
     // lib.optionalAttrs (cfg.auth != null) {
       # auth.json is always force-overwritten rather than backed up. Pi owns
       # this file — `/login` and `/logout` write to it — so a stale real file
@@ -188,6 +209,11 @@ in
           # Hide reasoning blocks in the transcript. Reasoning still runs — this
           # only stops it being rendered, and `/thinking` can reveal the level.
           hideThinkingBlock = true;
+          # Web search/fetch, GitHub cloning, PDF and video extraction. Pinned to
+          # an exact version: Pi compares the installed version against this spec
+          # and reinstalls when it changes, so an unpinned tag would float. Pi
+          # installs it into `<agent-dir>/npm` on first start, not into the store.
+          packages = [ "npm:pi-web-access@0.35.0" ];
         }
         // lib.optionalAttrs (cfg.provider != null) { defaultProvider = cfg.provider; }
         // lib.optionalAttrs (cfg.model != null) { defaultModel = cfg.model; }

@@ -30,16 +30,11 @@ in
     programs.claude-code = {
       enable = true;
       package = config.unstablePkgs.claude-code;
-      context = ''
-        # Global Claude Code Rules
-
-        ## Git workflow
-        Whenever pushing to a remote branch, surface the URL the remote prints in the `git push`
-        output (e.g. GitHub's "Create a pull request" hint line), not just on the first push.
-
-        ## Safety
-        Never run `sudo`. Ask the user to run the privileged command themselves.
-      '';
+      # The global rules live in a harness-neutral file, shared verbatim with
+      # opencode and Pi. Keeping them here rather than inline means they are not
+      # gated behind this `mkIf cfg.enable` — disabled Claude Code would
+      # otherwise blank the context the other two read.
+      context = ./agent-rules.md;
       settings = {
         # Flicker-free alt-screen renderer with virtualized scrollback
         # (equivalent to CLAUDE_CODE_NO_FLICKER=1; toggle live via /tui).

@@ -443,9 +443,10 @@ in
         ];
       };
 
-      # Same global rules as Claude Code — single source of truth.
-      # The module writes this to `~/.config/opencode/AGENTS.md`.
-      context = config.programs.claude-code.context;
+      # Same global rules as Claude Code and Pi, read from one neutral file
+      # rather than Claude Code's option (which is empty when Claude Code is
+      # disabled). The module writes this to `~/.config/opencode/AGENTS.md`.
+      context = ./agent-rules.md;
 
       # Runtime deps for the mcp-nixos server below, which launches via
       # `UV_PYTHON=$(which python3) uvx mcp-nixos`. Wrapped onto opencode's own
