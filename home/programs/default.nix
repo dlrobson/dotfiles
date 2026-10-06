@@ -11,6 +11,7 @@
     ./neovim.nix
     ./opencode.nix
     ./packages.nix
+    ./paseo.nix
     ./pi.nix
     ./rbw.nix
     ./ssh.nix

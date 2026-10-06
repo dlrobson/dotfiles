@@ -52,6 +52,17 @@ in
     skills.example = ./fixtures/example-skill;
   };
 
+  # Exercises paseo.nix: the patched package, the user service, the
+  # `0.0.0.0`-with-EnvironmentFile assertion's passing branch, the hostnames
+  # and relay env, and the rendered settings JSON.
+  paseo = {
+    enable = true;
+    listenAddress = "0.0.0.0";
+    hostnames = [ "nixos-server.example.ts.net" ];
+    environmentFile = "/run/agenix/paseo/env";
+    settings.daemon.mcp.enabled = true;
+  };
+
   # `desktop` already enables the trigger, but leaves the schedule empty, so
   # the timer builds with no OnCalendar entry.
   claude-window-trigger.schedule = [ "*-*-* 06:00:00" ];

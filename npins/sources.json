@@ -120,6 +120,22 @@
       "url": "https://github.com/nix-community/nixvim/archive/bcb5f577a36565bda07d7b81346b73cad8618d16.tar.gz",
       "hash": "sha256-2lRgE8XsmXIVmiujmHVaCy5TrBUSblILNT5vYOj/Ed0="
     },
+    "paseo": {
+      "type": "GitRelease",
+      "repository": {
+        "type": "GitHub",
+        "owner": "getpaseo",
+        "repo": "paseo"
+      },
+      "pre_releases": false,
+      "version_upper_bound": null,
+      "release_prefix": null,
+      "submodules": false,
+      "version": "v0.10.3",
+      "revision": "9e7f480ce1652698448a72e4bfdc580eb8387140",
+      "url": "https://api.github.com/repos/getpaseo/paseo/tarball/refs/tags/v0.10.3",
+      "hash": "sha256-yI/H8XPC0lLdmokePJ4qyVxaV+/PsgePzQupumm5LPQ="
+    },
     "pi-web-access": {
       "type": "GitRelease",
       "repository": {
