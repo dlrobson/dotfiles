@@ -8,7 +8,8 @@ let
   sources = import ../../npins;
   cfg = config.paseo;
 
-  # Same patched build the NixOS repo uses, for the same two reasons:
+  # The patched build, shared by every consumer — the NixOS server enables
+  # this module rather than carrying its own copy — for two reasons:
   #
   # 1. The node-pty native addon is missing from the traced output, so the
   #    daemon dies at startup with "Failed to load native module: pty.node".
@@ -121,12 +122,18 @@ in
     # it. An EnvironmentFile keeps the plaintext out of the world-readable
     # store, so this is a path the consuming deployment provides — this repo
     # owns no secrets of its own.
+    #
+    # Deliberately `str` and not `path`: a path *literal* here (`./paseo.env`)
+    # would be copied into the world-readable Nix store, leaking the password.
+    # Consumers without agenix (e.g. the Ubuntu desktop) must pass an absolute
+    # path string to a file they manage themselves.
     environmentFile = lib.mkOption {
-      type = lib.types.nullOr lib.types.path;
+      type = lib.types.nullOr lib.types.str;
       default = null;
       example = "/run/agenix/paseo/env";
       description = ''
-        Path to a systemd EnvironmentFile supplying `PASEO_PASSWORD`.
+        Absolute path to a systemd EnvironmentFile supplying `PASEO_PASSWORD`.
+        Must be a string, not a path literal — see the comment above.
       '';
     };
 
@@ -168,8 +175,9 @@ in
           paseo.listenAddress is "${cfg.listenAddress}" but no environmentFile
           is set, so the daemon would accept unauthenticated requests from the
           network — and it can run shell commands as you. Set
-          `paseo.environmentFile` to a file defining PASEO_PASSWORD, and keep
-          the tailnet-scoped firewall rule in the consuming NixOS config.
+          `paseo.environmentFile` to a file defining PASEO_PASSWORD, and make
+          sure the port is reachable only where you intend (a tailnet-scoped
+          firewall rule on NixOS, `tailscale serve` elsewhere).
         '';
       }
     ];
