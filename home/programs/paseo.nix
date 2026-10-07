@@ -44,7 +44,8 @@ let
 
   # `%h`/`%u` are systemd specifiers resolved by the user manager. A user unit
   # does not inherit a login PATH, and the agents the daemon spawns need the
-  # user's CLIs, so set it explicitly.
+  # user's CLIs, so set it explicitly. The trailing /usr dirs are the distro's
+  # on non-NixOS hosts such as Ubuntu, and are harmless on NixOS.
   servicePath = lib.concatStringsSep ":" [
     "%h/.nix-profile/bin"
     "%h/.local/state/nix/profile/bin"
@@ -52,6 +53,9 @@ let
     "/run/current-system/sw/bin"
     "/run/wrappers/bin"
     "/nix/var/nix/profiles/default/bin"
+    "/usr/local/bin"
+    "/usr/bin"
+    "/bin"
   ];
 
   environment = {
@@ -199,10 +203,11 @@ in
 
         # home-manager has no `systemd.user.tmpfiles`, so create the state dir
         # here; install the rendered config too, as upstream's module does.
+        # Absolute paths: the unit's PATH has no coreutils on non-NixOS hosts.
         ExecStartPre = pkgs.writeShellScript "paseo-prepare" ''
-          mkdir -p ${lib.escapeShellArg cfg.dataDir}
+          ${pkgs.coreutils}/bin/mkdir -p ${lib.escapeShellArg cfg.dataDir}
           ${lib.optionalString (cfg.settings != { }) ''
-            install -m 0600 ${settingsFile} ${lib.escapeShellArg cfg.dataDir}/config.json
+            ${pkgs.coreutils}/bin/install -m 0600 ${settingsFile} ${lib.escapeShellArg cfg.dataDir}/config.json
           ''}
         '';
 
