@@ -40,12 +40,13 @@ in
   };
 
   # Exercises paseo.nix: the patched package, the user service, the
-  # `0.0.0.0`-with-EnvironmentFile assertion's passing branch, the hostnames
-  # and relay env, and the rendered settings JSON.
+  # `0.0.0.0`-with-EnvironmentFile assertion's passing branch, the hostnames,
+  # relay and web UI env, and the rendered settings JSON.
   paseo = {
     enable = true;
     listenAddress = "0.0.0.0";
     hostnames = [ "nixos-server.example.ts.net" ];
+    webUi.enable = true;
     environmentFile = "/run/agenix/paseo/env";
     settings.daemon.mcp.enabled = true;
   };

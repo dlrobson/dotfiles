@@ -66,6 +66,9 @@ let
   // lib.optionalAttrs (cfg.hostnames != [ ]) {
     PASEO_HOSTNAMES = lib.concatStringsSep "," cfg.hostnames;
   }
+  // lib.optionalAttrs cfg.webUi.enable {
+    PASEO_WEB_UI_ENABLED = "true";
+  }
   // cfg.environment;
 in
 {
@@ -149,6 +152,11 @@ in
         default: tailnet-only.
       '';
     };
+
+    # Off by default: without it the daemon only answers Paseo clients and `/`
+    # is a 404. The UI is served from the daemon's own port, so it inherits the
+    # listen address and password gate.
+    webUi.enable = lib.mkEnableOption "the web UI bundled with the daemon";
 
     environment = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
