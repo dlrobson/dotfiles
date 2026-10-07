@@ -11,8 +11,7 @@ in
 {
   options = {
     claude = {
-      # Off by default so a consuming deployment opts in, mirroring
-      # `opencode.enable`.
+      # Off by default so a consuming deployment opts in, matching `pi.enable`.
       enable = lib.mkEnableOption "Claude Code";
     };
 
@@ -31,9 +30,9 @@ in
       enable = true;
       package = config.unstablePkgs.claude-code;
       # The global rules live in a harness-neutral file, shared verbatim with
-      # opencode and Pi. Keeping them here rather than inline means they are not
-      # gated behind this `mkIf cfg.enable` — disabled Claude Code would
-      # otherwise blank the context the other two read.
+      # Pi. Keeping them here rather than inline means they are not gated
+      # behind this `mkIf cfg.enable` — disabled Claude Code would otherwise
+      # blank the context Pi reads.
       context = ./agent-rules.md;
       settings = {
         # Flicker-free alt-screen renderer with virtualized scrollback
@@ -201,7 +200,7 @@ in
             }
           ];
         };
-        # Declared in `agent-plugins.nix`, shared with opencode.
+        # Declared in `agent-plugins.nix`.
         enabledPlugins = lib.genAttrs config.agentPlugins.enabled (_: true);
       };
       inherit (config.agentPlugins) marketplaces;

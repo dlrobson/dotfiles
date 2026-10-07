@@ -9,7 +9,6 @@
     ./fish.nix
     ./git.nix
     ./neovim.nix
-    ./opencode.nix
     ./packages.nix
     ./paseo.nix
     ./pi.nix

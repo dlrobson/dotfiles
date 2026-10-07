@@ -7,11 +7,10 @@ let
   );
 in
 {
-  # Single declaration site for the plugins shared between Claude Code and
-  # opencode. Previously these lived in `programs.claude-code.settings`, with
-  # `opencode.nix` reading them back out — which made Claude's harness config
-  # double as the cross-agent registry, so disabling a plugin for a
-  # Claude-specific reason silently changed what opencode installed.
+  # Single declaration site for the Claude Code plugin marketplaces and the
+  # enabled plugin set, split out of `programs.claude-code.settings` so the
+  # registry is readable on its own rather than buried in Claude's harness
+  # config.
   options.agentPlugins = {
     marketplaces = lib.mkOption {
       type = with lib.types; attrsOf (either package path);
@@ -50,9 +49,9 @@ in
       inherit (sources) engram;
       # `claude-plugins-official` lists superpowers as a remote `url` source
       # rather than vendoring it, so consuming it from there means Claude
-      # Code fetches the repo at runtime — and leaves nothing on disk for
-      # `opencode.nix` to install skills from. Pinning it via npins instead
-      # keeps the fetch declarative and lets both agents share one version.
+      # Code fetches the repo at runtime — and leaves nothing on disk to
+      # install skills from. Pinning it via npins instead keeps the fetch
+      # declarative.
       # The repo is itself a marketplace (`.claude-plugin/marketplace.json`,
       # name "superpowers-dev", plugin source "./"), hence the id below.
       superpowers-dev = sources.superpowers;

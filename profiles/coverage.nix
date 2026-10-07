@@ -24,19 +24,6 @@ in
     inherit username homeDirectory;
   };
 
-  # Exercises the whole opencode module: skill discovery, the agent/command
-  # frontmatter rewriting, the tool allowlists, the serve unit, and the
-  # optional `model` key.
-  opencode = {
-    enable = true;
-    model = "opencode-go/deepseek-v4.1-flash";
-    web = {
-      enable = true;
-      hostname = "100.64.0.1";
-      environmentFile = "/run/agenix/opencode-web";
-    };
-  };
-
   # Exercises pi.nix: the package, both JSON files, the shipped skill built by
   # `authoredSkills`, consumer-supplied `skills` and `context` entries, and the
   # `auth requires provider` assertion's passing branch.

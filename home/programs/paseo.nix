@@ -66,7 +66,7 @@ let
 in
 {
   options.paseo = {
-    # Off by default so a consuming deployment opts in, matching `opencode`.
+    # Off by default so a consuming deployment opts in, matching `pi`.
     # This repo's profiles build standalone, so a consumer that enables it is
     # the only place it really runs; `profiles/coverage.nix` exercises it.
     enable = lib.mkEnableOption "the Paseo daemon";
@@ -167,7 +167,7 @@ in
     # Refusing to build beats printing a warning nobody reads: an
     # unauthenticated daemon on loopback is a reasonable local convenience, but
     # the moment it is reachable from elsewhere the password stops being
-    # optional. Mirrors the opencode web assertion.
+    # optional.
     assertions = [
       {
         assertion = cfg.listenAddress == "127.0.0.1" || cfg.environmentFile != null;

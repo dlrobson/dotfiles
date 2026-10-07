@@ -36,7 +36,7 @@ revision and hash, so never hand-edit `sources.json` and never maintain a hash
 for a pin by hand.
 
 Corollary: don't add a hash that *is* hand-maintained. If a tool installs its
-own dependencies at runtime (the npm packages Pi and opencode consume), pin the
+own dependencies at runtime (the npm packages Pi consumes), pin the
 source/version and let the tool install — don't reach for `buildNpmPackage` or a
 fixed-output derivation just to get it into the store, since that adds a
 build-time hash you would have to bump by hand.

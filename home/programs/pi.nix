@@ -40,25 +40,23 @@ let
   # Authored skills plus whatever a consuming deployment adds. Merged rather
   # than replaced so a consumer cannot drop the shared ones by setting the
   # option. Each is symlinked into Pi's conventional `<agent-dir>/skills/`,
-  # which makes `home.file` the GC root of the generation — the same shape
-  # `programs.opencode.skills` uses, rather than listing store paths in
-  # `settings.json`.
+  # which makes `home.file` the GC root of the generation, rather than listing
+  # store paths in `settings.json`.
   allSkills = authoredSkills // cfg.skills;
 in
 {
   options.pi = {
     # Off by default so a consuming deployment opts in, matching
-    # `claude.enable` and `opencode.enable`. Declared here and never assigned in
+    # `claude.enable`. Declared here and never assigned in
     # `home/default.nix`, so a consumer sets it plainly without needing
     # `mkForce` to override anything.
     enable = lib.mkEnableOption "pi";
 
-    # No defaults for the next three, for the same reason `opencode.model` has
-    # none: each names a provider or a credential, and a shared dotfiles repo
-    # doesn't know which subscription a given machine pays for. Left null the
-    # corresponding key is omitted from the generated JSON rather than
-    # asserted, so enabling pi never obliges a consumer to configure a provider
-    # it doesn't want.
+    # No defaults for the next three: each names a provider or a credential,
+    # and a shared dotfiles repo doesn't know which subscription a given machine
+    # pays for. Left null the corresponding key is omitted from the generated
+    # JSON rather than asserted, so enabling pi never obliges a consumer to
+    # configure a provider it doesn't want.
     provider = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
@@ -100,7 +98,7 @@ in
         secret manager can supply the key without it ever being resolved to
         disk. Pointing it at an agenix-decrypted file keeps the secret out of
         the world-readable Nix store while leaving nothing in this repo to
-        decrypt — the same split `opencode.web.environmentFile` already uses.
+        decrypt — the same split `paseo.environmentFile` already uses.
 
         Note the failure mode is quiet: empty output, a timeout, or a nonzero
         exit leaves the key unresolved until Pi restarts, rather than reporting
@@ -119,8 +117,8 @@ in
         path to a file.
 
         Defaults to the shared {file}`agent-rules.md` — the same rules Claude
-        Code and opencode use — so no harness owns the source. Override it to
-        give Pi its own.
+        Code uses — so no harness owns the source. Override it to give Pi its
+        own.
       '';
       example = lib.literalExpression "./AGENTS.md";
     };
@@ -166,7 +164,7 @@ in
     home.file = {
       # Pi's global rules are AGENTS.md in the agent directory, which it loads
       # for every working directory. `pi.context` defaults to the shared
-      # `agent-rules.md` (the same file Claude Code and opencode use), so a
+      # `agent-rules.md` (the same file Claude Code uses), so a
       # consumer can override it to give Pi its own rules. A path is linked
       # as-is; an empty context is indistinguishable from none, so skip it
       # rather than link a blank file.
