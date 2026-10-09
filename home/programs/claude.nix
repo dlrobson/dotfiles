@@ -211,14 +211,16 @@ in
     # rather than fish.nix since the `claude` binary these abbreviations
     # invoke is only on PATH when Claude Code is enabled.
     programs.fish.shellAbbrs = {
-      # AA: 17 | $0.21/task
-      claude-haiku = "claude --model claude-haiku-4-5";
-      # AA: 28 | $1.00/task
-      claude-sonnet-medium = "claude --model claude-sonnet-5 --effort medium";
-      # AA: 42 | $0.55/task
-      claude-opus-low = "claude --model claude-opus-5-5 --effort low";
+      # AA: 34 | $0.05/task
+      claude-haiku-medium = "claude --model claude-haiku-5-5 --effort medium";
+      # AA: 43 | $0.21/task
+      claude-haiku-max = "claude --model claude-haiku-5-5 --effort max";
+      # AA: 47 | $0.88/task
+      claude-sonnet-high = "claude --model claude-sonnet-5-5 --effort high";
       # AA: 51 | $1.34/task
       claude-opus-medium = "claude --model claude-opus-5-5 --effort medium";
+      # AA: 54 | $1.82/task
+      claude-opus-high = "claude --model claude-opus-5-5 --effort high";
       # AA: 56 | $3.46/task
       claude-opus-xhigh = "claude --model claude-opus-5-5 --effort xhigh";
     };
