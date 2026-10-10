@@ -58,6 +58,23 @@ let
     "/bin"
   ];
 
+  # Wrapper for the daemon's background `git fetch`, used when gitIdentityFile
+  # is set. A wrapper rather than an inline `GIT_SSH_COMMAND=ssh -i …` because
+  # systemd's `Environment=` splits on whitespace, and IdentityAgent=none
+  # because the point of a dedicated key is that no agent is consulted at all:
+  # on a host with no graphical session the only agent in reach cannot reach
+  # its passphrase and fails through a GUI prompter with no display to open.
+  # BatchMode=yes turns any future credential problem into a fast, visible
+  # error instead of a fetch hanging on a prompt nobody can answer.
+  gitSshCommand = pkgs.writeShellScript "paseo-git-ssh" ''
+    exec ${pkgs.openssh}/bin/ssh \
+      -i ${lib.escapeShellArg cfg.gitIdentityFile} \
+      -o IdentitiesOnly=yes \
+      -o IdentityAgent=none \
+      -o BatchMode=yes \
+      "$@"
+  '';
+
   environment = {
     PASEO_HOME = cfg.dataDir;
     PASEO_LISTEN = "${cfg.listenAddress}:${toString cfg.port}";
@@ -68,6 +85,9 @@ let
   }
   // lib.optionalAttrs cfg.webUi.enable {
     PASEO_WEB_UI_ENABLED = "true";
+  }
+  // lib.optionalAttrs (cfg.gitIdentityFile != null) {
+    GIT_SSH_COMMAND = "${gitSshCommand}";
   }
   // cfg.environment;
 in
@@ -141,6 +161,30 @@ in
       description = ''
         Absolute path to a systemd EnvironmentFile supplying `PASEO_PASSWORD`.
         Must be a string, not a path literal — see the comment above.
+      '';
+    };
+
+    # The daemon fetches in the background, with nobody present, so it must not
+    # depend on an SSH agent: on a host without a graphical session the only
+    # agent in reach (GNOME's gcr-ssh-agent) cannot reach its key passphrases
+    # and prompts through a GUI dialog that has no display, failing the fetch.
+    # Point this at a passphrase-free key dedicated to the repos the daemon
+    # fetches — a read-only deploy key, say — and the module points
+    # `GIT_SSH_COMMAND` at exactly that key, with no agent involved.
+    #
+    # Deliberately `str` and not `path`, for the same reason as
+    # environmentFile: a path literal here would be copied into the
+    # world-readable Nix store.
+    gitIdentityFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      example = "/run/agenix/server/paseo-repo-key";
+      description = ''
+        Absolute path to a passphrase-free private key used by the daemon's
+        background `git fetch`. Must be a string, not a path literal — see the
+        comment above. Left unset, the fetch inherits whatever agent the
+        environment provides, which only works where a person is present to
+        answer for the key.
       '';
     };
 
