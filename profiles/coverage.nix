@@ -25,7 +25,8 @@ in
   };
 
   # Exercises pi.nix: the package, both JSON files, the shipped skill built by
-  # `authoredSkills`, consumer-supplied `skills` and `context` entries, and the
+  # `authoredSkills`, the shipped agents built by `authoredAgents`,
+  # consumer-supplied `agents`, `skills` and `context` entries, and the
   # `auth requires provider` assertion's passing branch.
   pi = {
     enable = true;
@@ -37,6 +38,7 @@ in
       Overrides the Claude Code default.
     '';
     skills.example = ./fixtures/example-skill;
+    agents.example = ./fixtures/example-agent.md;
   };
 
   # Exercises paseo.nix: the patched package, the user service, the

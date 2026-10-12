@@ -36,6 +36,7 @@ Skills are additionally discovered from the Agent Skills locations
 | Resource | Conventional directory | `settings.json` key |
 |---|---|---|
 | Skills | `~/.pi/agent/skills/` | `skills` |
+| Subagent definitions | `~/.pi/agent/agents/` | — (discovered by the `pi-subagents` extension) |
 | Extensions | `~/.pi/agent/extensions/` | `extensions` |
 | Prompt templates | `~/.pi/agent/prompts/` | `prompts` |
 | Themes | `~/.pi/agent/themes/` | `themes` |
@@ -91,7 +92,8 @@ What `pi.nix` can deploy today:
 | Resource | Supported? | How |
 |---|---|---|
 | Skills | **Yes** | Add `home/programs/pi/skills/<name>/SKILL.md` (auto-discovered, built into the store, symlinked into `<agent-dir>/skills/`, no other wiring). A consuming deployment can add its own through the `pi.skills` option. |
-| Packages | Fixed list | Hardcoded in `settings.json` (currently `pi-web-access`); no option. |
+| Subagent definitions | **Yes** | Add `home/programs/pi/agents/<name>.md` (auto-discovered, symlinked into `<agent-dir>/agents/`, no other wiring). A consuming deployment can add its own through the `pi.agents` option. These are only read by the `pi-subagents` extension. |
+| Packages | Fixed list | Hardcoded in `settings.json` (currently `pi-web-access` and `pi-subagents`); no option. |
 | Prompt templates, extensions, themes | **No** | No `pi.prompts` / `pi.extensions` / `pi.themes` option exists. Say so, and propose adding one that mirrors the `allSkills` / `home.file` pattern in `pi.nix`. Any new option for per-deployment content must also be added to `profiles/coverage.nix`, or it goes untested. |
 | Project-level `.pi/` in a repo | Not Nix-managed | It is committed to that repo like any other file, and loads only after project trust. Don't route it through `pi.*` options. |
 
