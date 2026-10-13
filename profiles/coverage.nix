@@ -1,4 +1,8 @@
-{ lib, ... }:
+{
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   homeDirectory = builtins.getEnv "HOME";
@@ -41,8 +45,8 @@ in
 
   # Exercises paseo.nix: the patched package, the user service, the
   # `0.0.0.0`-with-EnvironmentFile assertion's passing branch, the hostnames,
-  # relay and web UI env, the git-identity wrapper, and the rendered settings
-  # JSON.
+  # relay and web UI env, the git-identity wrapper, the forge CLI packages, and
+  # the rendered settings JSON.
   paseo = {
     enable = true;
     listenAddress = "0.0.0.0";
@@ -50,6 +54,7 @@ in
     webUi.enable = true;
     environmentFile = "/run/agenix/paseo/env";
     gitIdentityFile = "/run/agenix/server/paseo-repo-key";
+    forgeCliPackages = [ pkgs.tea ];
     settings.daemon.mcp.enabled = true;
   };
 

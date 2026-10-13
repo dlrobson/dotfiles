@@ -164,6 +164,28 @@ in
       '';
     };
 
+    # Forge CLIs are resolved from PATH at runtime, not pinned into
+    # `cfg.package`, so this only has to make the binary reachable: the user
+    # service's PATH already contains the home-manager profile, and paseo
+    # re-probes a host negatively for only 60s, so a CLI installed or
+    # authenticated later is picked up without a daemon restart.
+    #
+    # Empty by default: a deployment that only talks to GitHub should not carry
+    # a Gitea-family client, matching how `pi` leaves provider/credential
+    # options unset until a consumer names one.
+    forgeCliPackages = lib.mkOption {
+      type = lib.types.listOf lib.types.package;
+      default = [ ];
+      example = lib.literalExpression "with pkgs; [ tea glab ]";
+      description = ''
+        Forge CLI packages for the daemon to invoke, e.g. `tea` for
+        Gitea/Forgejo/Codeberg or `glab` for GitLab. Installed via
+        `home.packages`, which the user service already has on PATH. Requires a
+        matching login (`tea login add`, `glab auth login`) for the host before
+        paseo recognizes it.
+      '';
+    };
+
     # The daemon fetches in the background, with nobody present, so it must not
     # depend on an SSH agent: on a host without a graphical session the only
     # agent in reach (GNOME's gcr-ssh-agent) cannot reach its key passphrases
@@ -238,7 +260,7 @@ in
       }
     ];
 
-    home.packages = [ cfg.package ];
+    home.packages = [ cfg.package ] ++ cfg.forgeCliPackages;
 
     systemd.user.services.paseo = {
       Unit = {
