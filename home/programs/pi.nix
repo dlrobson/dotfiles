@@ -43,6 +43,25 @@ let
   # which makes `home.file` the GC root of the generation, rather than listing
   # store paths in `settings.json`.
   allSkills = authoredSkills // cfg.skills;
+
+  # Agent definitions for the `pi-subagents` extension, authored under
+  # `./pi/agents/` as flat Markdown files. Flat rather than a directory per
+  # agent, so unlike skills they need no build step to become self-contained —
+  # `home.file` symlinks each into `<agent-dir>/agents/`, the user-level scope
+  # pi-subagents scans.
+  authoredAgentsDir = ./pi/agents;
+
+  authoredAgents =
+    lib.mapAttrs'
+      (name: _: lib.nameValuePair (lib.removeSuffix ".md" name) (authoredAgentsDir + "/${name}"))
+      (
+        lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".md" name) (
+          builtins.readDir authoredAgentsDir
+        )
+      );
+
+  # Same merge rule as skills, for the same reason.
+  allAgents = authoredAgents // cfg.agents;
 in
 {
   options.pi = {
@@ -145,6 +164,28 @@ in
         settings key.
       '';
     };
+
+    # Authored agents in this repo are wired by the module itself (see
+    # `authoredAgents` above); this option is the extension point for a
+    # consuming deployment's own agents. Values are merged with the shipped
+    # ones rather than replacing them.
+    agents = lib.mkOption {
+      type = lib.types.attrsOf (lib.types.either lib.types.package lib.types.path);
+      default = { };
+      example = {
+        security-reviewer = ./agents/security-reviewer.md;
+      };
+      description = ''
+        Agent definitions for Pi's subagent extension, keyed by the runtime
+        name and written without the `.md` suffix — the module adds it.
+
+        Each value is a Markdown file with YAML frontmatter, either a path in a
+        consuming repo or a derivation producing one, symlinked into
+        {file}`<agent-dir>/agents/`, the user-level scope `pi-subagents` scans.
+        The `pi-subagents` package is installed alongside `pi-web-access`, so
+        the extension is present wherever this module is enabled.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -196,6 +237,9 @@ in
     // lib.mapAttrs' (
       name: skill: lib.nameValuePair "${configDir}/skills/${name}" { source = skill; }
     ) allSkills
+    // lib.mapAttrs' (
+      name: agent: lib.nameValuePair "${configDir}/agents/${name}.md" { source = agent; }
+    ) allAgents
     // {
       # Always written when Pi is enabled: `tuiMode` and `hideThinkingBlock`
       # are preferences that apply whether or not a provider or model is
@@ -215,8 +259,15 @@ in
           # `removePrefix` drops the pin's leading `v` (tag `v0.35.0` -> npm
           # `0.35.0`). Pi installs the package into `<agent-dir>/npm` on first
           # start, not into the store.
+          #
+          # `pi-subagents` supplies the `subagent` tool that the
+          # `reviewing-changes` skill dispatches its passes to, and the
+          # `<agent-dir>/agents/` scope those pass definitions are installed
+          # into. Both pins are GitHub releases whose tags match their npm
+          # versions, so neither needs a hand-maintained hash.
           packages = [
             "npm:pi-web-access@${lib.removePrefix "v" sources.pi-web-access.version}"
+            "npm:pi-subagents@${lib.removePrefix "v" sources.pi-subagents.version}"
           ];
         }
         // lib.optionalAttrs (cfg.provider != null) { defaultProvider = cfg.provider; }
