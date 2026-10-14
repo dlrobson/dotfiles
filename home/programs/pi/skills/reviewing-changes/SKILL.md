@@ -1,13 +1,15 @@
 ---
 name: reviewing-changes
-description: Review a change — a diff, branch, or uncommitted work — with parallel read-only passes for correctness, error handling, and test coverage, merged into one severity-ranked report. Use when asked to review pending changes before committing, pushing, or opening a PR. Not for auditing a codebase with no change under review, and not for applying the fixes it finds.
+description: Review a change — a diff, branch, or uncommitted work — with parallel read-only passes for correctness, error handling, and test coverage, merged into one severity-ranked report, with every finding verified against the change before it is reported. Use when asked to review pending changes before committing, pushing, or opening a PR. Not for auditing a codebase with no change under review, and not for applying the fixes it finds.
 disable-model-invocation: true
 ---
 
 # Reviewing changes
 
 Three read-only passes over a change, run in parallel as subagents, merged into
-one report. The change is the unit of review; the repository is the evidence.
+one report and then verified — a finding reaches the report only once something
+has tried and failed to refute it. The change is the unit of review; the
+repository is the evidence.
 
 ## Shared contract
 
@@ -54,8 +56,8 @@ clean result with style opinions, and do not restate the change.
 
 ## Orchestration (parent only)
 
-Passes read this skill too. If your task names you as one pass, stop here — the
-Shared contract above is what binds you.
+Passes read this skill too. If your task names you as one pass or as the
+verifier, stop here — the Shared contract above is what binds you.
 
 ### 1. Establish the change
 
@@ -121,11 +123,41 @@ out the review itself.
 Drop everything below the confidence floor and merge what remains. Two passes
 describing one line are one finding; the higher severity wins.
 
+### 5. Verify
+
+A finding nobody tried to refute is a finding nobody checked. Two stages,
+because most of the checking is lookup rather than judgment.
+
+**Mechanically, yourself, before dispatching anything.** For each finding:
+
+- does the cited line exist, and is it inside the change? A finding about
+  untouched code is out of scope even when it is true;
+- if a repository rule is quoted, does that wording appear in `AGENTS.md` or
+  `CLAUDE.md`? Search for it rather than trusting the paraphrase.
+
+Drop what fails — no comment needed, these are not close calls — and count them
+as refuted.
+
+**Then hand what survives to `review-verify`**, with the change and the merged
+findings. It settles what lookup cannot: whether the failure can occur at all,
+given the callers, guards, and types that produce the inputs. Pass the findings
+as written, not the passes' reasoning — the report is what the reader sees, and a
+verifier handed the argument for a finding tends to agree with it.
+
+Apply the verdicts: `confirmed` stands, `corrected` replaces the finding,
+`refuted` is dropped. Do not promote anything it mentions into a finding of your
+own.
+
+Skip this stage when the merged report is empty.
+
+### 6. Report
+
 ```markdown
 # Review — <what was reviewed, one line>
 
 Scope: <files and lines, and how the diff was produced>
 Passes: <ran> · skipped: <pass and the rule that skipped it>
+Verification: <n> checked — <c> confirmed, <r> corrected, <f> refuted
 
 ## Critical
 - [errors] `path:line` — <issue>. <failure>. <fix>.
@@ -134,12 +166,21 @@ Passes: <ran> · skipped: <pass and the rule that skipped it>
 
 ## Suggestions
 
+## Refuted
+- `path:line` — <the finding, one line>. <what refuted it>.
+
 ## Not covered
 - <passes not run, and why>
 
 ## Checked clean
 - <what the passes examined and found nothing on>
 ```
+
+`## Refuted` carries only refuted Critical and Important findings, one line each
+with the evidence, and appears only when there are any. A refuted Suggestion
+disappears — it was already the least likely to be read. Keeping the severe ones
+visible is what lets the reader audit the verifier: a stage that quietly drops
+findings is worse than one that never ran.
 
 Close with one sentence naming what the reader should do first. The report is
 the evidence; that sentence is the answer.
