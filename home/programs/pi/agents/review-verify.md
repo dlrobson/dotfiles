@@ -39,6 +39,23 @@ Ask the same of the consequence: a defect that needs a condition the surrounding
 code prevents is refuted, however real the code smells. The passes look at
 whether the code is wrong; you look at whether anyone can reach it.
 
+## Approach findings
+
+An approach finding claims the repository already covers this case. That is
+checkable, and checking it is your job: read the thing it names, and decide
+whether it really does the job the change does. It is refuted only when the named
+alternative does not exist, does not cover the case, or covers it differently
+enough that the change is still needed — say which.
+
+**Do not refute an approach finding by showing the current code works.** That was
+never the claim. The claim is that an existing route achieves the same result
+with less, and the current code working is entirely consistent with it.
+
+Confirm the evidence, not the judgement. If the named alternative is real and
+covers the case, the finding stands even where you would have chosen otherwise:
+the fit verdict is the author's to make. An approach finding carries no severity,
+so the burden rules below do not apply to it.
+
 ## The rest, in order
 
 The parent has already checked that each cited line exists and lies inside the
