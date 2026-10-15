@@ -19,13 +19,26 @@ let
   #    node-pty under packages/server/node_modules in this workspace, so the
   #    glob matches nothing. Copy the nested package in ourselves — postInstall
   #    runs before fixupPhase, so autoPatchelfHook still patches the addon.
-  # 2. fetchNpmDeps' output hash depends on the nixpkgs revision. The default
-  #    in upstream's nix/npm-deps.hash is computed against the nixpkgs their CI
-  #    uses, so ours differs. A nixpkgs-unstable bump that changes it fails the
-  #    build loudly with a "got:" hash — paste that here.
+  # 2. Upstream builds its npm deps with fetchNpmDeps, a fixed-output
+  #    derivation that needs an output hash. That hash is unusable here: it
+  #    depends on the nixpkgs revision, and upstream's nix/npm-deps.hash is
+  #    only refreshed by a bot commit *after* the release tag is cut, so the
+  #    tagged hash is always stale. importNpmLock needs no output hash — it
+  #    fetches each package individually, verified by the integrity hashes in
+  #    package-lock.json — so bumping the paseo pin in npins is the only manual
+  #    step. Upstream's package.nix takes `buildNpmPackage` as an argument, so
+  #    wrap it to swap the dependency source rather than patch the derivation.
   paseo =
     (config.unstablePkgs.callPackage "${sources.paseo}/nix/package.nix" {
-      npmDepsHash = "sha256-uG7EkoQMVLk5CzDEbJbR5aPxeq59x4vjF21JGatxD7k=";
+      buildNpmPackage =
+        args:
+        config.unstablePkgs.buildNpmPackage (
+          args
+          // {
+            npmDeps = config.unstablePkgs.importNpmLock { npmRoot = args.src; };
+            inherit (config.unstablePkgs.importNpmLock) npmConfigHook;
+          }
+        );
     }).overrideAttrs
       (old: {
         postInstall = (old.postInstall or "") + ''
