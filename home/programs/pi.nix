@@ -62,6 +62,34 @@ let
 
   # Same merge rule as skills, for the same reason.
   allAgents = authoredAgents // cfg.agents;
+
+  # MCP servers this repo ships, always present in `mcp.json`. `mcp-nixos` is
+  # the same server the Claude Code `nix` plugin runs, but taken from nixpkgs
+  # rather than launched through `uvx`, so it needs no `uv`, Python or network
+  # at runtime and no `PATH` entry — the store path is the command. Unstable,
+  # like Pi itself: the server moves quickly and the stable channel lags it by a
+  # major version.
+  #
+  # `direct` exposure declares its two tools (`nix`, `nix_versions`) to the
+  # model like built-ins, so it needn't go through `codemode` to look up an
+  # option or package — which this repo's own rules ask for before editing nix.
+  authoredMcpServers = {
+    nixos = {
+      command = lib.getExe config.unstablePkgs.mcp-nixos;
+      description = "Search NixOS, Home Manager and nix-darwin options, Nixpkgs packages and package versions";
+      exposure = "direct";
+    };
+  };
+
+  # Merged recursively, unlike skills and agents, so a consumer can adjust a
+  # shipped server (`pi.mcpServers.nixos.enabled = false`) without restating
+  # its `command`.
+  allMcpServers = lib.recursiveUpdate authoredMcpServers cfg.mcpServers;
+
+  # Pi only accepts server names made of letters, digits, `_` and `-`.
+  badMcpNames = lib.filter (name: builtins.match "[A-Za-z0-9_-]+" name == null) (
+    lib.attrNames allMcpServers
+  );
 in
 {
   options.pi = {
@@ -186,6 +214,57 @@ in
         the extension is present wherever this module is enabled.
       '';
     };
+
+    # Written verbatim to `mcp.json` rather than modelled as a submodule: Pi
+    # owns that schema (stdio vs HTTP, `oauth`, `exposure`, ...) and extends
+    # it between releases, so a typed copy here would only lag behind it.
+    # Pi itself validates entries and reports bad ones at startup.
+    mcpServers = lib.mkOption {
+      type = lib.types.attrsOf jsonFormat.type;
+      default = { };
+      example = lib.literalExpression ''
+        {
+          filesystem = {
+            command = "npx";
+            args = [ "-y" "@modelcontextprotocol/server-filesystem" "." ];
+          };
+          docs = {
+            url = "https://example.com/mcp";
+            headers.Authorization = "!echo Bearer $(cat /run/agenix/docs-token)";
+          };
+          sentry.url = "https://mcp.sentry.dev/mcp";
+        }
+      '';
+      description = ''
+        MCP servers to connect, keyed by server name and written as the
+        `mcpServers` object of {file}`mcp.json` in Pi's agent directory. Each
+        value is an entry in Pi's own format (https://pi.dev/docs/latest/mcp):
+        `command`/`args`/`env` for a stdio server, or `url`/`headers`/`oauth`
+        for a streamable-HTTP one, plus `exposure`, `enabled` and the rest.
+
+        Server names may contain only letters, digits, `_` and `-`.
+
+        This module always ships a `nixos` server (`mcp-nixos`, from nixpkgs)
+        and merges these entries over it recursively, so it cannot be dropped
+        by setting this option. Adjust it by name, e.g.
+        `pi.mcpServers.nixos.enabled = false;` to turn it off.
+
+        The generated file lives in the world-readable Nix store, so never put
+        a secret in a value. `env` and `headers` values accept `''${VAR}`
+        references and `!command` (the whole value must be the command), the
+        same credential syntax as {option}`pi.auth` — point it at an
+        agenix-decrypted file, e.g. `"!cat /run/agenix/docs-token"`.
+
+        OAuth servers need no credentials here (`sentry.url` above), but
+        signing in is a one-off imperative step, `pi mcp login <server>`. Pi
+        stores the resulting tokens in {file}`mcp-auth.json`, which this module
+        does not manage because Pi rewrites it on every token refresh.
+
+        {file}`mcp.json` is a read-only symlink, so `pi mcp add`/`remove` and
+        the exposure and enable toggles in `/mcp` fail rather than drift from
+        what is declared here. Change servers through this option.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -198,6 +277,15 @@ in
           pi.auth is set to a credential command but pi.provider is null, so
           there is no provider to file it under in auth.json. Set
           `pi.provider`, or clear `pi.auth` to authenticate some other way.
+        '';
+      }
+      {
+        # Pi skips an invalid entry and only says so at startup, so a bad name
+        # would otherwise surface as a server that is silently missing.
+        assertion = badMcpNames == [ ];
+        message = ''
+          pi.mcpServers has server names Pi rejects: ${lib.concatStringsSep ", " badMcpNames}.
+          Names may contain only letters, digits, `_` and `-`.
         '';
       }
     ];
@@ -232,6 +320,17 @@ in
             key = cfg.auth;
           };
         };
+      };
+    }
+    // {
+      # Forced for the same reason as auth.json: Pi owns this file too (`pi mcp
+      # add` and the `/mcp` toggles write to it), so a real file left by one of
+      # those would otherwise block re-linking. Only the user-level file is
+      # generated — Pi's docs keep servers with credentials out of the project
+      # `.pi/mcp.json`.
+      "${configDir}/mcp.json" = {
+        force = true;
+        source = jsonFormat.generate "pi-mcp.json" { mcpServers = allMcpServers; };
       };
     }
     // lib.mapAttrs' (

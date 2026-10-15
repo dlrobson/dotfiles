@@ -24,7 +24,7 @@ in
     inherit username homeDirectory;
   };
 
-  # Exercises pi.nix: the package, both JSON files, the shipped skill built by
+  # Exercises pi.nix: the package, all three JSON files, the shipped skill built by
   # `authoredSkills`, the shipped agents built by `authoredAgents`,
   # consumer-supplied `agents`, `skills` and `context` entries, and the
   # `auth requires provider` assertion's passing branch.
@@ -39,6 +39,26 @@ in
     '';
     skills.example = ./fixtures/example-skill;
     agents.example = ./fixtures/example-agent.md;
+    # Consumer-supplied servers, merged over the shipped `nixos` one: one of
+    # each shape Pi accepts (stdio, HTTP with a credential command, a bare
+    # OAuth URL), plus a partial override of the shipped server so the
+    # recursive merge is built, not just the defaults.
+    mcpServers = {
+      nixos.exposure = "deferred";
+      filesystem = {
+        command = "npx";
+        args = [
+          "-y"
+          "@modelcontextprotocol/server-filesystem"
+          "."
+        ];
+      };
+      docs = {
+        url = "https://example.com/mcp";
+        headers.Authorization = "!echo Bearer $(cat /run/agenix/docs-token)";
+      };
+      oauth-example.url = "https://mcp.example.com/mcp";
+    };
   };
 
   # Exercises paseo.nix: the patched package, the user service, the
