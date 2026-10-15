@@ -89,6 +89,12 @@ let
   // lib.optionalAttrs (cfg.gitIdentityFile != null) {
     GIT_SSH_COMMAND = "${gitSshCommand}";
   }
+  // lib.optionalAttrs cfg.forwardSshAgent {
+    # `%t` is the user manager's runtime dir. The same specifier and socket
+    # path home-manager's services.ssh-agent unit passes to `ssh-agent -a`, so
+    # the two cannot drift apart.
+    SSH_AUTH_SOCK = "%t/${config.services.ssh-agent.socket}";
+  }
   // cfg.environment;
 in
 {
@@ -188,6 +194,30 @@ in
       '';
     };
 
+    # A user unit does not inherit the login shell's SSH_AUTH_SOCK (that comes
+    # from sshAuthSock.initialization in ssh.nix, which only shells source), so
+    # without this the agents the daemon spawns have no way to reach an agent.
+    #
+    # Off by default because it is a delegation of authority: every agent, and
+    # anything prompt-injected into one, can then sign with every key loaded
+    # in that agent, as you. It is not a substitute for gitIdentityFile — the
+    # agent is only as full as your last unlock, so after a reboot it is empty
+    # and an unattended job has nothing to sign with.
+    #
+    # Note that when gitIdentityFile is also set, its `GIT_SSH_COMMAND` is
+    # inherited by the agents too, so their `git` over SSH uses that key with
+    # no agent; plain `ssh` and anything else still uses this socket.
+    forwardSshAgent = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Whether to set `SSH_AUTH_SOCK` in the daemon's environment, pointing at
+        the home-manager `services.ssh-agent` socket, so the agents it spawns
+        can authenticate with keys held in that agent. To use a different
+        agent, set `SSH_AUTH_SOCK` in `environment` instead.
+      '';
+    };
+
     relay.enable = lib.mkOption {
       type = lib.types.bool;
       default = false;
@@ -225,6 +255,15 @@ in
     # the moment it is reachable from elsewhere the password stops being
     # optional.
     assertions = [
+      {
+        assertion = !cfg.forwardSshAgent || config.services.ssh-agent.enable;
+        message = ''
+          paseo.forwardSshAgent is set but services.ssh-agent is not enabled,
+          so there is no socket to point SSH_AUTH_SOCK at. Enable
+          `services.ssh-agent`, or set SSH_AUTH_SOCK in `paseo.environment`
+          to an agent you run yourself.
+        '';
+      }
       {
         assertion = cfg.listenAddress == "127.0.0.1" || cfg.environmentFile != null;
         message = ''
