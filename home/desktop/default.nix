@@ -79,9 +79,6 @@ in
             ];
         };
       };
-
-      home.file.".config/Code/User/prompts/spec-sidecar.instructions.md".source =
-        ./spec-sidecar.instructions.md;
     }
 
     (mkIf isGnomeRunning {

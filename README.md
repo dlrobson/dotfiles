@@ -1,85 +1,81 @@
 # dlrobson's dotfiles
 
-A collection of dotfiles managed using [Home Manager](https://github.com/nix-community/home-manager) and [Nix](https://nixos.org/).
+Home Manager configuration for my machines, managed with [Nix](https://nixos.org/).
 
-## Installation
+It is used two ways:
 
-### Supported Systems
+- **As a library.** Other repos pin it with [npins](https://github.com/nix-community/npins)
+  and import `${sources.dotfiles}/home` into their own Home Manager users. Options that
+  vary per deployment (`pi.enable`, `paseo.enable`, `claude-window-trigger.schedule`, …)
+  default to off/empty here, and the consuming repo sets real values.
+- **Standalone.** `./setup.sh <profile>` deploys a profile directly. This is how the
+  Ubuntu machine is configured.
 
-| System Type | Support |
-|-------------|----|
-| Ubuntu      | ✅ |
-| NixOS       | ✅ |
+## Standalone deploy
 
-### Prerequisites
+Prerequisites:
 
-You'll need:
-- [Nix package manager](https://nixos.org/download.html) installed
-- Fish shell (recommended, install via your system's package manager)
+- [Nix](https://nixos.org/download.html)
+- Fish (installed via Home Manager; set as your login shell afterwards)
 
-### Setup
-
-1. Clone this repository:
 ```bash
-git clone https://github.com/dlrobson/dotfiles.git
-cd dotfiles
+./setup.sh desktop            # or: minimal
+./setup.sh desktop --dry-run  # print what would change
+./setup.sh --help
 ```
 
-2. Run the installation script:
+Then set Fish as your shell (once) and log back in:
+
 ```bash
-./setup.sh
+chsh -s "$(command -v fish)"
 ```
 
-This script will:
-- Install required packages
-- Install and configure Nix
-- Install Home Manager
-- Deploy the configuration
+| Profile | Contents |
+|---|---|
+| `minimal` | CLI tools, shell, git, tmux, Neovim, agent CLIs |
+| `desktop` | `minimal` plus GUI apps (Ghostty, Chromium, VS Code), GNOME settings, and KMonad on non-NixOS hosts |
 
-### Post-Installation
+`setup.sh` is the only thing that switches the configuration — nothing applies changes
+on its own.
 
-After installation, you'll need to set Fish as your default shell:
-```bash
-chsh -s $(which fish)
-```
+## Development
 
-Log out and log back in for the changes to take effect.
+`.envrc` puts a dev shell on `PATH` via `direnv`:
 
-## KMonad Setup (Ubuntu/Debian Only)
+| Command | Does |
+|---|---|
+| `check` | lint: `nixfmt --check`, `statix`, `deadnix` |
+| `format` | apply the same fixes |
+| `run-tests` | build the `minimal`, `desktop`, and `coverage` profiles |
+| `update-pins` | `npins upgrade && npins update` |
 
-KMonad keyboard remapping is only supported on Ubuntu/Debian systems. NixOS users should use the built-in keyboard configuration options instead.
+`coverage` is a test fixture, not a deployment target: it turns every per-deployment
+option on with fake values so those code paths are built. **Adding a new
+per-deployment option? Add it to `profiles/coverage.nix` too, or it goes untested.**
 
-If you want to use KMonad on Ubuntu/Debian:
+## KMonad (Ubuntu/Debian only)
 
-1. Make sure Home Manager has installed the configuration
-2. Run the KMonad setup script:
-```bash
-./kmonad/kmonad-setup.sh
-```
+KMonad remaps the ThinkPad keyboard (Caps and Space tap-hold bindings, plus a mod layer).
+It is skipped on NixOS, where the consuming system config owns keyboard remapping
+instead.
 
-This will:
-- Set up required udev rules
-- Add your user to necessary groups
-- Enable and start the KMonad service
+1. Deploy the `desktop` profile.
+2. Run `./kmonad/kmonad-setup.sh` — needs root for the udev rule and the
+   `input`/`uinput` group membership.
+3. Manage it with:
+   `systemctl --user {status,start,stop,enable,disable} kmonad-mapping.service`
 
-### KMonad Service Management
+## Layout
 
-- Check status: `systemctl --user status kmonad-mapping.service`
-- Stop service: `systemctl --user stop kmonad-mapping.service`
-- Disable service: `systemctl --user disable kmonad-mapping.service`
-- Enable service: `systemctl --user enable kmonad-mapping.service`
-
-## Configuration
-
-All configurations are managed through Home Manager and can be found in:
-- `home.nix`: Main Home Manager configuration
-- `kmonad/`: KMonad-related configurations
-
-## Managing Features
-
-To add new dotfile features:
-1. Edit `home.nix` to add your new configuration
-2. Apply changes by running:
-```bash
-home-manager switch
+```text
+home/
+  default.nix        # profile selector and shared user options
+  programs/          # CLI tools, shells, editor, agent harnesses (pi, paseo, claude)
+  desktop/           # GUI apps, GNOME, non-NixOS (nixGL, KMonad) bits
+modules/common/      # shared helpers (profile constants, private config, unstable pkgs)
+kmonad/              # KMonad mapping + the Ubuntu setup script
+profiles/            # deployable entrypoints, plus the coverage fixture
+npins/               # pinned dependencies
+shell.nix            # dev shell
+setup.sh             # standalone deploy
 ```

@@ -13,15 +13,6 @@ let
     '';
   };
 
-  fix = pkgs.writeShellApplication {
-    name = "fix";
-    text = ''
-      find . -name "*.nix" -type f -print0 | xargs -0 nixfmt
-      statix fix --ignore "npins/default.nix"
-      find . -name "*.nix" -type f -not -path "./npins/*" -print0 | xargs -0 deadnix --edit
-    '';
-  };
-
   run-tests = pkgs.writeShellApplication {
     name = "run-tests";
     runtimeInputs = [ hm.home-manager ];
@@ -61,7 +52,6 @@ pkgs.mkShell {
     hm.home-manager
     unstablePkgs.npins
     check
-    fix
     format
     run-tests
     build

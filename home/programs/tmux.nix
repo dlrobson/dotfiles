@@ -14,8 +14,11 @@
       set -g focus-events on
       set -g automatic-rename off
 
-      # Let Claude Code's desktop notifications and terminal progress bar
-      # pass through tmux to Ghostty (otherwise tmux swallows them).
+      # Neovim's OSC52 clipboard provider wraps its sequence in a DCS
+      # passthrough envelope (see the clipboard block in neovim.nix) because
+      # tmux's own OSC52 relay drops it; without this, "+y does nothing under
+      # tmux. Also lets apps' terminal notifications and progress bars reach
+      # Ghostty instead of being swallowed.
       set -g allow-passthrough on
       # Distinguish Shift+Enter from plain Enter so Claude Code's newline
       # shortcut works inside tmux; pair with a truecolor advert for the
@@ -40,30 +43,10 @@
         extraConfig = "set -g @yank_selection_mouse 'clipboard'";
       }
       {
-        plugin = resurrect;
-        extraConfig = ''
-          set -g @resurrect-capture-pane-contents 'on'
-          # Match the saved command by substring (~) — it's saved as an
-          # absolute wrapper path (/.../bin/claude ...), so resurrect's default
-          # anchored (^claude) match never fires. NOTE: do not use resurrect's
-          # `match->restore` inline strategy here; the `->` is parsed as a shell
-          # redirect inside resurrect's unquoted `eval set`, which corrupts the
-          # restore list and silently drops the pane.
-          set -g @resurrect-processes '~claude'
-        '';
-      }
-      {
-        plugin = continuum;
-        extraConfig = "set -g @continuum-restore 'on'";
-      }
-      {
         plugin = catppuccin;
         extraConfig = ''
           set -g @catppuccin_flavor "mocha"
           set -g @catppuccin_window_status_style "rounded"
-          set -g @catppuccin_window_text " #W#{@claude_done}"
-          set -g @catppuccin_window_current_text " #W#{@claude_done}"
-          set-hook -g session-window-changed "run-shell 'tmux set-window-option -t #{window_id} -u @claude_done'"
 
           set -g status-right-length 100
           set -g status-left-length 100

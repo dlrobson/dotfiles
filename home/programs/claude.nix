@@ -40,88 +40,15 @@ in
         tui = "fullscreen";
         cleanupPeriodDays = 60;
         autoMemoryEnabled = false;
-        remoteControlAtStartup = true;
-        agentPushNotifEnabled = true;
         skipAutoPermissionPrompt = true;
         # Default 1% budget truncates a handful of skill descriptions (full
         # listing is ~1.7% of context); actual cost is negligible either way
         # (~3.3k tokens total), so raise the cap to stop the startup warning.
         skillListingBudgetFraction = 0.02;
-        # Always run Bash commands inside the bubblewrap sandbox (filesystem
-        # writes confined to cwd/scratch, network confined to an allowlist).
-        # autoAllowBashIfSandboxed skips the per-command permission prompt
-        # since the sandbox itself is the safety boundary. allowUnsandboxedCommands
-        # is true so a sandbox-caused failure (e.g. writing outside cwd/scratch,
-        # a non-allowlisted host, or the ~/.ssh/config ownership issue under
-        # bwrap's uid remap) lets Claude retry with dangerouslyDisableSandbox
-        # instead of dead-ending — that retry still goes through the normal
-        # permission prompt, since autoAllowBashIfSandboxed only covers
-        # commands that stay inside the sandbox.
-        sandbox = {
-          enabled = true;
-          autoAllowBashIfSandboxed = true;
-          allowUnsandboxedCommands = true;
-          # These all evaluate npins-pinned sources (nixpkgs/home-manager)
-          # via fetchTarball, and even a cache-hit store query goes through
-          # the daemon on a multi-user install — nix-shell via shell.nix,
-          # nix-build/nix-instantiate via setup.sh. The sandbox blocks the
-          # daemon socket outright (no allowUnixSockets entry — opening it
-          # would let fixed-output derivations bypass network.allowedDomains
-          # entirely), so a sandboxed attempt always fails first with a
-          # confusing, not-obviously-sandbox-related error before falling
-          # back to unsandboxed; excluding them skips the doomed attempt.
-          #
-          # git fetch/pull/push all use the SSH remote (origin is
-          # git@github.com:...), which is doubly broken under bwrap: (1)
-          # ~/.ssh/config is a home-manager symlink into /nix/store, owned by
-          # root on the host — bwrap's user namespace only maps our own uid,
-          # so root-owned files appear as nobody:nogroup inside the sandbox,
-          # which fails OpenSSH's "owned by self or root" strict-permissions
-          # check; (2) even bypassing that, the sandboxed network namespace
-          # has no path for a non-proxy-aware raw TCP/DNS client like ssh
-          # (confirmed: "Could not resolve hostname" inside the sandbox).
-          # Fixing that would mean an SSH ProxyCommand through the sandbox's
-          # SOCKS proxy, which is fragile and still wouldn't fix (1).
-          excludedCommands = [
-            "nix-shell *"
-            "nix-build *"
-            "nix-instantiate *"
-            "git fetch *"
-            "git pull *"
-            "git push *"
-          ];
-          network = {
-            allowedDomains = [
-              "github.com"
-              "api.github.com"
-              "objects.githubusercontent.com"
-              "registry.npmjs.org"
-              "api.anthropic.com"
-            ];
-          };
-          # Sandboxed commands otherwise have unrestricted filesystem read
-          # access, so explicitly deny the credential stores that matter most:
-          # SSH private keys (including the agenix decrypt key) and the gh
-          # CLI's stored OAuth token.
-          credentials = {
-            files =
-              map
-                (path: {
-                  inherit path;
-                  mode = "deny";
-                })
-                [
-                  "~/.ssh/"
-                  "~/.config/gh/hosts.yml"
-                ];
-          };
-        };
-        # Pre-approved actions recurring across repos. Most Bash commands need
-        # no entry: with sandbox.enabled + autoAllowBashIfSandboxed, every
-        # sandboxed command already auto-runs (dev-shell commands like
-        # check/run-tests included — direnv puts them on PATH). Only the
-        # unsandboxed commands in sandbox.excludedCommands need an allow entry
-        # to skip the prompt — hence git fetch/pull below.
+        # Pre-approved actions recurring across repos. Without the sandbox,
+        # every Bash command prompts unless it matches an entry here — the
+        # routine read-only ones (git fetch/pull) are allowed; anything that
+        # mutates shared state (push, reset) still asks.
         permissions = {
           deny = [
             # Hard block, backstopping the "never run sudo" rule in `context`
@@ -167,38 +94,6 @@ in
           commit = "";
           pr = "";
           sessionUrl = false;
-        };
-        # Desktop/tmux/Ghostty notifications when Claude finishes or needs
-        # attention. Native here (not a marketplace plugin) because it's
-        # specific to this machine: the dbus bus path, this tmux config's
-        # @claude_done indicator, and Ghostty's OSC 777 escape sequence.
-        hooks = {
-          Stop = [
-            {
-              matcher = "";
-              hooks = [
-                {
-                  type = "command";
-                  command = ''
-                    DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus" notify-send 'Claude Code' 'Claude finished' 2>/dev/null || true; [ -n "$TMUX_PANE" ] && tmux set-window-option -t "$TMUX_PANE" @claude_done " !"; seq=$(printf '\033]777;notify;Claude Code;Claude finished\007'); jq -nc --arg seq "$seq" '{terminalSequence: $seq}'
-                  '';
-                }
-              ];
-            }
-          ];
-          Notification = [
-            {
-              matcher = "";
-              hooks = [
-                {
-                  type = "command";
-                  command = ''
-                    DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus" notify-send 'Claude Code' 'Claude needs your attention' 2>/dev/null || true; [ -n "$TMUX_PANE" ] && tmux set-window-option -t "$TMUX_PANE" @claude_done " !"; seq=$(printf '\033]777;notify;Claude Code;Claude needs your attention\007'); jq -nc --arg seq "$seq" '{terminalSequence: $seq}'
-                  '';
-                }
-              ];
-            }
-          ];
         };
         # Declared in `agent-plugins.nix`.
         enabledPlugins = lib.genAttrs config.agentPlugins.enabled (_: true);

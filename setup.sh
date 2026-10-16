@@ -51,8 +51,8 @@ check_userns_restriction() {
 
 WARNING: Unprivileged user namespaces are restricted on this machine
 (kernel.apparmor_restrict_unprivileged_userns=1). This breaks any
-unprivileged sandboxing tool built on bwrap/unshare - e.g. Claude Code's
-command sandbox, and some browser/Flatpak/Snap sandboxes - with errors like:
+unprivileged sandboxing tool built on bwrap/unshare - e.g. some
+browser/Flatpak/Snap sandboxes - with errors like:
     bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted
 
 To fix it:

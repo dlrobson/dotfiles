@@ -1,9 +1,4 @@
 {
-  "sandbox": {
-    "excludedCommands": [
-      "run-tests"
-    ]
-  },
   "permissions": {
     "allow": [
       "Bash(run-tests)"
