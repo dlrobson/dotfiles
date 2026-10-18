@@ -5,7 +5,7 @@
 }:
 
 let
-  unstable = import (import ../../npins).nixpkgs-unstable {
+  unstable = import (import ../../pins.nix).nixpkgs-unstable {
     config = {
       allowUnfree = true;
     };

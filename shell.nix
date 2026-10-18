@@ -1,5 +1,5 @@
 let
-  sources = import ./npins;
+  sources = import ./pins.nix;
   pkgs = import sources.nixpkgs { };
   unstablePkgs = import sources.nixpkgs-unstable { };
   hm = import sources.home-manager { inherit pkgs; };
@@ -10,6 +10,21 @@ let
       find . -name "*.nix" -type f -print0 | xargs -0 nixfmt --check
       statix check --ignore "npins/default.nix"
       find . -name "*.nix" -type f -not -path "./npins/*" -print0 | xargs -0 deadnix --fail
+
+      # Pins must be consumed through pins.nix (see that file): it asks npins for
+      # the Nixpkgs fetchers, so each pin is a fixed-output derivation, and a
+      # store path a consumer's weekly GC has deleted gets substituted or
+      # rebuilt instead of aborting evaluation with `path '…' is not valid`.
+      bypass=$(
+        find . -name "*.nix" -type f -not -path "./npins/*" -print0 |
+          xargs -0 grep -lE 'import [^ ;]*/npins\b' |
+          grep -vE '^\./pins\.nix$' || true
+      )
+      if [ -n "$bypass" ]; then
+        echo "ERROR: these files import npins/ directly; consume pins via pins.nix (see that file):" >&2
+        echo "$bypass" >&2
+        exit 1
+      fi
     '';
   };
 

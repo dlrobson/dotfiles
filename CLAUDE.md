@@ -1,5 +1,13 @@
 # CLAUDE.md
 
+## Pins are consumed through `pins.nix`
+
+Consume npins pins with `import ./pins.nix`, not by importing `npins/` directly.
+That asks npins for the Nixpkgs fetchers, so a pin is a fixed-output derivation:
+a store path a consumer's weekly GC has deleted is substituted or rebuilt
+instead of aborting its evaluation with `path '…' is not valid`. `check` fails
+the build if any file other than `pins.nix` imports `npins/`. See `pins.nix`.
+
 ## Repo usage
 This repo is consumed as a library, not just built standalone. Other repos pin this repo
 via npins and `imports = [ "${sources.dotfiles}/home" ]` into their own home-manager user

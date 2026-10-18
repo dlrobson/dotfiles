@@ -1,6 +1,6 @@
 { lib, ... }:
 let
-  sources = import ../../npins;
+  sources = import ../../pins.nix;
   pluginMarketplace = sources.plugin-marketplace;
   localMarketplaceManifest = builtins.fromJSON (
     builtins.readFile "${pluginMarketplace}/.claude-plugin/marketplace.json"
