@@ -5,7 +5,7 @@
   ...
 }:
 let
-  sources = import ../../npins;
+  sources = import ../../pins.nix;
   cfg = config.paseo;
 
   # The patched build, shared by every consumer — the NixOS server enables

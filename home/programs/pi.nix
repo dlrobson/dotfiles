@@ -6,7 +6,7 @@
 }:
 let
   cfg = config.pi;
-  sources = import ../../npins;
+  sources = import ../../pins.nix;
   jsonFormat = pkgs.formats.json { };
 
   # Upstream default, kept as a path rather than a literal so `PI_CODING_AGENT_DIR`

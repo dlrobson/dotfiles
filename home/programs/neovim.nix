@@ -1,7 +1,7 @@
 { config, lib, ... }:
 
 let
-  sources = import ../../npins;
+  sources = import ../../pins.nix;
   nixvimFlake = import sources.nixvim;
   nixvimLib = nixvimFlake.lib.nixvim;
 
