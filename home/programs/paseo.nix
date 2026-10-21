@@ -51,6 +51,29 @@ let
         '';
       });
 
+  # The desktop app is a second upstream derivation (`nix/desktop-package.nix`)
+  # that inherits the daemon's `npmDeps`, so the dependency fetch is paid once.
+  # Two things differ from a plain `callPackage` of it:
+  #
+  # 1. It needs importNpmLock's `npmConfigHook` by hand. Its `npmDeps` comes
+  #    from the daemon (see above), but nixpkgs' default hook is the
+  #    fetchNpmDeps one, which does not understand a lockfile of store paths.
+  # 2. `buildVersion` is metadata only (the version Electron reports).
+  #    Upstream's flake derives it from `revCount`, which a npins pin does not
+  #    have, so pass the plain package version.
+  desktopPackage = config.unstablePkgs.callPackage "${sources.paseo}/nix/desktop-package.nix" {
+    inherit paseo;
+    buildVersion = paseo.version;
+    buildNpmPackage =
+      args:
+      config.unstablePkgs.buildNpmPackage (
+        args
+        // {
+          npmConfigHook = config.unstablePkgs.importNpmLock.npmConfigHook;
+        }
+      );
+  };
+
   jsonFormat = pkgs.formats.json { };
 
   settingsFile = jsonFormat.generate "paseo-config.json" cfg.settings;
@@ -122,6 +145,21 @@ in
       default = paseo;
       defaultText = lib.literalExpression "patched paseo built from the npins pin";
       description = "Paseo package to run.";
+    };
+
+    # Kept independent of `enable` on purpose: the desktop app bundles and
+    # manages its own daemon, and attaches to an already-running one instead of
+    # starting a second, so a workstation that runs the app does not need this
+    # module's user service as well.
+    desktop = {
+      enable = lib.mkEnableOption "the Paseo desktop app (Electron)";
+
+      package = lib.mkOption {
+        type = lib.types.package;
+        default = desktopPackage;
+        defaultText = lib.literalExpression "paseo-desktop built from the npins pin";
+        description = "Paseo desktop package to install.";
+      };
     };
 
     port = lib.mkOption {
@@ -262,66 +300,72 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    # Refusing to build beats printing a warning nobody reads: an
-    # unauthenticated daemon on loopback is a reasonable local convenience, but
-    # the moment it is reachable from elsewhere the password stops being
-    # optional.
-    assertions = [
-      {
-        assertion = !cfg.forwardSshAgent || config.services.ssh-agent.enable;
-        message = ''
-          paseo.forwardSshAgent is set but services.ssh-agent is not enabled,
-          so there is no socket to point SSH_AUTH_SOCK at. Enable
-          `services.ssh-agent`, or set SSH_AUTH_SOCK in `paseo.environment`
-          to an agent you run yourself.
-        '';
-      }
-      {
-        assertion = cfg.listenAddress == "127.0.0.1" || cfg.environmentFile != null;
-        message = ''
-          paseo.listenAddress is "${cfg.listenAddress}" but no environmentFile
-          is set, so the daemon would accept unauthenticated requests from the
-          network — and it can run shell commands as you. Set
-          `paseo.environmentFile` to a file defining PASEO_PASSWORD, and make
-          sure the port is reachable only where you intend (a tailnet-scoped
-          firewall rule on NixOS, `tailscale serve` elsewhere).
-        '';
-      }
-    ];
+  config = lib.mkMerge [
+    (lib.mkIf cfg.desktop.enable {
+      home.packages = [ cfg.desktop.package ];
+    })
 
-    home.packages = [ cfg.package ];
+    (lib.mkIf cfg.enable {
+      # Refusing to build beats printing a warning nobody reads: an
+      # unauthenticated daemon on loopback is a reasonable local convenience, but
+      # the moment it is reachable from elsewhere the password stops being
+      # optional.
+      assertions = [
+        {
+          assertion = !cfg.forwardSshAgent || config.services.ssh-agent.enable;
+          message = ''
+            paseo.forwardSshAgent is set but services.ssh-agent is not enabled,
+            so there is no socket to point SSH_AUTH_SOCK at. Enable
+            `services.ssh-agent`, or set SSH_AUTH_SOCK in `paseo.environment`
+            to an agent you run yourself.
+          '';
+        }
+        {
+          assertion = cfg.listenAddress == "127.0.0.1" || cfg.environmentFile != null;
+          message = ''
+            paseo.listenAddress is "${cfg.listenAddress}" but no environmentFile
+            is set, so the daemon would accept unauthenticated requests from the
+            network — and it can run shell commands as you. Set
+            `paseo.environmentFile` to a file defining PASEO_PASSWORD, and make
+            sure the port is reachable only where you intend (a tailnet-scoped
+            firewall rule on NixOS, `tailscale serve` elsewhere).
+          '';
+        }
+      ];
 
-    systemd.user.services.paseo = {
-      Unit = {
-        Description = "Paseo - self-hosted daemon for AI coding agents";
-        After = [ "network.target" ];
+      home.packages = [ cfg.package ];
+
+      systemd.user.services.paseo = {
+        Unit = {
+          Description = "Paseo - self-hosted daemon for AI coding agents";
+          After = [ "network.target" ];
+        };
+
+        Service = {
+          Type = "simple";
+          ExecStart =
+            "${cfg.package}/bin/paseo-server" + lib.optionalString (!cfg.relay.enable) " --no-relay";
+          Environment = lib.mapAttrsToList (k: v: "${k}=${v}") environment;
+          EnvironmentFile = lib.optional (cfg.environmentFile != null) cfg.environmentFile;
+
+          # home-manager has no `systemd.user.tmpfiles`, so create the state dir
+          # here; install the rendered config too, as upstream's module does.
+          # Absolute paths: the unit's PATH has no coreutils on non-NixOS hosts.
+          ExecStartPre = pkgs.writeShellScript "paseo-prepare" ''
+            ${pkgs.coreutils}/bin/mkdir -p ${lib.escapeShellArg cfg.dataDir}
+            ${lib.optionalString (cfg.settings != { }) ''
+              ${pkgs.coreutils}/bin/install -m 0600 ${settingsFile} ${lib.escapeShellArg cfg.dataDir}/config.json
+            ''}
+          '';
+
+          Restart = "on-failure";
+          RestartSec = 5;
+          KillSignal = "SIGTERM";
+          TimeoutStopSec = 15;
+        };
+
+        Install.WantedBy = [ "default.target" ];
       };
-
-      Service = {
-        Type = "simple";
-        ExecStart =
-          "${cfg.package}/bin/paseo-server" + lib.optionalString (!cfg.relay.enable) " --no-relay";
-        Environment = lib.mapAttrsToList (k: v: "${k}=${v}") environment;
-        EnvironmentFile = lib.optional (cfg.environmentFile != null) cfg.environmentFile;
-
-        # home-manager has no `systemd.user.tmpfiles`, so create the state dir
-        # here; install the rendered config too, as upstream's module does.
-        # Absolute paths: the unit's PATH has no coreutils on non-NixOS hosts.
-        ExecStartPre = pkgs.writeShellScript "paseo-prepare" ''
-          ${pkgs.coreutils}/bin/mkdir -p ${lib.escapeShellArg cfg.dataDir}
-          ${lib.optionalString (cfg.settings != { }) ''
-            ${pkgs.coreutils}/bin/install -m 0600 ${settingsFile} ${lib.escapeShellArg cfg.dataDir}/config.json
-          ''}
-        '';
-
-        Restart = "on-failure";
-        RestartSec = 5;
-        KillSignal = "SIGTERM";
-        TimeoutStopSec = 15;
-      };
-
-      Install.WantedBy = [ "default.target" ];
-    };
-  };
+    })
+  ];
 }

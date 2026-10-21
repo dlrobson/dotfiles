@@ -64,7 +64,10 @@ in
   # Exercises paseo.nix: the patched package, the user service, the
   # `0.0.0.0`-with-EnvironmentFile assertion's passing branch, the hostnames,
   # relay and web UI env, the git-identity wrapper, the SSH agent passthrough
-  # and its `services.ssh-agent` assertion, and the rendered settings JSON.
+  # and its `services.ssh-agent` assertion, the rendered settings JSON, and the
+  # desktop (Electron) build. The desktop build is by far the expensive part of
+  # `run-tests` — and the point: nothing else catches upstream renaming
+  # `nix/desktop-package.nix` or adding a required argument to it.
   paseo = {
     enable = true;
     listenAddress = "0.0.0.0";
@@ -74,6 +77,7 @@ in
     gitIdentityFile = "/run/agenix/server/paseo-repo-key";
     forwardSshAgent = true;
     settings.daemon.mcp.enabled = true;
+    desktop.enable = true;
   };
 
   # `desktop` already enables the trigger, but leaves the schedule empty, so
