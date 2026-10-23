@@ -128,9 +128,22 @@ substitute the general pass for them or invent an agent. List them under
 
 Launch the chosen passes as **parallel** subagents, one task each, so they run
 concurrently and cannot see each other's conclusions. Use the extension's
-parallel form — a single call carrying every selected task — rather than one
-call per pass; separate calls are dispatched across turns and start staggered,
-which loses most of the concurrency. Every task carries:
+built-in `parallel` workflow, a single call carrying every selected task,
+rather than one call per pass; separate calls are dispatched across turns and
+start staggered, which loses most of the concurrency:
+
+```js
+subagent({
+  workflow: "parallel",
+  async: false,
+  args: { tasks: [
+    { agent: "review-general", task: "..." },
+    { agent: "review-tests", task: "..." },
+  ] },
+})
+```
+
+Every task carries:
 
 - the change, or how to produce it;
 - the files and lines in scope;
@@ -143,6 +156,22 @@ Give every pass the same change and the same scope. Divergent scope produces
 findings that cannot be merged. The approach pass additionally receives the
 intent you gathered, quoted, and told whether it was stated or has to be
 inferred.
+
+Details of the call that cost time when they were guessed:
+
+- A task item takes only `agent` and `task`. The result lists each pass's
+  output in order.
+- Use `async: false`. A background workflow returns at once, and a pass
+  launched again because the first launch looked lost runs twice: double the
+  cost, and every finding twice. The merge cannot start until every pass is
+  back, so there is nothing to do meanwhile.
+- Do not write a workflow script for this fan-out. It takes several turns to
+  get right, and `parallel` already does the job.
+- If the request names a model or thinking level for the passes, put
+  `model: "provider/id:level"` on the call, and on the verifier's. Every pass
+  takes it from the call. Without it a pass runs at the extension's default
+  thinking level, not the parent's, so a level set only on the parent session
+  does not reach them.
 
 Do not run the passes in your own context. Their value is the isolated context
 window; a single session accumulates enough diff, callers, and tests to crowd
@@ -176,8 +205,14 @@ as refuted.
 Approach findings have neither a line nor a quoted rule to look up, so they pass
 straight through. What gets checked for them is the alternative they name.
 
-**Then hand what survives to `review-verify`**, with the change and the merged
-findings. It settles what lookup cannot: for a defect, whether the failure can
+**Then hand what survives to `review-verify`**, one verifier per finding, each
+given the change and that finding alone, in a single `parallel` call like the
+one in step 3 (`async: false`, the same `model`). Verifiers run at once, so the
+stage takes as long as the slowest finding rather than the sum of them, and no
+verdict is coloured by the findings read before it. With more than eight
+findings, group them by file so that no verifier gets more than a few.
+
+A verifier settles what lookup cannot: for a defect, whether the failure can
 occur at all given the callers, guards, and types that produce the inputs; for an
 approach finding, whether the alternative it names exists and covers the case.
 Pass the findings as written, not the passes' reasoning — the report is what the
@@ -185,8 +220,8 @@ reader sees, and a verifier handed the argument for a finding tends to agree wit
 it.
 
 Apply the verdicts: `confirmed` stands, `corrected` replaces the finding,
-`refuted` is dropped. Do not promote anything it mentions into a finding of your
-own.
+`refuted` is dropped. Do not promote anything a verifier mentions into a finding
+of your own.
 
 Skip this stage when the merged report is empty.
 
