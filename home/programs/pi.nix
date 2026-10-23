@@ -215,6 +215,19 @@ in
       '';
     };
 
+    packages = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      example = [ "npm:@cortexkit/pi-anthropic-auth@2.2.4" ];
+      description = ''
+        Extra Pi package specs, appended to the ones this module ships
+        (`pi-web-access`, `pi-subagents`) in the `packages` key of
+        settings.json. Pin a version: Pi reinstalls when the spec changes.
+        `settings.json` is a read-only symlink, so `pi install` fails; add
+        packages here instead.
+      '';
+    };
+
     # Written verbatim to `mcp.json` rather than modelled as a submodule: Pi
     # owns that schema (stdio vs HTTP, `oauth`, `exposure`, ...) and extends
     # it between releases, so a typed copy here would only lag behind it.
@@ -367,7 +380,8 @@ in
           packages = [
             "npm:pi-web-access@${lib.removePrefix "v" sources.pi-web-access.version}"
             "npm:pi-subagents@${lib.removePrefix "v" sources.pi-subagents.version}"
-          ];
+          ]
+          ++ cfg.packages;
         }
         // lib.optionalAttrs (cfg.provider != null) { defaultProvider = cfg.provider; }
         // lib.optionalAttrs (cfg.model != null) { defaultModel = cfg.model; }
