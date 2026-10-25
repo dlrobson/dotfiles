@@ -120,9 +120,13 @@ extensions or assuming a language.
 **Borderline means skip, and say you skipped it.** A skipped pass is one line to
 request; an unrequested pass costs tokens and buries what matters.
 
-**Passes that do not exist yet: types, comments, simplification.** Do not
-substitute the general pass for them or invent an agent. List them under
-"Not covered" so the gap stays visible.
+**Passes that do not exist yet: types, simplification.** Do not substitute the
+general pass for them or invent an agent. List them under "Not covered" so the
+gap stays visible.
+
+Comments are not one of those gaps: `review-general`'s brief carries the
+criterion and reports a diff-shaped comment as a finding. Do not list them under
+"Not covered".
 
 ### 3. Dispatch
 

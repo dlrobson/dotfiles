@@ -28,6 +28,11 @@ What to look for, in priority order:
    code depends on. Search for the callers; one left unupdated is the finding.
 4. **Duplication.** The change re-implements something the repository already
    has. Name the existing implementation.
+5. **Diff-shaped comments.** A comment the change adds or edits that describes the
+   version of the code it replaced — "now uses X instead of Y", "this used to fail
+   when…" — rather than the code as it stands. The reader has no previous version:
+   the comment is wrong about the code it annotates. The fix is to state the fact
+   the code rests on, or delete it.
 
 Not yours: style the repository does not state, how deep error handling should
 go, test coverage, and simplifying code that already works.
