@@ -53,7 +53,12 @@ in
 
     home-manager-desktop-configuration.enable = cfg.profile == "desktop";
     home-manager-desktop-configuration.homeDirectory = cfg.homeDirectory;
-    claude.enable = cfg.profile == "desktop";
-    claude-window-trigger.enable = cfg.profile == "desktop";
+    # `desktop` means "install the GUI applications", so it merely seeds these.
+    # `mkDefault` keeps a consumer free to disagree without `mkForce`: a host
+    # can want the GUI apps but not an agent harness, or Claude Code on a
+    # `minimal` account. See `claude.nix` for what `claude.enable` gates — the
+    # package, settings and fish abbreviations are all behind it.
+    claude.enable = mkDefault (cfg.profile == "desktop");
+    claude-window-trigger.enable = mkDefault (cfg.profile == "desktop");
   };
 }

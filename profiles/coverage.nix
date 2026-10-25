@@ -86,8 +86,7 @@ in
 
   # Exercises the conditional `includes` block in git.nix. `private.nix` sets
   # these as plain definitions rather than `mkDefault`, so overriding them takes
-  # `mkForce` — the same thing the consuming repo does for
-  # `claude-window-trigger`.
+  # `mkForce`.
   private = {
     available = lib.mkForce true;
     dir = lib.mkForce "/nonexistent/nixos-config-private";
