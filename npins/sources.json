@@ -13,19 +13,6 @@
       "url": "https://github.com/ast-grep/agent-skill/archive/f2175aff21f20cfb8e2db30c28febeb3a2d42b61.tar.gz",
       "hash": "sha256-dORqiMdFOUQVEF6wn1IZiTIcslzO+441A0GZP4KNcOQ="
     },
-    "claude-code-lsps": {
-      "type": "Git",
-      "repository": {
-        "type": "GitHub",
-        "owner": "boostvolt",
-        "repo": "claude-code-lsps"
-      },
-      "branch": "main",
-      "submodules": false,
-      "revision": "03956489c6eb27aed3066c79b34a788c3ed27943",
-      "url": "https://github.com/boostvolt/claude-code-lsps/archive/03956489c6eb27aed3066c79b34a788c3ed27943.tar.gz",
-      "hash": "sha256-3D1w7YDS371+7NsokN1KOjpOsrWPKgd/0ZQ7HEfzD04="
-    },
     "claude-plugins-official": {
       "type": "Git",
       "repository": {
@@ -180,19 +167,6 @@
       "revision": "793d4fec275d02a114cb728f0fab6958169d58cc",
       "url": "https://github.com/dlrobson/plugin-marketplace/archive/793d4fec275d02a114cb728f0fab6958169d58cc.tar.gz",
       "hash": "sha256-2cS2L6ueMlRfzQ0N0AkzaUHgBRjyeKZ8BAXoV17B8VA="
-    },
-    "superpowers": {
-      "type": "Git",
-      "repository": {
-        "type": "GitHub",
-        "owner": "obra",
-        "repo": "superpowers"
-      },
-      "branch": "main",
-      "submodules": false,
-      "revision": "5bf4e78011075bcfc0dc295f0724994cd123ee71",
-      "url": "https://github.com/obra/superpowers/archive/5bf4e78011075bcfc0dc295f0724994cd123ee71.tar.gz",
-      "hash": "sha256-rgeJhjQyABYlhlyFRmgyhbZmmmIPPNkch4CXyTkGEyM="
     }
   },
   "version": 8

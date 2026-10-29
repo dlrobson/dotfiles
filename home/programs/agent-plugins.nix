@@ -43,29 +43,16 @@ in
       # set (exact string match, not a substring/pattern check) works.
       # https://github.com/anthropics/claude-code/issues/18329
       claude-plugins-official-mirror = sources.claude-plugins-official;
-      inherit (sources) claude-code-lsps;
       ast-grep-marketplace = sources.ast-grep-skill;
       dlrobson-plugins = pluginMarketplace;
       inherit (sources) engram;
-      # `claude-plugins-official` lists superpowers as a remote `url` source
-      # rather than vendoring it, so consuming it from there means Claude
-      # Code fetches the repo at runtime — and leaves nothing on disk to
-      # install skills from. Pinning it via npins instead keeps the fetch
-      # declarative.
-      # The repo is itself a marketplace (`.claude-plugin/marketplace.json`,
-      # name "superpowers-dev", plugin source "./"), hence the id below.
-      superpowers-dev = sources.superpowers;
     };
 
     enabled = [
       "claude-md-management@claude-plugins-official-mirror"
       "claude-code-setup@claude-plugins-official-mirror"
-      "superpowers@superpowers-dev"
       "plugin-dev@claude-plugins-official-mirror"
       "pr-review-toolkit@claude-plugins-official-mirror"
-      "rust-analyzer@claude-code-lsps"
-      "nixd@claude-code-lsps"
-      "vtsls@claude-code-lsps"
       "ast-grep@ast-grep-marketplace"
       "engram@engram"
     ]

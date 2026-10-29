@@ -69,15 +69,6 @@ in
             "WebFetch(domain:codeload.github.com)"
             "WebFetch(domain:raw.githubusercontent.com)"
             "WebSearch"
-            "Skill(superpowers:brainstorming)"
-            "Skill(superpowers:writing-plans)"
-            "Skill(superpowers:subagent-driven-development)"
-            "Skill(superpowers:systematic-debugging)"
-            "Skill(superpowers:test-driven-development)"
-            "Skill(superpowers:verification-before-completion)"
-            "Skill(superpowers:requesting-code-review)"
-            "Skill(superpowers:receiving-code-review)"
-            "Skill(superpowers:using-git-worktrees)"
             "Skill(code-review)"
             "Skill(simplify)"
             "Skill(verify)"
@@ -161,7 +152,7 @@ in
           Type = "oneshot";
           ExecStart = pkgs.writeShellScript "claude-window-trigger" ''
             export PATH="${config.unstablePkgs.claude-code}/bin:$PATH"
-            claude -p "hi" --output-format text --system-prompt "" --model claude-haiku-4-5-20251001
+            claude -p "hi" --output-format text --system-prompt "" --model claude-haiku-5-5
           '';
         };
       };
