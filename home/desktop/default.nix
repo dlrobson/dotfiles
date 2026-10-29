@@ -90,7 +90,7 @@ in
           "org/gnome/shell" = {
             disable-user-extensions = false;
             enabled-extensions = map (ext: ext.extensionUuid) gnomeExtensions;
-            disabed-extensions = [ ];
+            disabled-extensions = [ ];
           };
           "org/gnome/settings-daemon/plugins/media-keys" = {
             terminal = lib.hm.gvariant.mkArray lib.hm.gvariant.type.string [ ];

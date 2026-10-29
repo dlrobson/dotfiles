@@ -24,7 +24,7 @@ anything external, and derive values from it rather than repeating them.
 Read the value off the pin instead of duplicating it:
 
 ```nix
-sources = import ../../npins;
+sources = import ../../pins.nix;
 ...
 "npm:pi-web-access@${lib.removePrefix "v" sources.pi-web-access.version}"
 ```
