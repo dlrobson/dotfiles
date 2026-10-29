@@ -26,22 +26,6 @@
       "url": "https://github.com/anthropics/claude-plugins-official/archive/6bfd4e0c6d3da6050984fa5ed8281d915fa7ed69.tar.gz",
       "hash": "sha256-ovmwX4tfU3Xl7yJRwSs2H9obeN/Uh38j7by/RS1hiGs="
     },
-    "engram": {
-      "type": "GitRelease",
-      "repository": {
-        "type": "GitHub",
-        "owner": "nagisanzenin",
-        "repo": "engram"
-      },
-      "pre_releases": false,
-      "version_upper_bound": null,
-      "release_prefix": null,
-      "submodules": false,
-      "version": "v1.15.1",
-      "revision": "c130e46a63be9946a62fd69f577ee818821f17ae",
-      "url": "https://api.github.com/repos/nagisanzenin/engram/tarball/refs/tags/v1.15.1",
-      "hash": "sha256-Bt/w9Q6C1euF21CNRm7RrZMXhwM2d6CL2siTuQF7DvY="
-    },
     "home-manager": {
       "type": "Git",
       "repository": {

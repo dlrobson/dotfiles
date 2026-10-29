@@ -45,7 +45,6 @@ in
       claude-plugins-official-mirror = sources.claude-plugins-official;
       ast-grep-marketplace = sources.ast-grep-skill;
       dlrobson-plugins = pluginMarketplace;
-      inherit (sources) engram;
     };
 
     enabled = [
@@ -54,7 +53,6 @@ in
       "plugin-dev@claude-plugins-official-mirror"
       "pr-review-toolkit@claude-plugins-official-mirror"
       "ast-grep@ast-grep-marketplace"
-      "engram@engram"
     ]
     # Enable every plugin listed in the local marketplace's manifest
     # automatically, so new plugins added to that repo don't need listing here
