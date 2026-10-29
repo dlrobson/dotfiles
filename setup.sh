@@ -11,11 +11,27 @@ _command_exists() {
 }
 
 _npins_path() {
-    nix-instantiate --eval -E "(import $REPO_ROOT/npins).$1.outPath" | tr -d '"'
+    nix-instantiate --eval --raw -E "\"\${(import $REPO_ROOT/pins.nix).$1}\""
+}
+
+# Pins other than `nixpkgs` are fixed-output derivations (see `pins.nix`), which
+# evaluating a path does not build; realise one so a garbage-collected path is
+# substituted or re-fetched.
+_realise_pin() {
+    nix-build -E "(import $REPO_ROOT/pins.nix).$1" --no-out-link >/dev/null
+}
+
+# `coverage` is a test fixture, not a deployment target.
+_list_profiles() {
+    for f in "$REPO_ROOT/profiles/"*.nix; do
+        name="$(basename "$f" .nix)"
+        [ "$name" = coverage ] || echo "  $name"
+    done
 }
 
 _build_home_manager() {
     local hm_out
+    _realise_pin home-manager
     if ! hm_out=$(nix-build "$(_npins_path home-manager)" -A home-manager -I "nixpkgs=$(_npins_path nixpkgs)" --no-out-link); then
         echo "Error: Failed to build home-manager" >&2
         return 1
@@ -77,12 +93,10 @@ deploy() {
     local profile_file="$REPO_ROOT/profiles/${profile}.nix"
     local hm_bin
 
-    if [ ! -f "$profile_file" ]; then
+    if [ "$profile" = coverage ] || [ ! -f "$profile_file" ]; then
         echo "Error: unknown profile: $profile"
         echo "Available profiles:"
-        for f in "$REPO_ROOT/profiles/"*.nix; do
-            echo "  $(basename "$f" .nix)"
-        done
+        _list_profiles
         return 1
     fi
 
@@ -117,9 +131,7 @@ parse_arguments() {
                 echo "Usage: $0 <profile> [OPTIONS]"
                 echo
                 echo "Profiles:"
-                for f in "$REPO_ROOT/profiles/"*.nix; do
-                    echo "  $(basename "$f" .nix)"
-                done
+                _list_profiles
                 echo
                 echo "Options:"
                 echo "  --dry-run   Run in dry-run mode (no changes applied)"
