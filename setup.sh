@@ -11,7 +11,9 @@ _command_exists() {
 }
 
 _npins_path() {
-    nix-instantiate --eval --raw -E "\"\${(import $REPO_ROOT/pins.nix).$1}\""
+    # `--raw` is missing from older `nix-instantiate`s; a store path has no
+    # quote characters, so stripping the quotes `--eval` prints is safe.
+    nix-instantiate --eval -E "\"\${(import $REPO_ROOT/pins.nix).$1}\"" | tr -d '"'
 }
 
 # Pins other than `nixpkgs` are fixed-output derivations (see `pins.nix`), which
