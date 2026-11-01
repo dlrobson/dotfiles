@@ -28,6 +28,34 @@ let
   #    package-lock.json — so bumping the paseo pin in npins is the only manual
   #    step. Upstream's package.nix takes `buildNpmPackage` as an argument, so
   #    wrap it to swap the dependency source rather than patch the derivation.
+
+  # npm requires an override to carry the same spec as the direct dependency it
+  # overrides, and rejects the pair otherwise:
+  #
+  #   Override for react-dom@file:/nix/store/… conflicts with direct dependency
+  #
+  # importNpmLock rewrites every direct dependency in package.json to a `file:`
+  # store path, so a package.json that also overrides one of its own
+  # dependencies can never install. paseo 0.14.0 does exactly that
+  # (devDependencies.react-dom and overrides.react-dom). The override's job —
+  # one version across the workspace — is already done by package-lock.json,
+  # whose every entry importNpmLock pins to a store path, so dropping the
+  # colliding overrides leaves the resolved graph unchanged.
+  npmPackage =
+    src:
+    let
+      package = lib.importJSON (src + "/package.json");
+      direct = lib.attrNames (
+        (package.dependencies or { })
+        // (package.devDependencies or { })
+        // (package.optionalDependencies or { })
+      );
+    in
+    package
+    // lib.optionalAttrs (package ? overrides) {
+      overrides = builtins.removeAttrs package.overrides direct;
+    };
+
   paseo =
     (config.unstablePkgs.callPackage "${sources.paseo}/nix/package.nix" {
       buildNpmPackage =
@@ -35,7 +63,10 @@ let
         config.unstablePkgs.buildNpmPackage (
           args
           // {
-            npmDeps = config.unstablePkgs.importNpmLock { npmRoot = args.src; };
+            npmDeps = config.unstablePkgs.importNpmLock {
+              npmRoot = args.src;
+              package = npmPackage args.src;
+            };
             inherit (config.unstablePkgs.importNpmLock) npmConfigHook;
           }
         );
