@@ -102,10 +102,10 @@
       "version_upper_bound": null,
       "release_prefix": null,
       "submodules": false,
-      "version": "v0.12.0",
-      "revision": "d288bcfc840ffba71aa8565ee05184d9fce0a592",
-      "url": "https://api.github.com/repos/getpaseo/paseo/tarball/refs/tags/v0.12.0",
-      "hash": "sha256-vi1LplKz2f4bRQgJi5PFwJSih4WEv6Uh0CRfwi1oEuU="
+      "version": "v0.14.0",
+      "revision": "df9223b665cec4810cc800f2c0cff3a8570d5e4c",
+      "url": "https://api.github.com/repos/getpaseo/paseo/tarball/refs/tags/v0.14.0",
+      "hash": "sha256-gtmTf6gbCczT18jk4ZYrNhcW3b6it1yVCnvZqa6gOsA="
     },
     "pi-subagents": {
       "type": "GitRelease",
@@ -118,10 +118,10 @@
       "version_upper_bound": null,
       "release_prefix": null,
       "submodules": false,
-      "version": "v0.83.1",
-      "revision": "8cf42988422f21ede298579908d119a64fe47000",
-      "url": "https://api.github.com/repos/nicobailon/pi-subagents/tarball/refs/tags/v0.83.1",
-      "hash": "sha256-PaVfJu2+n7EBtwg3zPk1ImRJXjlm+dtMdJR+e0cJox0="
+      "version": "v0.84.0",
+      "revision": "d3395cff52cbe2d9b7d92871a2ac3a21d55ae272",
+      "url": "https://api.github.com/repos/nicobailon/pi-subagents/tarball/refs/tags/v0.84.0",
+      "hash": "sha256-yJHclk8TqJX0OGDteZYAbcW9qGDY9a8BSVy0kxcRpEU="
     },
     "pi-web-access": {
       "type": "GitRelease",
@@ -134,10 +134,10 @@
       "version_upper_bound": null,
       "release_prefix": null,
       "submodules": false,
-      "version": "v0.45.0",
-      "revision": "759b4fcb99663facbdde2babfba995c40fa99f2c",
-      "url": "https://api.github.com/repos/nicobailon/pi-web-access/tarball/refs/tags/v0.45.0",
-      "hash": "sha256-0ddDs0lkH1AuMWIBcoIu7QAv13ZU6SnymRyOeJgg6ao="
+      "version": "v0.46.0",
+      "revision": "2029cd7e7ab875dab0353ba15bafbbd5f1a1c425",
+      "url": "https://api.github.com/repos/nicobailon/pi-web-access/tarball/refs/tags/v0.46.0",
+      "hash": "sha256-i/C22ovZYwUu3a7gzBeFVaMqvhIB+N/Z63wOCPdhwLs="
     },
     "plugin-marketplace": {
       "type": "Git",
