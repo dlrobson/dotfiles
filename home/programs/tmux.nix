@@ -14,11 +14,11 @@
       set -g focus-events on
       set -g automatic-rename off
 
-      # Neovim's OSC52 clipboard provider wraps its sequence in a DCS
-      # passthrough envelope (see the clipboard block in neovim.nix) because
-      # tmux's own OSC52 relay drops it; without this, "+y does nothing under
-      # tmux. Also lets apps' terminal notifications and progress bars reach
-      # Ghostty instead of being swallowed.
+      # Programs inside tmux wrap escape sequences in a DCS passthrough
+      # envelope that tmux forwards verbatim to Ghostty, so OSC52 clipboard
+      # writes, terminal notifications and progress bars reach the outer
+      # terminal instead of being swallowed. Needed because tmux's own OSC52
+      # relay drops the raw sequence.
       set -g allow-passthrough on
       # Accept OSC 52 clipboard writes from apps inside tmux (Pi, Claude Code)
       # and relay them to the outer terminal. The default, `external`, only

@@ -32,7 +32,7 @@ chsh -s "$(command -v fish)"
 
 | Profile | Contents |
 |---|---|
-| `minimal` | CLI tools, shell, git, tmux, Neovim, agent CLIs |
+| `minimal` | CLI tools, shell, git, tmux, Vim, agent CLIs |
 | `desktop` | `minimal` plus GUI apps (Ghostty, Chromium, VS Code), GNOME settings, and KMonad on non-NixOS hosts |
 
 `setup.sh` is the only thing that switches the configuration — nothing applies changes

@@ -26,14 +26,6 @@ in
 
     settings = {
       core.editor = "vi";
-      # `git diff` uses difftastic (via programs.difftastic.git.enable above);
-      # `git difftool` uses Neovim's built-in diff mode instead.
-      diff.tool = "nvimdiff";
-      difftool.prompt = false;
-      # `git dv [ref]` opens all changed files in one Neovim session via
-      # diffview.nvim, instead of difftool's one-file-at-a-time flow - it
-      # needs the live repo/refs, so it can't run through difftool itself.
-      alias.dv = ''!f() { nvim -c "DiffviewOpen $*"; }; f'';
       fetch.prune = true;
       init.defaultBranch = "main";
       pull.rebase = true;
