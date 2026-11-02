@@ -1,0 +1,15 @@
+diff --git a/packages/app/src/components/ui/isolated-bottom-sheet-modal/host-scope.tsx b/packages/app/src/components/ui/isolated-bottom-sheet-modal/host-scope.tsx
+--- a/packages/app/src/components/ui/isolated-bottom-sheet-modal/host-scope.tsx
++++ b/packages/app/src/components/ui/isolated-bottom-sheet-modal/host-scope.tsx
+@@ -1,8 +1,6 @@
+-import {
+-  BottomSheetModalInternalProvider,
+-  INITIAL_CONTAINER_LAYOUT,
+-  useBottomSheetModalInternal,
+-} from "@gorhom/bottom-sheet";
++import { useBottomSheetModalInternal } from "@gorhom/bottom-sheet";
++import { INITIAL_CONTAINER_LAYOUT } from "@gorhom/bottom-sheet/src/constants";
++import { BottomSheetModalInternalProvider } from "@gorhom/bottom-sheet/src/contexts/modal/internal";
+ import { PortalHost } from "@gorhom/portal";
+ import { useCallback, useId, useMemo, useRef, type ReactNode } from "react";
+ import {

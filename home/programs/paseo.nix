@@ -101,6 +101,9 @@ let
         args
         // {
           npmConfigHook = config.unstablePkgs.importNpmLock.npmConfigHook;
+          # Gorhom's public entry point omits the internal provider and layout
+          # constant used by SheetHostScope; rendering the missing provider fails.
+          patches = (args.patches or [ ]) ++ [ ./patches/paseo-bottom-sheet-internal-imports.patch ];
         }
       );
   };
