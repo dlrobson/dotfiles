@@ -19,11 +19,23 @@ let
   # `<agent-dir>/skills/` below.
   authoredSkillsDir = ./pi/skills;
 
+  # nixpkgs deletes the workspace symlinks in the installed `node_modules`
+  # after copying back only the workspaces its `postInstall` names, so a
+  # workspace added upstream goes missing without a build failure. Pi 1.5.0's
+  # `pi-ai` imports `@earendil-works/pi-schema`, which is `packages/schema` in
+  # the source tree and is not on that list, so every subagent launch dies at
+  # `require` time with "Cannot find package".
+  piPackage = config.unstablePkgs.pi-coding-agent.overrideAttrs (old: {
+    postInstall = (old.postInstall or "") + ''
+      cp -r packages/schema "$out/lib/node_modules/pi-monorepo/node_modules/@earendil-works/pi-schema"
+    '';
+  });
+
   # The docs bundled with the exact Pi build this repo installs. Linking them
   # into a skill as `pi-docs/` keeps the guidance in step with the harness it
   # describes, rather than vendoring a copy that drifts on every pi update.
   # Named away from `references/` so an authored skill can still ship its own.
-  piDocs = "${config.unstablePkgs.pi-coding-agent}/lib/node_modules/pi-monorepo/docs";
+  piDocs = "${piPackage}/lib/node_modules/pi-monorepo/docs";
 
   # The reply-style rules are written to APPEND_SYSTEM.md and reused by the
   # `/plain` prompt template, so the two cannot drift. Both files are installed
@@ -286,7 +298,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ config.unstablePkgs.pi-coding-agent ];
+    home.packages = [ piPackage ];
 
     assertions = [
       {
