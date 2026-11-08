@@ -7,15 +7,15 @@ disable-model-invocation: true
 # Reviewing changes
 
 Up to four read-only passes over a change, run in parallel as subagents and
-merged into one report. Critical, Important and approach findings are then
-checked by an independent verifier that tries to refute each; Suggestions and
-Outside-the-diff items are reported unverified and labelled so. The change is
-the unit of review; the repository is the evidence.
+merged into one report. Critical and Important findings are then checked by an
+independent verifier that tries to refute each; Suggestions and Outside-the-diff
+items are reported unverified and labelled so. The change is the unit of review;
+the repository is the evidence.
 
-One of the passes does not look for defects at all. It asks whether this is the
-right solution — whether the repository already does this, whether the machinery
-is proportional, whether the change belongs here — because a review that only
-audits lines cannot see that the lines are the wrong lines.
+One of the passes does not look for defects at all. It returns a verdict on the
+approach — whether this is the right solution to the problem stated, compared
+against at least one alternative — and an argument for it, because a review that
+only audits lines cannot see that the lines are the wrong lines.
 
 ## Shared contract
 
@@ -81,7 +81,8 @@ you skipped and the rule that skipped them.
 
 Type design and simplification have no pass. Do not stretch another pass to
 cover them and do not invent an agent; list them under "Not covered" so the gap
-stays visible.
+stays visible. The approach verdict may judge a change heavier than the job
+needs — that is a verdict on the design, not a licence to list simplifications.
 
 ### 3. Dispatch
 
@@ -134,15 +135,20 @@ Merge the findings. Two passes describing one line are one finding; the higher
 severity wins. Tag each finding with the pass or passes that raised it, using the
 agent's name without `review-`, such as `[general, silent]`.
 
-An observation that arrives both as an approach finding and as a line-level
-finding is one finding, reported under `## Approach` and tagged with both passes.
-The approach version already names the lines, and repeating it further down
-buries the structural point among the nits.
+**Merge findings; do not rewrite them.** Each arrives in the contract's field
+shape, and that shape is the report's shape. Collapsing an entry into one
+sentence — "`path:line` — <issue>. <failure>. <fix>." — throws away the labels
+that make it scannable, and reverses work the pass already did. Move the fields,
+add the tags, drop `Severity:` when the section heading already says it.
+
+The approach pass returns no findings. Its verdict and argument go into the
+report as written, minus nothing: you check citations, not prose, and you do not
+promote a sentence of its argument into a finding of your own.
 
 ### 5. Verify
 
-A Critical, Important or approach finding nobody tried to refute is a finding
-nobody checked. Two stages, because most of the checking is lookup rather than
+A Critical or Important finding nobody tried to refute is a finding nobody
+checked. Two stages, because most of the checking is lookup rather than
 judgment.
 
 **Mechanically, yourself, before dispatching anything.** For each finding:
@@ -150,31 +156,34 @@ judgment.
 - Is it anchored to a changed line? If not, and it is real, move it under
   "Outside the diff". It is not counted and not verified.
 - Does the cited line exist? If not, the finding is refuted: this is not a close
-  call. A refuted Critical, Important or approach finding is counted and listed
-  under `## Refuted` with what you checked; a refuted Suggestion is dropped.
+  call. A refuted Critical or Important finding is counted and listed under
+  `## Refuted` with what you checked; a refuted Suggestion is dropped.
 - Does a quoted repository rule appear in `AGENTS.md` or `CLAUDE.md`? Search for
   the wording rather than trusting the paraphrase. If it is not there, strike the
   rule from the finding. If the defect stands without it, keep the finding at the
   band it earns without the rule; refute it only when nothing else supports it.
 
-Approach findings have neither a line nor a quoted rule to look up, so they pass
-straight through. What gets checked for them is the alternative or cost they
-cite.
+**The approach section gets the same existence check, and no verifier.** Every
+`path:line` in its verdict and argument must point at something real. Strike the
+sentence whose citation fails; if the verdict rested on it, replace the verdict
+with `cannot tell` and say which citation did not hold. The approach pass is a
+judgement, and a second read-only agent cannot settle a judgement — it can only
+agree or disagree, with no tie-break and no evidence you cannot read yourself.
+What it can catch, cheaply, is a claim built on a file that is not there.
 
-**Then hand what survives to `review-verify`** — Critical, Important and approach
-findings only; Suggestions get the mechanical check above and no verifier. Use
-one verifier per finding, each given the change and that finding alone, in a
-single `parallel` call like the one in step 3 (`async: false`, the same
-`model`). With more than eight findings, use one verifier per file, given that
-file's findings; each approach finding still gets its own verifier. Verifiers run at once, so the stage takes as long as the slowest
-one rather than the sum, and no verdict is coloured by the findings read before
-it.
+**Then hand what survives to `review-verify`** — Critical and Important findings
+only; Suggestions and the approach section get the mechanical check above and no
+verifier. Use one verifier per finding, each given the change and that finding
+alone, in a single `parallel` call like the one in step 3 (`async: false`, the
+same `model`). With more than eight findings, use one verifier per file, given
+that file's findings. Verifiers run at once, so the stage takes as long as the
+slowest one rather than the sum, and no verdict is coloured by the findings read
+before it.
 
-A verifier settles what lookup cannot: for a defect, whether the failure can
-occur at all given the callers, guards, and types that produce the inputs; for an
-approach finding, whether the alternative or cost it cites is real. Pass the
-findings as written, not the passes' reasoning — the report is what the reader
-sees, and a verifier handed the argument for a finding tends to agree with it.
+A verifier settles what lookup cannot: whether the failure can occur at all
+given the callers, guards, and types that produce the inputs. Pass the findings
+as written, not the passes' reasoning — the report is what the reader sees, and a
+verifier handed the argument for a finding tends to agree with it.
 
 Apply the verdicts: `confirmed` stands, `unrefuted` stands and is marked as not
 established, `corrected` replaces the finding, `refuted` is dropped. A finding
@@ -182,8 +191,9 @@ corrected down to a Suggestion moves under Suggestions, marked `(checked)`. Mark
 an `unrefuted` finding `(unrefuted: <what could not be established>)`. Do not
 promote anything a verifier mentions into a finding of your own.
 
-Skip this stage when there is no Critical, Important or approach finding to
-check, and write `Verification: none to check`.
+Skip this stage's verifier when there is no Critical or Important finding to
+check, and write `Verification: none to check`. The approach citations are still
+checked.
 
 ### 6. Report
 
@@ -192,28 +202,42 @@ check, and write `Verification: none to check`.
 
 Scope: <files and lines, and how the diff was produced>
 Intent: <what the change says it is for, and where that came from — or that nothing stated it>
-Passes: <ran> · skipped: <pass and the rule that skipped it>
-Verification: <n> checked (Critical, Important, approach), including those refuted mechanically — <c> confirmed, <u> unrefuted, <k> corrected, <r> refuted; Suggestions not verified
+Passes: <ran> · skipped: <pass and the rule that skipped it> · Verification: <n> checked (Critical, Important) — <c> confirmed, <u> unrefuted, <k> corrected, <r> refuted; approach citations checked, no verifier
 
 ## Approach
-Problem as understood: <stated, or inferred and marked so>
-Approach taken: <one line>
-Fit: <right fit | heavier than needed | something here already does this | wrong approach | cannot tell>
-- [approach] <observation> — <the existing alternative, or the checkable cost, cited>
-Open questions: <what only the author can answer>
+
+Problem: <as the pass wrote it>
+Approach: <as the pass wrote it>
+Alternative: <as the pass wrote it>
+Verdict: <as the pass wrote it>
+
+<the pass's argument, as prose>
+
+Open questions: <as the pass wrote it>
+Checked: <optional — what you established yourself, such as an open question you settled by evaluating something>
 
 ## Critical
-- [general, silent] `path:line` — <issue>. <failure>. <fix>. (unrefuted: <what could not be established>)
+
+### <title — the defect as a claim>
+Where: `path:line` · raised by: general, silent · checked: confirmed
+What's wrong: <the defect, one or two sentences>
+Failure: <the input, state, or sequence that makes it matter>
+Fix: <the smallest change that removes it>
 
 ## Important
 
 ## Suggestions (unverified unless marked checked)
 
+### <title — the defect as a claim>
+Where: `path:line` · raised by: tests · checked: unverified
+What's wrong: <the defect, one or two sentences>
+Fix: <the smallest change that removes it>
+
 ## Outside the diff (unverified)
-- `path:line` — <a problem the change did not cause, one line>.
+- `path:line` — <a problem the change did not cause, one line>
 
 ## Refuted
-- `path:line` — <the finding, one line>. <what refuted it>.
+- `path:line` — <the finding, one line>. Refuted by: <what refuted it>
 
 ## Not covered
 - <what no pass covers, such as type design and simplification>
@@ -222,20 +246,31 @@ Open questions: <what only the author can answer>
 - <what the passes examined and found nothing on>
 ```
 
-`## Approach` carries the pass's report as written, and appears only when that
-pass ran. When `Fit:` is `wrong approach`, say so above the detail sections:
-until that question is settled, fixing the findings below is wasted work. When it
-is `right fit`, the whole section is the single line `Fit: right fit`. If every
-`[approach]` finding was refuted, replace `Fit:` with `cannot tell` and say that
-the cited alternative or cost did not hold; if one was corrected, bring `Fit:`
-into line with it.
+`## Approach` carries the pass's report as written and appears only when that
+pass ran. Paste its five parts into the shape above as **plain markdown, never a
+fenced block**: the argument is prose meant to be read, and a fence turns it into
+fixed-width text that does not wrap. Change none of its words, and do not
+interleave your own notes into it — anything you established yourself, such as an
+existence-checked citation or an open question you settled by evaluating something,
+goes on the `Checked:` line. It sits first because the verdict decides how the
+rest is read: when it is `wrong approach`, say in the argument that the findings
+below are wasted work until that question is settled. `right fit` is not a
+one-line answer — the argument for it is the section, and a verdict with no
+argument is the thing this pass exists to prevent.
+
+The finding sections carry the passes' entries in the contract's field shape. Do
+not compress an entry into one sentence and do not drop `Failure:` above the
+Suggestions band. `checked:` is `confirmed`, `unrefuted`, `corrected`,
+`unverified`, or `unrefuted: <what could not be established>`. An empty section
+says `None.`
+
 
 `## Outside the diff` carries what the passes listed under that name, one line
 each, unverified, and appears only when there are any. They get the mechanical
 check that the cited line exists and no verifier.
 
-`## Refuted` carries refuted Critical, Important, and approach findings, one line
-each with the evidence, and appears only when there are any. A refuted Suggestion
+`## Refuted` carries refuted Critical and Important findings, one line each with
+the evidence, and appears only when there are any. A refuted Suggestion
 disappears — it was already the least likely to be read. Keeping the severe ones
 visible is what lets the reader audit the verifier: a stage that quietly drops
 findings is worse than one that never ran.
@@ -244,8 +279,8 @@ findings is worse than one that never ran.
 
 The verification counts must reconcile with what the report shows. Confirmed
 plus unrefuted plus corrected plus refuted is the number checked, and every
-refuted Critical, Important, or approach finding appears under `## Refuted`. A
-count that does not add up makes the audit line worthless.
+refuted Critical or Important finding appears under `## Refuted`. A count that
+does not add up makes the audit line worthless.
 
 Close with one sentence naming what the reader should do first. The report is
 the evidence; that sentence is the answer.

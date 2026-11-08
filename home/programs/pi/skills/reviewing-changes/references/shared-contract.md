@@ -26,11 +26,21 @@ what you report; it is not a reason to leave something out.
 **One entry per finding:**
 
 ```
-file:line — <severity>
+### <title — the defect, as a claim: "Restore invents salaries it never read">
+Where: `file:line`
+Severity: <Critical | Important | Suggestion>
 What's wrong: <the defect, one or two sentences>
 Failure: <the concrete input, state, or sequence that makes it matter>
 Fix: <the smallest change that removes the defect>
 ```
+
+A title that names a subject ("Restore logic", "Overlap handling") tells the
+reader nothing; the title carries the claim so a list of them can be scanned for
+the one you care about.
+
+`Failure:` is the field that separates a demonstrated bug from an opinion. It
+answers "so what": what does a person do, and what do they see. For a Suggestion
+it may be omitted when it would repeat `What's wrong:`.
 
 **Severity** — impact, not certainty:
 

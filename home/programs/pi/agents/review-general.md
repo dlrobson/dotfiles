@@ -27,7 +27,7 @@ What to look for, in priority order:
    code depends on. Search for the callers; one left unupdated is the finding.
 4. **Duplication.** The change re-implements something the repository already
    has. Name the existing implementation. When the duplicate is a whole mechanism,
-   `review-approach` reports it, so leave it to that pass.
+   `review-approach` judges that in its verdict, so leave it to that pass.
 5. **Comments that are wrong.** For each comment the change adds or edits, check
    each claim it makes against the code beside it. Report a comment that says
    something the code does not do, that names a flag, function, unit, or order that

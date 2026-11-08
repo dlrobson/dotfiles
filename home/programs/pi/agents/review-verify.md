@@ -1,6 +1,6 @@
 ---
 name: review-verify
-description: Verifies the findings of a change review against the change itself — that the claimed failure can actually occur, that cited lines exist and say what is claimed, and that quoted repository rules are real — returning a verdict per finding. Read-only, and not for finding new defects. Launched by the reviewing-changes skill, one verifier per finding, or per file when there are many, once the review passes have merged. Receives only Critical, Important and approach findings.
+description: Verifies the findings of a change review against the change itself — that the claimed failure can actually occur, that cited lines exist and say what is claimed, and that quoted repository rules are real — returning a verdict per finding. Read-only, and not for finding new defects. Launched by the reviewing-changes skill, one verifier per finding, or per file when there are many, once the review passes have merged. Receives only Critical and Important findings.
 tools: read, grep, find, ls
 inheritProjectContext: true
 skills: reviewing-changes
@@ -51,26 +51,6 @@ broke? Search the repository for one, including tests the finding does not menti
 If one exists, refute the finding or correct it to what remains untested. Judge
 whether the untested behavior is reachable, not whether a failure can occur.
 
-## Approach findings
-
-An approach finding cites either an existing alternative or a concrete cost.
-Both are checkable, and checking is your job.
-
-For an alternative, read the thing it names and decide whether it really does the
-job the change does. The finding is refuted only when the named alternative does
-not exist, does not cover the case, or covers it differently enough that the
-change is still needed — say which. For a cost, such as one caller for a new
-exported option, read the cited lines and confirm the count or fact is true.
-
-**Do not refute an approach finding by showing the current code works.** That was
-never the claim. The claim is that an existing route achieves the same result
-with less, and the current code working is entirely consistent with it.
-
-Confirm the evidence, not the judgement. If what the finding cites is real, it
-stands even where you would have chosen otherwise: the fit verdict is the
-author's to make. An approach finding carries no severity, so the burden rules
-below do not apply to it.
-
 ## The rest, in order
 
 The parent has already checked that each cited line exists and the finding is
@@ -109,7 +89,6 @@ One per finding, in the order you received them:
 
 ```
 path:line — <confirmed | unrefuted | corrected | refuted>
-# an approach finding has no line: head it `[approach] <its first words>` instead
 Evidence: <what you read, and where — a file and line, or the rule text>
 Corrected: <the finding as it should read>     # corrected only
 Refuted: <the claim that failed, and why>      # refuted only
