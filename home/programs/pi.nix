@@ -21,13 +21,17 @@ let
 
   # nixpkgs deletes the workspace symlinks in the installed `node_modules`
   # after copying back only the workspaces its `postInstall` names, so a
-  # workspace added upstream goes missing without a build failure. Pi 1.5.0's
-  # `pi-ai` imports `@earendil-works/pi-schema`, which is `packages/schema` in
-  # the source tree and is not on that list, so every subagent launch dies at
-  # `require` time with "Cannot find package".
+  # workspace it does not name is gone at runtime. Pi 1.5.0's `pi-ai` imports
+  # `@earendil-works/pi-schema`, which is `packages/schema` in the source tree
+  # and absent from that list, so every subagent launch dies at `require` time.
+  # Only what the build left out is added, so a nixpkgs or Pi update that
+  # supplies the workspace, or drops it, leaves this a no-op.
   piPackage = config.unstablePkgs.pi-coding-agent.overrideAttrs (old: {
     postInstall = (old.postInstall or "") + ''
-      cp -r packages/schema "$out/lib/node_modules/pi-monorepo/node_modules/@earendil-works/pi-schema"
+      nm="$out/lib/node_modules/pi-monorepo/node_modules/@earendil-works"
+      if [ -d packages/schema ] && [ ! -e "$nm/pi-schema" ]; then
+        cp -r packages/schema "$nm/pi-schema"
+      fi
     '';
   });
 
