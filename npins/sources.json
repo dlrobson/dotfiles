@@ -1,18 +1,5 @@
 {
   "pins": {
-    "ast-grep-skill": {
-      "type": "Git",
-      "repository": {
-        "type": "GitHub",
-        "owner": "ast-grep",
-        "repo": "agent-skill"
-      },
-      "branch": "main",
-      "submodules": false,
-      "revision": "f2175aff21f20cfb8e2db30c28febeb3a2d42b61",
-      "url": "https://github.com/ast-grep/agent-skill/archive/f2175aff21f20cfb8e2db30c28febeb3a2d42b61.tar.gz",
-      "hash": "sha256-dORqiMdFOUQVEF6wn1IZiTIcslzO+441A0GZP4KNcOQ="
-    },
     "claude-plugins-official": {
       "type": "Git",
       "repository": {

@@ -134,9 +134,6 @@ in
       packages = [
         pkgs.uv
         pkgs.python3
-        # Binary for the ast-grep-skill plugin (pinned above). Unstable to
-        # stay aligned with the skill, which tracks the upstream repo's main.
-        config.unstablePkgs.ast-grep
       ];
 
       sessionPath = [

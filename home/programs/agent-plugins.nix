@@ -43,7 +43,6 @@ in
       # set (exact string match, not a substring/pattern check) works.
       # https://github.com/anthropics/claude-code/issues/18329
       claude-plugins-official-mirror = sources.claude-plugins-official;
-      ast-grep-marketplace = sources.ast-grep-skill;
       dlrobson-plugins = pluginMarketplace;
     };
 
@@ -52,7 +51,6 @@ in
       "claude-code-setup@claude-plugins-official-mirror"
       "plugin-dev@claude-plugins-official-mirror"
       "pr-review-toolkit@claude-plugins-official-mirror"
-      "ast-grep@ast-grep-marketplace"
     ]
     # Enable every plugin listed in the local marketplace's manifest
     # automatically, so new plugins added to that repo don't need listing here
