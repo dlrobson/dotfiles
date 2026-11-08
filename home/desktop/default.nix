@@ -33,8 +33,9 @@ in
       programs = {
         chromium = {
           enable = true;
-          package =
-            if isNixOS then config.unstablePkgs.brave else config.lib.nixGL.wrap config.unstablePkgs.brave;
+          # nixpkgs-unstable no longer carries brave: no maintainers remained
+          # to unblock its security issues. The 26.05 release branch still has it.
+          package = if isNixOS then pkgs.brave else config.lib.nixGL.wrap pkgs.brave;
           extensions = [
             { id = "nngceckbapebfimnlniiiahkandclblb"; } # Bitwarden
             { id = "neebplgakaahbhdphmkckjjcegoiijjo"; } # Keepa
