@@ -41,6 +41,8 @@ let
   # Named away from `references/` so an authored skill can still ship its own.
   piDocs = "${piPackage}/lib/node_modules/pi-monorepo/docs";
 
+  piVersion = config.unstablePkgs.pi-coding-agent.version;
+
   # The reply-style rules are written to APPEND_SYSTEM.md and reused by the
   # `/plain` prompt template, so the two cannot drift. Both files are installed
   # whenever Pi is enabled.
@@ -305,6 +307,20 @@ in
     home.packages = [ piPackage ];
 
     assertions = [
+      {
+        # The `piPackage` override fills in a workspace that the pi 1.5.0 build
+        # leaves out. On another version it has to be checked again rather than
+        # carried forward, so this fails the build until someone looks.
+        assertion = piVersion == "1.5.0";
+        message = ''
+          The `piPackage` override in home/programs/pi.nix exists for pi 1.5.0,
+          whose build leaves the `@earendil-works/pi-schema` workspace out of
+          node_modules, which breaks every subagent launch. Pi is now
+          ${piVersion}. Check whether subagents launch without the override
+          (`pi -p "use the subagent tool to run review-general with the task:
+          reply OK"`), then delete `piPackage` and this assertion.
+        '';
+      }
       {
         assertion = cfg.auth == null || cfg.provider != null;
         message = ''
