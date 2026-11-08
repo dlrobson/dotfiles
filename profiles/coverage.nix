@@ -26,8 +26,9 @@ in
 
   # Exercises pi.nix: the package, all three JSON files, the shipped skill built by
   # `authoredSkills`, the shipped agents built by `authoredAgents`,
-  # consumer-supplied `agents`, `skills` and `context` entries, and the
-  # `auth requires provider` assertion's passing branch.
+  # consumer-supplied `agents`, `skills` and `context` entries, the always-on
+  # reply prompt wiring, and the `auth requires provider` assertion's passing
+  # branch.
   pi = {
     enable = true;
     provider = "opencode-go";

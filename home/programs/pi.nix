@@ -25,6 +25,11 @@ let
   # Named away from `references/` so an authored skill can still ship its own.
   piDocs = "${config.unstablePkgs.pi-coding-agent}/lib/node_modules/pi-monorepo/docs";
 
+  # The reply-style rules are written to APPEND_SYSTEM.md and reused by the
+  # `/plain` prompt template, so the two cannot drift. Both files are installed
+  # whenever Pi is enabled.
+  plainRules = builtins.readFile ./pi/plain/rules.md;
+
   mkSkill =
     name:
     pkgs.runCommand "pi-skill-${name}" { } ''
@@ -352,6 +357,13 @@ in
     // lib.mapAttrs' (
       name: agent: lib.nameValuePair "${configDir}/agents/${name}.md" { source = agent; }
     ) allAgents
+    // {
+      # The reply-style prompt is always installed. `APPEND_SYSTEM.md` adds it to
+      # every request, and `/plain` runs the same rules on demand against the
+      # previous reply.
+      "${configDir}/APPEND_SYSTEM.md".text = plainRules;
+      "${configDir}/prompts/plain.md".text = builtins.readFile ./pi/plain/plain.md + plainRules;
+    }
     // {
       # Always written when Pi is enabled: `tuiMode` and `hideThinkingBlock`
       # are preferences that apply whether or not a provider or model is
