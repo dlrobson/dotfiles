@@ -27,12 +27,22 @@ what you report; it is not a reason to leave something out.
 
 ```
 ### <title — the defect, as a claim: "Restore invents salaries it never read">
+
 Where: `file:line`
+
 Severity: <Critical | Important | Suggestion>
+
 What's wrong: <the defect, one or two sentences>
+
 Failure: <the concrete input, state, or sequence that makes it matter>
+
 Fix: <the smallest change that removes the defect>
 ```
+
+One blank line between fields and none between a heading and its first field:
+without them a markdown renderer joins the whole entry into one paragraph, and
+the labels stop doing their job. The parent reproduces this spacing, so the
+report renders the way you wrote it.
 
 A title that names a subject ("Restore logic", "Overlap handling") tells the
 reader nothing; the title carries the claim so a list of them can be scanned for

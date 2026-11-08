@@ -96,8 +96,11 @@ the verdict, as the cost of the design, not beside it as a separate defect.
 
 ```
 Problem: <one or two sentences, and whether it was stated or inferred>
+
 Approach: <one line — what this change does about that problem>
+
 Alternative: <the other way, and one sentence on which is better>
+
 Verdict: <right fit | heavier than needed | wrong approach | cannot tell>
 
 <two to four sentences: the strongest case against the approach taken, and what
@@ -108,6 +111,9 @@ it.>
 
 Open questions: <what only the author can settle; omit the line if none>
 ```
+
+One blank line between each part, so each renders as its own paragraph rather
+than one joined block.
 
 `right fit` and `cannot tell` are complete answers, but neither is one line: the
 argument is what the reader needs, and a verdict with no argument is the failure

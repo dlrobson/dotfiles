@@ -207,21 +207,29 @@ Passes: <ran> · skipped: <pass and the rule that skipped it> · Verification: <
 ## Approach
 
 Problem: <as the pass wrote it>
+
 Approach: <as the pass wrote it>
+
 Alternative: <as the pass wrote it>
+
 Verdict: <as the pass wrote it>
 
 <the pass's argument, as prose>
 
 Open questions: <as the pass wrote it>
+
 Checked: <optional — what you established yourself, such as an open question you settled by evaluating something>
 
 ## Critical
 
 ### <title — the defect as a claim>
+
 Where: `path:line` · raised by: general, silent · checked: confirmed
+
 What's wrong: <the defect, one or two sentences>
+
 Failure: <the input, state, or sequence that makes it matter>
+
 Fix: <the smallest change that removes it>
 
 ## Important
@@ -229,8 +237,11 @@ Fix: <the smallest change that removes it>
 ## Suggestions (unverified unless marked checked)
 
 ### <title — the defect as a claim>
+
 Where: `path:line` · raised by: tests · checked: unverified
+
 What's wrong: <the defect, one or two sentences>
+
 Fix: <the smallest change that removes it>
 
 ## Outside the diff (unverified)
@@ -258,11 +269,13 @@ below are wasted work until that question is settled. `right fit` is not a
 one-line answer — the argument for it is the section, and a verdict with no
 argument is the thing this pass exists to prevent.
 
-The finding sections carry the passes' entries in the contract's field shape. Do
-not compress an entry into one sentence and do not drop `Failure:` above the
-Suggestions band. `checked:` is `confirmed`, `unrefuted`, `corrected`,
-`unverified`, or `unrefuted: <what could not be established>`. An empty section
-says `None.`
+The finding sections carry the passes' entries in the contract's field shape,
+keeping the blank line between fields: markdown joins consecutive lines into one
+paragraph, so an entry written without them renders as a single block and the
+labels do nothing. Do not compress an entry into one sentence and do not drop
+`Failure:` above the Suggestions band. `checked:` is `confirmed`, `unrefuted`,
+`corrected`, `unverified`, or `unrefuted: <what could not be established>`. An
+empty section says `None.`
 
 
 `## Outside the diff` carries what the passes listed under that name, one line
