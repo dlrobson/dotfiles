@@ -19,29 +19,13 @@ let
   # `<agent-dir>/skills/` below.
   authoredSkillsDir = ./pi/skills;
 
-  # nixpkgs deletes the workspace symlinks in the installed `node_modules`
-  # after copying back only the workspaces its `postInstall` names, so a
-  # workspace it does not name is gone at runtime. Pi 1.5.0's `pi-ai` imports
-  # `@earendil-works/pi-schema`, which is `packages/schema` in the source tree
-  # and absent from that list, so every subagent launch dies at `require` time.
-  # Only what the build left out is added, so a nixpkgs or Pi update that
-  # supplies the workspace, or drops it, leaves this a no-op.
-  piPackage = config.unstablePkgs.pi-coding-agent.overrideAttrs (old: {
-    postInstall = (old.postInstall or "") + ''
-      nm="$out/lib/node_modules/pi-monorepo/node_modules/@earendil-works"
-      if [ -d packages/schema ] && [ ! -e "$nm/pi-schema" ]; then
-        cp -r packages/schema "$nm/pi-schema"
-      fi
-    '';
-  });
+  piPackage = config.unstablePkgs.pi-coding-agent;
 
   # The docs bundled with the exact Pi build this repo installs. Linking them
   # into a skill as `pi-docs/` keeps the guidance in step with the harness it
   # describes, rather than vendoring a copy that drifts on every pi update.
   # Named away from `references/` so an authored skill can still ship its own.
   piDocs = "${piPackage}/lib/node_modules/pi-monorepo/docs";
-
-  piVersion = config.unstablePkgs.pi-coding-agent.version;
 
   # The reply-style rules are written to APPEND_SYSTEM.md and reused by the
   # `/plain` prompt template, so the two cannot drift. Both files are installed
@@ -307,20 +291,6 @@ in
     home.packages = [ piPackage ];
 
     assertions = [
-      {
-        # The `piPackage` override fills in a workspace that the pi 1.5.0 build
-        # leaves out. On another version it has to be checked again rather than
-        # carried forward, so this fails the build until someone looks.
-        assertion = piVersion == "1.5.0";
-        message = ''
-          The `piPackage` override in home/programs/pi.nix exists for pi 1.5.0,
-          whose build leaves the `@earendil-works/pi-schema` workspace out of
-          node_modules, which breaks every subagent launch. Pi is now
-          ${piVersion}. Check whether subagents launch without the override
-          (`pi -p "use the subagent tool to run review-general with the task:
-          reply OK"`), then delete `piPackage` and this assertion.
-        '';
-      }
       {
         assertion = cfg.auth == null || cfg.provider != null;
         message = ''
