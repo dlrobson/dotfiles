@@ -56,6 +56,13 @@ let
       overrides = builtins.removeAttrs package.overrides direct;
     };
 
+  # Gorhom's public entry point omits the internal provider and layout constant
+  # used by SheetHostScope, so the app renders an undefined component and fails
+  # with React error #130. Both the daemon's bundled web UI and the desktop app
+  # are built from packages/app, and each derivation has its own `src`, so
+  # each takes the patch.
+  appPatches = [ ./patches/paseo-bottom-sheet-internal-imports.patch ];
+
   paseo =
     (config.unstablePkgs.callPackage "${sources.paseo}/nix/package.nix" {
       buildNpmPackage =
@@ -63,6 +70,7 @@ let
         config.unstablePkgs.buildNpmPackage (
           args
           // {
+            patches = (args.patches or [ ]) ++ appPatches;
             npmDeps = config.unstablePkgs.importNpmLock {
               npmRoot = args.src;
               package = npmPackage args.src;
@@ -101,9 +109,7 @@ let
         args
         // {
           npmConfigHook = config.unstablePkgs.importNpmLock.npmConfigHook;
-          # Gorhom's public entry point omits the internal provider and layout
-          # constant used by SheetHostScope; rendering the missing provider fails.
-          patches = (args.patches or [ ]) ++ [ ./patches/paseo-bottom-sheet-internal-imports.patch ];
+          patches = (args.patches or [ ]) ++ appPatches;
         }
       );
   };
