@@ -1,0 +1,15 @@
+diff --git a/packages/server/src/server/daemon-worker.ts b/packages/server/src/server/daemon-worker.ts
+--- a/packages/server/src/server/daemon-worker.ts
++++ b/packages/server/src/server/daemon-worker.ts
+@@ -114,6 +114,11 @@
+     cli.mcpEnabled = false;
+     override("daemon.mcp.enabled");
+   }
++  if (process.argv.includes("--inject-mcp")) {
++    config.mcpInjectIntoAgents = true;
++    cli.mcpInjectIntoAgents = true;
++    override("daemon.mcp.injectIntoAgents");
++  }
+   if (process.argv.includes("--no-inject-mcp")) {
+     config.mcpInjectIntoAgents = false;
+     cli.mcpInjectIntoAgents = false;

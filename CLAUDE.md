@@ -15,6 +15,8 @@ configs. Because of that:
 - Options meant to vary per deployment (e.g. `pi.enable`,
   `claude-window-trigger.schedule`) default to off/empty here — the consuming
   repo sets real values, not this one.
+- The exception is behaviour every deployment must get, which is fixed here with no
+  option, e.g. the Paseo daemon's `--inject-mcp` in `home/programs/paseo.nix`.
 - `profiles/coverage.nix` exists so these paths are still built: it turns every
   per-deployment option on with fake values and is part of `run-tests`. It is a
   test fixture, not a deployment target — **add new per-deployment options to it

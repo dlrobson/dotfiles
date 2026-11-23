@@ -63,6 +63,14 @@ let
   # each takes the patch.
   appPatches = [ ./patches/paseo-bottom-sheet-internal-imports.patch ];
 
+  # Upstream can force Paseo tool injection off at launch (`--no-inject-mcp`)
+  # but not on: `daemon.mcp.injectIntoAgents` is otherwise a config.json
+  # setting that defaults to false and that the app can toggle at runtime. The
+  # patch adds the matching `--inject-mcp`. A launch flag marks the setting as
+  # override-controlled, so the daemon rejects runtime changes to it. Only the
+  # daemon reads it, so the desktop derivation does not take this patch.
+  daemonPatches = [ ./patches/paseo-inject-mcp-flag.patch ];
+
   paseo =
     (config.unstablePkgs.callPackage "${sources.paseo}/nix/package.nix" {
       buildNpmPackage =
@@ -70,7 +78,7 @@ let
         config.unstablePkgs.buildNpmPackage (
           args
           // {
-            patches = (args.patches or [ ]) ++ appPatches;
+            patches = (args.patches or [ ]) ++ appPatches ++ daemonPatches;
             npmDeps = config.unstablePkgs.importNpmLock {
               npmRoot = args.src;
               package = npmPackage args.src;
@@ -383,8 +391,14 @@ in
 
         Service = {
           Type = "simple";
+          # `--inject-mcp` is unconditional, with no option to turn it off:
+          # every deployment of these dotfiles gives the agents Paseo launches
+          # its orchestration tools (create agents and workspaces, schedules,
+          # terminals), and the app cannot switch them off at runtime. This
+          # needs the patched build; see `daemonPatches`.
           ExecStart =
-            "${cfg.package}/bin/paseo-server" + lib.optionalString (!cfg.relay.enable) " --no-relay";
+            "${cfg.package}/bin/paseo-server --inject-mcp"
+            + lib.optionalString (!cfg.relay.enable) " --no-relay";
           Environment = lib.mapAttrsToList (k: v: "${k}=${v}") environment;
           EnvironmentFile = lib.optional (cfg.environmentFile != null) cfg.environmentFile;
 
