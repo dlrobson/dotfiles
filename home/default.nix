@@ -59,6 +59,5 @@ in
     # `minimal` account. See `claude.nix` for what `claude.enable` gates — the
     # package, settings and fish abbreviations are all behind it.
     claude.enable = mkDefault (cfg.profile == "desktop");
-    claude-window-trigger.enable = mkDefault (cfg.profile == "desktop");
   };
 }

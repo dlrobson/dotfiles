@@ -6,22 +6,12 @@
 }:
 let
   cfg = config.claude;
-  windowTriggerCfg = config.claude-window-trigger;
 in
 {
   options = {
     claude = {
       # Off by default so a consuming deployment opts in, matching `pi.enable`.
       enable = lib.mkEnableOption "Claude Code";
-    };
-
-    claude-window-trigger = {
-      enable = lib.mkEnableOption "Claude Code usage window triggers";
-      schedule = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [ ];
-        description = "OnCalendar entries for the window trigger timer.";
-      };
     };
   };
 
@@ -140,28 +130,6 @@ in
         "${config.home.homeDirectory}/.npm-global/bin"
         "${config.home.homeDirectory}/.local/bin"
       ];
-    };
-
-    systemd.user = {
-      services.claude-window-trigger = lib.mkIf windowTriggerCfg.enable {
-        Unit.Description = "Trigger Claude Code usage window";
-        Service = {
-          Type = "oneshot";
-          ExecStart = pkgs.writeShellScript "claude-window-trigger" ''
-            export PATH="${config.unstablePkgs.claude-code}/bin:$PATH"
-            claude -p "hi" --output-format text --system-prompt "" --model claude-haiku-5-5
-          '';
-        };
-      };
-
-      timers.claude-window-trigger = lib.mkIf windowTriggerCfg.enable {
-        Unit.Description = "Claude Code usage window trigger timer";
-        Timer = {
-          OnCalendar = windowTriggerCfg.schedule;
-          Persistent = true;
-        };
-        Install.WantedBy = [ "timers.target" ];
-      };
     };
   };
 }

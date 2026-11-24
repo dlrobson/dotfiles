@@ -285,12 +285,45 @@ in
         what is declared here. Change servers through this option.
       '';
     };
+
+    # A provider's usage window starts at the first request after the last
+    # one expired. A one-word prompt on a schedule opens it before work begins.
+    windowTrigger = {
+      enable = lib.mkEnableOption "scheduled one-word Pi prompts that open a provider's usage window";
+
+      schedule = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        example = [ "*-*-* 06:00:00 America/New_York" ];
+        description = "`OnCalendar` entries for the window trigger timer.";
+      };
+
+      # No default, like `pi.provider`: which subscription has a window to
+      # open is a per-deployment choice.
+      model = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "anthropic/claude-haiku-5-5";
+        description = ''
+          Model the trigger prompts, as `provider/id`, passed to `pi --model`.
+          Use the cheapest model on the provider whose window should open.
+        '';
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
     home.packages = [ piPackage ];
 
     assertions = [
+      {
+        assertion = !cfg.windowTrigger.enable || cfg.windowTrigger.model != null;
+        message = ''
+          pi.windowTrigger is enabled but pi.windowTrigger.model is null, so
+          the trigger has no model to prompt. Set it, e.g.
+          `pi.windowTrigger.model = "anthropic/claude-haiku-5-5";`.
+        '';
+      }
       {
         assertion = cfg.auth == null || cfg.provider != null;
         message = ''
@@ -400,6 +433,34 @@ in
         // lib.optionalAttrs (cfg.provider != null) { defaultProvider = cfg.provider; }
         // lib.optionalAttrs (cfg.model != null) { defaultModel = cfg.model; }
       );
+    };
+
+    systemd.user = lib.mkIf cfg.windowTrigger.enable {
+      services.pi-window-trigger = {
+        Unit.Description = "Open a provider usage window with a Pi prompt";
+        Service = {
+          Type = "oneshot";
+          # Extensions stay loaded because a provider package in `pi.packages`
+          # can decide how the request is authenticated and billed. Everything
+          # else that would add tokens or startup work is off.
+          ExecStart = pkgs.writeShellScript "pi-window-trigger" ''
+            exec ${piPackage}/bin/pi --print \
+              --model ${lib.escapeShellArg cfg.windowTrigger.model} \
+              --system-prompt "" --thinking off --no-session --no-tools \
+              --no-mcp --no-skills --no-context-files --no-prompt-templates --no-themes \
+              hi
+          '';
+        };
+      };
+
+      timers.pi-window-trigger = {
+        Unit.Description = "Pi usage window trigger timer";
+        Timer = {
+          OnCalendar = cfg.windowTrigger.schedule;
+          Persistent = true;
+        };
+        Install.WantedBy = [ "timers.target" ];
+      };
     };
   };
 }

@@ -27,13 +27,19 @@ in
   # Exercises pi.nix: the package, all three JSON files, the shipped skill built by
   # `authoredSkills`, the shipped agents built by `authoredAgents`,
   # consumer-supplied `agents`, `skills` and `context` entries, the always-on
-  # reply prompt wiring, and the `auth requires provider` assertion's passing
-  # branch.
+  # reply prompt wiring, the window trigger service and timer, and the passing
+  # branches of the `auth requires provider` and `trigger requires model`
+  # assertions.
   pi = {
     enable = true;
     provider = "opencode-go";
     model = "deepseek-v4.1-flash";
     auth = "!cat /run/agenix/opencode-go";
+    windowTrigger = {
+      enable = true;
+      schedule = [ "*-*-* 06:00:00" ];
+      model = "opencode-go/deepseek-v4.1-flash";
+    };
     context = ''
       # Coverage fixture
       Overrides the Claude Code default.
@@ -80,10 +86,6 @@ in
     settings.daemon.mcp.enabled = true;
     desktop.enable = true;
   };
-
-  # `desktop` already enables the trigger, but leaves the schedule empty, so
-  # the timer builds with no OnCalendar entry.
-  claude-window-trigger.schedule = [ "*-*-* 06:00:00" ];
 
   # Exercises the conditional `includes` block in git.nix. `private.nix` sets
   # these as plain definitions rather than `mkDefault`, so overriding them takes

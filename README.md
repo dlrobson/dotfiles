@@ -6,7 +6,7 @@ It is used two ways:
 
 - **As a library.** Other repos pin it with [npins](https://github.com/nix-community/npins)
   and import `${sources.dotfiles}/home` into their own Home Manager users. Options that
-  vary per deployment (`pi.enable`, `paseo.enable`, `claude-window-trigger.schedule`, …)
+  vary per deployment (`pi.enable`, `paseo.enable`, `pi.windowTrigger.schedule`, …)
   default to off/empty here, and the consuming repo sets real values.
 - **Standalone.** `./setup.sh <profile>` deploys a profile directly. This is how the
   Ubuntu machine is configured.
