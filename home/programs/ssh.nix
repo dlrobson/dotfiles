@@ -1,4 +1,4 @@
-_:
+{ config, pkgs, ... }:
 
 {
   # This is the OpenSSH agent: the right one for shells, and the only kind an
@@ -26,6 +26,11 @@ _:
   services.ssh-agent = {
     enable = true;
   };
+
+  # ssh-agent refuses to bind over an existing path, and an agent that dies
+  # uncleanly leaves its socket behind.
+  systemd.user.services.ssh-agent.Service.ExecStartPre =
+    "-${pkgs.coreutils}/bin/rm -f %t/${config.services.ssh-agent.socket}";
 
   programs.ssh = {
     enable = true;
