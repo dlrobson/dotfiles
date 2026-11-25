@@ -109,6 +109,155 @@ let
   badMcpNames = lib.filter (name: builtins.match "[A-Za-z0-9_-]+" name == null) (
     lib.attrNames allMcpServers
   );
+
+  # A disabled job leaves no unit behind, so a deployment can declare a job
+  # once and turn it off per host.
+  enabledJobs = lib.filterAttrs (_: job: job.enable) cfg.jobs;
+
+  # Job names become systemd unit names (`pi-job-<name>`), so keep them to the
+  # characters a unit name cannot misread.
+  badJobNames = lib.filter (name: builtins.match "[A-Za-z0-9_-]+" name == null) (
+    lib.attrNames cfg.jobs
+  );
+
+  modellessJobs = lib.attrNames (lib.filterAttrs (_: job: job.model == null) enabledJobs);
+
+  # Shared by every scheduled run: one-shot, no session written to disk, and
+  # none of the resources that only matter interactively. Tools, MCP, skills
+  # and context files are per job.
+  jobArgs =
+    job:
+    [
+      "--print"
+      "--no-session"
+      "--thinking"
+      job.thinking
+    ]
+    ++ (
+      if job.tools == [ ] then
+        [ "--no-tools" ]
+      else
+        [
+          "--tools"
+          (lib.concatStringsSep "," job.tools)
+        ]
+    )
+    ++ lib.optionals (!job.mcp) [ "--no-mcp" ]
+    ++ lib.optionals (!job.skills) [ "--no-skills" ]
+    ++ lib.optionals (!job.contextFiles) [ "--no-context-files" ]
+    ++ [
+      "--no-prompt-templates"
+      "--no-themes"
+    ]
+    ++ lib.optionals (job.model != null) [
+      "--model"
+      job.model
+    ]
+    ++ job.extraArgs;
+
+  # A job's answer is its stdout. `output` files it through a temporary file,
+  # so a failed run leaves the previous answer rather than half of a new one.
+  mkJobScript =
+    name: job:
+    let
+      prompt =
+        if lib.isPath job.prompt then
+          # Read at build time, not run time: a source path from the consuming
+          # repo is not in the store, so a unit that pointed at it would break
+          # as soon as that checkout moved or disappeared.
+          lib.escapeShellArg (builtins.readFile job.prompt)
+        else
+          lib.escapeShellArg job.prompt;
+      redirect = lib.optionalString (job.output != null) " > \"$tmp\"";
+    in
+    pkgs.writeShellScript "pi-job-${name}" ''
+      set -eu
+      ${lib.optionalString (job.output != null) ''
+        answer=${lib.escapeShellArg job.output}
+        mkdir -p "$(dirname "$answer")"
+        tmp="$answer.tmp.$$"
+        trap 'rm -f "$tmp"' EXIT
+      ''}
+      ${piPackage}/bin/pi ${lib.escapeShellArgs (jobArgs job)} -- ${prompt}${redirect}
+      ${lib.optionalString (job.output != null) ''mv -f "$tmp" "$answer"''}
+    '';
+
+  # A way in when the installed Pi will not start. What usually breaks is a file
+  # this module generates or a package it installs, and repairing that can need
+  # a working Pi. This runs the same harness from a throwaway agent directory and
+  # a fresh evaluation of nixpkgs-unstable, so none of the generated files, the
+  # installed extensions or the npm packages into `<agent-dir>/npm` are read.
+  #
+  # `auth.json` is the one file copied across: a provider that needs a credential
+  # is not what the fallback is for. `--no-auth` leaves it out as well.
+  fallback = pkgs.writeShellApplication {
+    name = "pi-fallback";
+    runtimeInputs = [ pkgs.coreutils ];
+    text = ''
+      auth=1
+      while [[ $# -gt 0 ]]; do
+        case $1 in
+          --no-auth)
+            auth=0
+            shift
+            ;;
+          --)
+            shift
+            break
+            ;;
+          -h | --help)
+            cat <<'USAGE'
+      pi-fallback: run Pi from a freshly fetched nixpkgs with an empty agent directory.
+
+      Nothing this module generates is read: settings.json, mcp.json, AGENTS.md,
+      skills, prompts, themes, and the npm packages and extensions installed into
+      the directory. auth.json is copied so a provider that is already configured
+      keeps working. The directory is throwaway and deleted on exit, so no
+      session, extension install or fresh login outlives the run.
+
+      Usage: pi-fallback [--no-auth] [pi arguments...]
+
+        --no-auth   Start with no credentials, to log in afresh. Useful when the
+                    credential itself is what is failing.
+
+      Needs network access (nixpkgs-unstable is fetched) and nix-shell on PATH.
+      USAGE
+            exit 0
+            ;;
+          *) break ;;
+        esac
+      done
+
+      if ! command -v nix-shell >/dev/null; then
+        echo "pi-fallback: nix-shell is not on PATH" >&2
+        exit 1
+      fi
+
+      dir=$(mktemp -d)
+      trap 'rm -rf "$dir"' EXIT
+
+      # `PI_CODING_AGENT_DIR` wins when set, so a consumer that moved the agent
+      # directory still gets its credentials copied.
+      source_dir=''${PI_CODING_AGENT_DIR:-${configDir}}
+      if [[ $auth -eq 1 && -f $source_dir/auth.json ]]; then
+        cp "$source_dir/auth.json" "$dir/auth.json"
+        echo "pi-fallback: agent dir $dir, credentials copied from $source_dir/auth.json" >&2
+      else
+        echo "pi-fallback: agent dir $dir, starting with no credentials" >&2
+      fi
+
+      # The branch, not this repo's pin: the pin built the install that is broken.
+      expr='let pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixpkgs-unstable.tar.gz") { }; in pkgs.mkShell { packages = [ pkgs.pi-coding-agent ]; }'
+
+      # `--run` takes one shell string, so quote each argument for it.
+      cmd="pi"
+      for arg in "$@"; do
+        cmd+=" $(printf '%q' "$arg")"
+      done
+
+      PI_CODING_AGENT_DIR="$dir" nix-shell -E "$expr" --run "$cmd"
+    '';
+  };
 in
 {
   options.pi = {
@@ -322,6 +471,183 @@ in
         '';
       };
     };
+
+    # `windowTrigger` is one fixed job: a one-word prompt that opens a usage
+    # window. This is the general form, for any number of prompts on their own
+    # schedules. Nothing is declared here: what is worth reading on a schedule
+    # is a deployment's choice, not this repo's.
+    jobs = lib.mkOption {
+      type = lib.types.attrsOf (
+        lib.types.submodule {
+          options = {
+            enable = lib.mkEnableOption "this scheduled Pi job";
+
+            schedule = lib.mkOption {
+              type = lib.types.listOf lib.types.str;
+              default = [ ];
+              example = [ "*-*-* 07:00:00 America/New_York" ];
+              description = ''
+                `OnCalendar` entries for the job's timer, in systemd's calendar
+                syntax. An empty list creates the service without a timer, so
+                `systemctl --user start pi-job-<name>` still runs it on demand.
+              '';
+            };
+
+            prompt = lib.mkOption {
+              type = lib.types.either lib.types.lines lib.types.path;
+              example = "Summarise today's top five stories in one paragraph each.";
+              description = ''
+                Prompt passed to `pi --print`, as inline text or a path to a
+                file. The file is read when the configuration is built, so the
+                prompt is part of the unit rather than a path the service has
+                to find at run time.
+
+                The job runs unattended, so the prompt is the whole
+                instruction. There is no conversation to correct it.
+              '';
+            };
+
+            model = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = cfg.model;
+              defaultText = lib.literalExpression "config.pi.model";
+              example = "opencode-go/deepseek-v4.1-flash";
+              description = ''
+                Model the job prompts, as `provider/id`, passed to `pi --model`.
+                Defaults to {option}`pi.model`, so a deployment sets this only
+                for a job that should use a different one.
+              '';
+            };
+
+            thinking = lib.mkOption {
+              type = lib.types.enum [
+                "off"
+                "minimal"
+                "low"
+                "medium"
+                "high"
+                "xhigh"
+                "max"
+              ];
+              default = "off";
+              description = ''
+                Reasoning level, passed to `pi --thinking`. Off by default
+                because nobody is watching the run: raise it for a job whose
+                answer needs reasoning rather than retrieval.
+              '';
+            };
+
+            tools = lib.mkOption {
+              type = lib.types.listOf lib.types.str;
+              default = [ ];
+              example = [
+                "web_search"
+                "fetch_content"
+              ];
+              description = ''
+                Tools the job may call, passed to `pi --tools` as a
+                comma-separated allowlist. Empty disables every tool with
+                `--no-tools`, the default: a scheduled run reads and writes
+                nothing unless the job names what it needs.
+
+                Extension tools count, so `pi-web-access`'s `web_search`,
+                `source_check`, `fetch_content` and `get_search_content` are
+                available to a job that lists them.
+              '';
+            };
+
+            mcp = lib.mkOption {
+              type = lib.types.bool;
+              default = false;
+              description = ''
+                Whether the job connects the servers in {option}`pi.mcpServers`.
+                Off by default, because starting those servers is startup work
+                a scheduled run rarely needs.
+              '';
+            };
+
+            skills = lib.mkOption {
+              type = lib.types.bool;
+              default = false;
+              description = ''
+                Whether the job loads installed skills. Off by default, because
+                a prompt that depends on a skill is better written to say so.
+              '';
+            };
+
+            contextFiles = lib.mkOption {
+              type = lib.types.bool;
+              default = false;
+              description = ''
+                Whether Pi discovers `AGENTS.md` and `CLAUDE.md` from the
+                working directory. Off by default, so a job's behaviour comes
+                from its prompt rather than from whichever repository it runs
+                in.
+              '';
+            };
+
+            workingDirectory = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              example = "/home/daniel/src/notes";
+              description = ''
+                Directory the job runs in, as the unit's `WorkingDirectory`.
+                Null leaves systemd's default, the user's home directory. Pi
+                resolves project configuration and relative paths from it.
+              '';
+            };
+
+            output = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              example = "/home/daniel/notes/news.md";
+              description = ''
+                File the final answer is written to, replacing what was there.
+                Its parent directory is created if missing, and the write goes
+                through a temporary file, so a failed run leaves the previous
+                answer intact.
+
+                Null sends the answer to the journal instead, readable with
+                `journalctl --user -u pi-job-<name>`. It must be a string, not
+                a Nix path literal: a path literal names a read-only store
+                location.
+              '';
+            };
+
+            extraArgs = lib.mkOption {
+              type = lib.types.listOf lib.types.str;
+              default = [ ];
+              example = [
+                "--no-approve"
+                "--offline"
+              ];
+              description = ''
+                Extra arguments passed to `pi` after the generated ones and
+                ahead of the prompt, for anything the options above do not
+                cover.
+              '';
+            };
+          };
+        }
+      );
+      default = { };
+      example = lib.literalExpression ''
+        {
+          news = {
+            enable = true;
+            schedule = [ "*-*-* 07:00:00" ];
+            prompt = "Summarise the top five Nix stories from the last day.";
+            tools = [ "web_search" "fetch_content" ];
+            output = "/home/daniel/notes/news.md";
+          };
+        }
+      '';
+      description = ''
+        Scheduled Pi prompts, keyed by name. Each enabled entry becomes a
+        `pi-job-<name>` systemd user service, plus a timer when it has a
+        schedule.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -332,6 +658,20 @@ in
           pi.windowTrigger is enabled but pi.windowTrigger.model is null, so
           the trigger has no model to prompt. Set it, e.g.
           `pi.windowTrigger.model = "anthropic/claude-haiku-5-5";`.
+        '';
+      }
+      {
+        assertion = modellessJobs == [ ];
+        message = ''
+          pi.jobs has enabled jobs with no model to run: ${lib.concatStringsSep ", " modellessJobs}.
+          Set pi.model as the fallback, or set `model` on each job.
+        '';
+      }
+      {
+        assertion = badJobNames == [ ];
+        message = ''
+          pi.jobs has names that cannot become systemd unit names: ${lib.concatStringsSep ", " badJobNames}.
+          Names may contain only letters, digits, `-` and `_`.
         '';
       }
       {
@@ -354,7 +694,10 @@ in
     ];
 
     home = {
-      packages = [ piPackage ];
+      packages = [
+        piPackage
+        fallback
+      ];
 
       file = {
         # Pi's global rules are AGENTS.md in the agent directory, which it loads
@@ -446,32 +789,63 @@ in
       };
     };
 
-    systemd.user = lib.mkIf cfg.windowTrigger.enable {
-      services.pi-window-trigger = {
-        Unit.Description = "Open a provider usage window with a Pi prompt";
-        Service = {
-          Type = "oneshot";
-          # Extensions stay loaded because a provider package in `pi.packages`
-          # can decide how the request is authenticated and billed. Everything
-          # else that would add tokens or startup work is off.
-          ExecStart = pkgs.writeShellScript "pi-window-trigger" ''
-            exec ${piPackage}/bin/pi --print \
-              --model ${lib.escapeShellArg cfg.windowTrigger.model} \
-              --system-prompt "" --thinking off --no-session --no-tools \
-              --no-mcp --no-skills --no-context-files --no-prompt-templates --no-themes \
-              hi
-          '';
-        };
-      };
+    systemd.user = {
+      services =
+        lib.optionalAttrs cfg.windowTrigger.enable {
+          pi-window-trigger = {
+            Unit.Description = "Open a provider usage window with a Pi prompt";
+            Service = {
+              Type = "oneshot";
+              # Extensions stay loaded because a provider package in `pi.packages`
+              # can decide how the request is authenticated and billed. Everything
+              # else that would add tokens or startup work is off.
+              ExecStart = pkgs.writeShellScript "pi-window-trigger" ''
+                exec ${piPackage}/bin/pi --print \
+                  --model ${lib.escapeShellArg cfg.windowTrigger.model} \
+                  --system-prompt "" --thinking off --no-session --no-tools \
+                  --no-mcp --no-skills --no-context-files --no-prompt-templates --no-themes \
+                  hi
+              '';
+            };
+          };
+        }
+        // lib.mapAttrs' (
+          name: job:
+          lib.nameValuePair "pi-job-${name}" {
+            Unit.Description = "Scheduled Pi job: ${name}";
+            Service = {
+              Type = "oneshot";
+              ExecStart = mkJobScript name job;
+            }
+            // lib.optionalAttrs (job.workingDirectory != null) {
+              WorkingDirectory = job.workingDirectory;
+            };
+          }
+        ) enabledJobs;
 
-      timers.pi-window-trigger = {
-        Unit.Description = "Pi usage window trigger timer";
-        Timer = {
-          OnCalendar = cfg.windowTrigger.schedule;
-          Persistent = true;
-        };
-        Install.WantedBy = [ "timers.target" ];
-      };
+      timers =
+        lib.optionalAttrs cfg.windowTrigger.enable {
+          pi-window-trigger = {
+            Unit.Description = "Pi usage window trigger timer";
+            Timer = {
+              OnCalendar = cfg.windowTrigger.schedule;
+              Persistent = true;
+            };
+            Install.WantedBy = [ "timers.target" ];
+          };
+        }
+        // lib.mapAttrs' (
+          name: job:
+          lib.nameValuePair "pi-job-${name}" {
+            Unit.Description = "Pi job timer: ${name}";
+            Timer = {
+              OnCalendar = job.schedule;
+              # Catches up a run missed while the machine was off.
+              Persistent = true;
+            };
+            Install.WantedBy = [ "timers.target" ];
+          }
+        ) (lib.filterAttrs (_: job: job.schedule != [ ]) enabledJobs);
     };
   };
 }

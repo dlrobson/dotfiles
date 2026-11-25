@@ -27,9 +27,11 @@ in
   # Exercises pi.nix: the package, all three JSON files, the shipped skill built by
   # `authoredSkills`, the shipped agents built by `authoredAgents`,
   # consumer-supplied `agents`, `skills` and `context` entries, the always-on
-  # reply prompt wiring, the window trigger service and timer, and the passing
-  # branches of the `auth requires provider` and `trigger requires model`
-  # assertions.
+  # reply prompt wiring, the window trigger service and timer, the general
+  # `jobs` service and timer (inline and file prompts, tool allowlists, output
+  # redirection, a working directory, the MCP/skills/context-file opt-ins and a
+  # disabled entry), and the passing branches of the `auth requires provider`,
+  # `trigger requires model`, `jobs require model` and job-name assertions.
   pi = {
     enable = true;
     provider = "opencode-go";
@@ -39,6 +41,41 @@ in
       enable = true;
       schedule = [ "*-*-* 06:00:00" ];
       model = "opencode-go/deepseek-v4.1-flash";
+    };
+    jobs = {
+      news = {
+        enable = true;
+        schedule = [ "*-*-* 07:00:00" ];
+        prompt = "Summarise the top five stories from the last day.";
+        tools = [
+          "web_search"
+          "fetch_content"
+        ];
+        output = "${homeDirectory}/notes/news.md";
+      };
+      # No schedule: the service exists, the timer does not. Every opt-in and
+      # the file-prompt branch are on, so both shapes are built.
+      repository = {
+        enable = true;
+        prompt = ./fixtures/job-prompt.md;
+        model = "opencode-go/deepseek-v4.1-flash";
+        thinking = "low";
+        tools = [
+          "read"
+          "bash"
+          "edit"
+          "write"
+        ];
+        mcp = true;
+        skills = true;
+        contextFiles = true;
+        workingDirectory = "/tmp";
+        extraArgs = [ "--no-approve" ];
+      };
+      disabled = {
+        enable = false;
+        prompt = "Never runs.";
+      };
     };
     context = ''
       # Coverage fixture
