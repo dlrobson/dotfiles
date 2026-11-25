@@ -32,6 +32,18 @@ let
   # whenever Pi is enabled.
   plainRules = builtins.readFile ./pi/plain/rules.md;
 
+  # Pi takes a lock on auth.json through its *resolved* path (proper-lockfile
+  # without `realpath: false`, since 1.5.2), so a symlink into the read-only
+  # store makes every credential read fail with EROFS when Pi tries to create
+  # `<store-path>.lock` beside it. The generated file stays in the store, but
+  # activation installs a real copy rather than linking it.
+  authFile = jsonFormat.generate "pi-auth.json" {
+    ${cfg.provider} = {
+      type = "api_key";
+      key = cfg.auth;
+    };
+  };
+
   mkSkill =
     name:
     pkgs.runCommand "pi-skill-${name}" { } ''
@@ -313,8 +325,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ piPackage ];
-
     assertions = [
       {
         assertion = !cfg.windowTrigger.enable || cfg.windowTrigger.model != null;
@@ -343,96 +353,97 @@ in
       }
     ];
 
-    home.file = {
-      # Pi's global rules are AGENTS.md in the agent directory, which it loads
-      # for every working directory. `pi.context` defaults to the shared
-      # `agent-rules.md` (the same file Claude Code uses), so a
-      # consumer can override it to give Pi its own rules. A path is linked
-      # as-is; an empty context is indistinguishable from none, so skip it
-      # rather than link a blank file.
-    }
-    // (
-      if lib.isPath cfg.context then
-        { "${configDir}/AGENTS.md".source = cfg.context; }
-      else
-        lib.optionalAttrs (cfg.context != "") {
-          "${configDir}/AGENTS.md".text = cfg.context;
-        }
-    )
-    // lib.optionalAttrs (cfg.auth != null) {
-      # auth.json is always force-overwritten rather than backed up. Pi owns
-      # this file — `/login` and `/logout` write to it — so a stale real file
-      # (or `.backup`) at the path would make activation skip re-linking it and
-      # silently keep serving whatever was there, instead of failing loudly.
-      # Same reasoning as the force on `~/.claude/settings.json` in `claude.nix`.
-      "${configDir}/auth.json" = {
-        force = true;
-        source = jsonFormat.generate "pi-auth.json" {
-          ${cfg.provider} = {
-            type = "api_key";
-            key = cfg.auth;
-          };
+    home = {
+      packages = [ piPackage ];
+
+      file = {
+        # Pi's global rules are AGENTS.md in the agent directory, which it loads
+        # for every working directory. `pi.context` defaults to the shared
+        # `agent-rules.md` (the same file Claude Code uses), so a
+        # consumer can override it to give Pi its own rules. A path is linked
+        # as-is; an empty context is indistinguishable from none, so skip it
+        # rather than link a blank file.
+      }
+      // (
+        if lib.isPath cfg.context then
+          { "${configDir}/AGENTS.md".source = cfg.context; }
+        else
+          lib.optionalAttrs (cfg.context != "") {
+            "${configDir}/AGENTS.md".text = cfg.context;
+          }
+      )
+      // {
+        # Forced for the same reason as auth.json: Pi owns this file too (`pi mcp
+        # add` and the `/mcp` toggles write to it), so a real file left by one of
+        # those would otherwise block re-linking. Only the user-level file is
+        # generated — Pi's docs keep servers with credentials out of the project
+        # `.pi/mcp.json`.
+        "${configDir}/mcp.json" = {
+          force = true;
+          source = jsonFormat.generate "pi-mcp.json" { mcpServers = allMcpServers; };
         };
+      }
+      // lib.mapAttrs' (
+        name: skill: lib.nameValuePair "${configDir}/skills/${name}" { source = skill; }
+      ) allSkills
+      // lib.mapAttrs' (
+        name: agent: lib.nameValuePair "${configDir}/agents/${name}.md" { source = agent; }
+      ) allAgents
+      // {
+        # The reply-style prompt is always installed. `APPEND_SYSTEM.md` adds it to
+        # every request, and `/plain` runs the same rules on demand against the
+        # previous reply.
+        "${configDir}/APPEND_SYSTEM.md".text = plainRules;
+        "${configDir}/prompts/plain.md".text = builtins.readFile ./pi/plain/plain.md + plainRules;
+      }
+      // {
+        # Always written when Pi is enabled: `tuiMode` and `hideThinkingBlock`
+        # are preferences that apply whether or not a provider or model is
+        # configured, so they must not be gated behind those two keys.
+        "${configDir}/settings.json".source = jsonFormat.generate "pi-settings.json" (
+          {
+            # Flicker-free alt-screen renderer, matching `tui = "fullscreen"` in
+            # `claude.nix`.
+            tuiMode = "fullscreen";
+            # Hide reasoning blocks in the transcript. Reasoning still runs — this
+            # only stops it being rendered, and `/thinking` can reveal the level.
+            hideThinkingBlock = true;
+            # Web search/fetch, GitHub cloning, PDF and video extraction. The
+            # version comes from the `pi-web-access` npins pin, so `update-pins`
+            # bumps it (and its hash) without editing this file; Pi compares the
+            # installed version against this spec and reinstalls when it changes.
+            # `removePrefix` drops the pin's leading `v` (tag `v0.35.0` -> npm
+            # `0.35.0`). Pi installs the package into `<agent-dir>/npm` on first
+            # start, not into the store.
+            #
+            # `pi-subagents` supplies the `subagent` tool that the
+            # `reviewing-changes` skill dispatches its passes to, and the
+            # `<agent-dir>/agents/` scope those pass definitions are installed
+            # into. Both pins are GitHub releases whose tags match their npm
+            # versions, so neither needs a hand-maintained hash.
+            packages = [
+              "npm:pi-web-access@${lib.removePrefix "v" sources.pi-web-access.version}"
+              "npm:pi-subagents@${lib.removePrefix "v" sources.pi-subagents.version}"
+            ]
+            ++ cfg.packages;
+          }
+          // lib.optionalAttrs (cfg.provider != null) { defaultProvider = cfg.provider; }
+          // lib.optionalAttrs (cfg.model != null) { defaultModel = cfg.model; }
+        );
       };
-    }
-    // {
-      # Forced for the same reason as auth.json: Pi owns this file too (`pi mcp
-      # add` and the `/mcp` toggles write to it), so a real file left by one of
-      # those would otherwise block re-linking. Only the user-level file is
-      # generated — Pi's docs keep servers with credentials out of the project
-      # `.pi/mcp.json`.
-      "${configDir}/mcp.json" = {
-        force = true;
-        source = jsonFormat.generate "pi-mcp.json" { mcpServers = allMcpServers; };
+
+      # See `authFile` above for why this is a copy instead of a `home.file`
+      # symlink. `mv` replaces the destination rather than writing through it, so
+      # the first activation also replaces any old store symlink, and an
+      # interrupted activation cannot leave a partial auth.json behind. Pi owns
+      # the file (`/login` and `/logout` rewrite it), so each activation restores
+      # the declared credential command, matching the previous `force` behaviour.
+      activation = lib.optionalAttrs (cfg.auth != null) {
+        piAuth = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+          $DRY_RUN_CMD install -m 600 ${authFile} "${configDir}/auth.json.tmp"
+          $DRY_RUN_CMD mv -f "${configDir}/auth.json.tmp" "${configDir}/auth.json"
+        '';
       };
-    }
-    // lib.mapAttrs' (
-      name: skill: lib.nameValuePair "${configDir}/skills/${name}" { source = skill; }
-    ) allSkills
-    // lib.mapAttrs' (
-      name: agent: lib.nameValuePair "${configDir}/agents/${name}.md" { source = agent; }
-    ) allAgents
-    // {
-      # The reply-style prompt is always installed. `APPEND_SYSTEM.md` adds it to
-      # every request, and `/plain` runs the same rules on demand against the
-      # previous reply.
-      "${configDir}/APPEND_SYSTEM.md".text = plainRules;
-      "${configDir}/prompts/plain.md".text = builtins.readFile ./pi/plain/plain.md + plainRules;
-    }
-    // {
-      # Always written when Pi is enabled: `tuiMode` and `hideThinkingBlock`
-      # are preferences that apply whether or not a provider or model is
-      # configured, so they must not be gated behind those two keys.
-      "${configDir}/settings.json".source = jsonFormat.generate "pi-settings.json" (
-        {
-          # Flicker-free alt-screen renderer, matching `tui = "fullscreen"` in
-          # `claude.nix`.
-          tuiMode = "fullscreen";
-          # Hide reasoning blocks in the transcript. Reasoning still runs — this
-          # only stops it being rendered, and `/thinking` can reveal the level.
-          hideThinkingBlock = true;
-          # Web search/fetch, GitHub cloning, PDF and video extraction. The
-          # version comes from the `pi-web-access` npins pin, so `update-pins`
-          # bumps it (and its hash) without editing this file; Pi compares the
-          # installed version against this spec and reinstalls when it changes.
-          # `removePrefix` drops the pin's leading `v` (tag `v0.35.0` -> npm
-          # `0.35.0`). Pi installs the package into `<agent-dir>/npm` on first
-          # start, not into the store.
-          #
-          # `pi-subagents` supplies the `subagent` tool that the
-          # `reviewing-changes` skill dispatches its passes to, and the
-          # `<agent-dir>/agents/` scope those pass definitions are installed
-          # into. Both pins are GitHub releases whose tags match their npm
-          # versions, so neither needs a hand-maintained hash.
-          packages = [
-            "npm:pi-web-access@${lib.removePrefix "v" sources.pi-web-access.version}"
-            "npm:pi-subagents@${lib.removePrefix "v" sources.pi-subagents.version}"
-          ]
-          ++ cfg.packages;
-        }
-        // lib.optionalAttrs (cfg.provider != null) { defaultProvider = cfg.provider; }
-        // lib.optionalAttrs (cfg.model != null) { defaultModel = cfg.model; }
-      );
     };
 
     systemd.user = lib.mkIf cfg.windowTrigger.enable {
