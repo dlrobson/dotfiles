@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 
 let
   homeDirectory = builtins.getEnv "HOME";
@@ -29,7 +29,8 @@ in
   # consumer-supplied `agents`, `skills` and `context` entries, the always-on
   # reply prompt wiring, the window trigger service and timer, the general
   # `jobs` service and timer (inline and file prompts, tool allowlists, output
-  # redirection, a working directory, the MCP/skills/context-file opt-ins and a
+  # redirection, a working directory, the MCP/skills/context-file opt-ins,
+  # every attachment form, `path`, both run steps, a kept session and a
   # disabled entry), and the passing branches of the `auth requires provider`,
   # `trigger requires model`, `jobs require model` and job-name assertions.
   pi = {
@@ -71,6 +72,25 @@ in
         contextFiles = true;
         workingDirectory = "/tmp";
         extraArgs = [ "--no-approve" ];
+        # One attachment of each form: a path literal, an absolute string and
+        # a file written by `preRun`. No `output`, so `postRun` reads the
+        # answer from the run directory.
+        attachments = [
+          ./fixtures/job-prompt.md
+          "/etc/os-release"
+          "status.txt"
+        ];
+        path = [
+          pkgs.jq
+          "${homeDirectory}/.nix-profile"
+        ];
+        preRun = ''
+          git -C /tmp log -1 > status.txt
+        '';
+        postRun = ''
+          wc -l "$PI_JOB_ANSWER"
+        '';
+        sessionDir = "${homeDirectory}/.local/state/pi-jobs/repository";
       };
       disabled = {
         enable = false;

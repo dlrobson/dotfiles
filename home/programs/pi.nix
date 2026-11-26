@@ -122,14 +122,24 @@ let
 
   modellessJobs = lib.attrNames (lib.filterAttrs (_: job: job.model == null) enabledJobs);
 
-  # Shared by every scheduled run: one-shot, no session written to disk, and
-  # none of the resources that only matter interactively. Tools, MCP, skills
-  # and context files are per job.
+  # Shared by every scheduled run: one-shot, and none of the resources that
+  # only matter interactively. Tools, MCP, skills, context files and whether
+  # the session is kept are per job.
   jobArgs =
     job:
     [
       "--print"
-      "--no-session"
+    ]
+    ++ (
+      if job.sessionDir == null then
+        [ "--no-session" ]
+      else
+        [
+          "--session-dir"
+          job.sessionDir
+        ]
+    )
+    ++ [
       "--thinking"
       job.thinking
     ]
@@ -155,8 +165,14 @@ let
     ]
     ++ job.extraArgs;
 
-  # A job's answer is its stdout. `output` files it through a temporary file,
-  # so a failed run leaves the previous answer rather than half of a new one.
+  # A run works in a fresh directory, `$PI_JOB_DIR`, deleted when it ends:
+  # `preRun` writes there, relative attachments are read from there, and the
+  # answer lands there before `output` or `postRun` see it. `set -e` stops the
+  # run at the first failing step, so Pi never prompts on a partial `preRun`
+  # and `postRun` never handles a failed answer.
+  #
+  # `output` is written through a temporary file beside it, so a failed run
+  # leaves the previous answer rather than half of a new one.
   mkJobScript =
     name: job:
     let
@@ -168,18 +184,62 @@ let
           lib.escapeShellArg (builtins.readFile job.prompt)
         else
           lib.escapeShellArg job.prompt;
-      redirect = lib.optionalString (job.output != null) " > \"$tmp\"";
+
+      # A path literal is copied to the store. An absolute string is used as
+      # is. A relative string names a file `preRun` wrote into `$PI_JOB_DIR`.
+      attachment =
+        file:
+        if lib.isPath file || lib.hasPrefix "/" file then
+          lib.escapeShellArg "@${file}"
+        else
+          ''@"$PI_JOB_DIR"/${lib.escapeShellArg file}'';
+
+      step =
+        stepName: text:
+        pkgs.writeShellScript "pi-job-${name}-${stepName}" ''
+          set -euo pipefail
+          ${text}
+        '';
     in
     pkgs.writeShellScript "pi-job-${name}" ''
-      set -eu
-      ${lib.optionalString (job.output != null) ''
-        answer=${lib.escapeShellArg job.output}
-        mkdir -p "$(dirname "$answer")"
-        tmp="$answer.tmp.$$"
-        trap 'rm -f "$tmp"' EXIT
+      set -euo pipefail
+      ${lib.optionalString (job.path != [ ]) ''
+        export PATH=${lib.escapeShellArg (lib.makeBinPath job.path)}:"$PATH"
       ''}
-      ${piPackage}/bin/pi ${lib.escapeShellArgs (jobArgs job)} -- ${prompt}${redirect}
-      ${lib.optionalString (job.output != null) ''mv -f "$tmp" "$answer"''}
+      PI_JOB_DIR=$(${pkgs.coreutils}/bin/mktemp -d -t pi-job-${name}.XXXXXX)
+      export PI_JOB_DIR
+      trap '${pkgs.coreutils}/bin/rm -rf "$PI_JOB_DIR"' EXIT
+
+      ${lib.optionalString (job.preRun != "") ''
+        (cd "$PI_JOB_DIR" && ${step "pre-run" job.preRun})
+      ''}
+      ${lib.optionalString (job.sessionDir != null) ''
+        ${pkgs.coreutils}/bin/mkdir -p ${lib.escapeShellArg job.sessionDir}
+      ''}
+      ${piPackage}/bin/pi ${lib.escapeShellArgs (jobArgs job)} -- ${
+        lib.concatMapStringsSep " " attachment job.attachments
+      } ${prompt} > "$PI_JOB_DIR/answer"
+
+      ${
+        if job.output != null then
+          ''
+            PI_JOB_ANSWER=${lib.escapeShellArg job.output}
+            ${pkgs.coreutils}/bin/mkdir -p "$(${pkgs.coreutils}/bin/dirname "$PI_JOB_ANSWER")"
+            tmp="$PI_JOB_ANSWER.tmp.$$"
+            trap '${pkgs.coreutils}/bin/rm -rf "$PI_JOB_DIR" "$tmp"' EXIT
+            ${pkgs.coreutils}/bin/cp "$PI_JOB_DIR/answer" "$tmp"
+            ${pkgs.coreutils}/bin/mv -f "$tmp" "$PI_JOB_ANSWER"
+          ''
+        else
+          ''
+            PI_JOB_ANSWER="$PI_JOB_DIR/answer"
+            ${pkgs.coreutils}/bin/cat "$PI_JOB_ANSWER"
+          ''
+      }
+      export PI_JOB_ANSWER
+      ${lib.optionalString (job.postRun != "") ''
+        (cd "$PI_JOB_DIR" && ${step "post-run" job.postRun})
+      ''}
     '';
 
   # A way in when the installed Pi will not start. What usually breaks is a file
@@ -553,6 +613,11 @@ in
                 Extension tools count, so `pi-web-access`'s `web_search`,
                 `source_check`, `fetch_content` and `get_search_content` are
                 available to a job that lists them.
+
+                MCP tools are filtered only once an entry starts with `mcp__`.
+                A list with no such entry leaves every MCP tool enabled when
+                {option}`mcp` is on, so name them, e.g.
+                `mcp__slack__slack_search_public`.
               '';
             };
 
@@ -611,6 +676,93 @@ in
                 `journalctl --user -u pi-job-<name>`. It must be a string, not
                 a Nix path literal: a path literal names a read-only store
                 location.
+              '';
+            };
+
+            attachments = lib.mkOption {
+              type = lib.types.listOf (lib.types.either lib.types.path lib.types.str);
+              default = [ ];
+              example = lib.literalExpression ''
+                [
+                  ./weekly/format.md
+                  "activity.json"
+                ]
+              '';
+              description = ''
+                Files whose contents are added to the prompt, passed to Pi as
+                `@file` ahead of it. A job given its input this way needs no
+                `read` tool to see it.
+
+                A path literal is copied to the store when the configuration
+                is built. An absolute string is read at run time. A relative
+                string names a file in `$PI_JOB_DIR`, the run's own directory,
+                which is how a file written by {option}`preRun` reaches the
+                prompt.
+              '';
+            };
+
+            path = lib.mkOption {
+              type = lib.types.listOf (lib.types.either lib.types.package lib.types.str);
+              default = [ ];
+              example = lib.literalExpression "[ pkgs.jq pkgs.glab ]";
+              description = ''
+                Packages whose {file}`bin` directories go at the front of
+                `PATH` for the whole run: {option}`preRun`, Pi and its tools,
+                and {option}`postRun`. A string names a prefix such as
+                `config.home.profileDirectory`, whose {file}`bin` is added the
+                same way. A systemd user service otherwise sees only the
+                user manager's `PATH`, which on a non-NixOS host leaves out
+                the Nix profile.
+              '';
+            };
+
+            preRun = lib.mkOption {
+              type = lib.types.lines;
+              default = "";
+              example = ''
+                curl -fsS https://example.com/status.json > status.json
+              '';
+              description = ''
+                Shell commands run before Pi, in `$PI_JOB_DIR`, a fresh
+                directory deleted when the run ends. Files written there can be
+                passed to Pi with a relative {option}`attachments` entry. Runs
+                with `set -euo pipefail`, and a failure ends the run before Pi
+                starts.
+              '';
+            };
+
+            postRun = lib.mkOption {
+              type = lib.types.lines;
+              default = "";
+              example = ''
+                cp "$PI_JOB_ANSWER" "$HOME/archive/$(date +%F).md"
+              '';
+              description = ''
+                Shell commands run after Pi succeeds, in `$PI_JOB_DIR`.
+                `$PI_JOB_ANSWER` names the file holding the answer:
+                {option}`output` when it is set, otherwise a file in
+                `$PI_JOB_DIR`. Runs with `set -euo pipefail`, and a failure
+                fails the unit. Not run when Pi or {option}`preRun` fails.
+              '';
+            };
+
+            sessionDir = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              example = "/home/daniel/.local/state/pi-jobs/news";
+              description = ''
+                Directory the run's session is saved in, passed to
+                `pi --session-dir`. Null runs with `--no-session`, the default,
+                so nothing is kept.
+
+                A kept session can be reopened to carry on from the answer with
+                `pi --session <file>`. Session file names start with their
+                creation time, so the last in sort order is the newest.
+                `pi --session-dir <dir> --continue` finds it only when run from
+                the job's {option}`workingDirectory`, the home directory by
+                default, because `--continue` looks only at sessions started
+                in the current directory. The directory is not pruned, so each
+                run adds a session to it.
               '';
             };
 
