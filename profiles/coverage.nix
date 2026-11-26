@@ -88,8 +88,11 @@ in
           pkgs.jq
           "${homeDirectory}/.nix-profile"
         ];
+        # Writes `skip` when there is nothing to report, so the skip branch
+        # is built too.
         preRun = ''
           git -C /tmp log -1 > status.txt
+          test -s status.txt || echo "no commits" > skip
         '';
         postRun = ''
           wc -l "$PI_JOB_ANSWER"

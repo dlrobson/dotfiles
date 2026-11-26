@@ -249,6 +249,10 @@ let
 
       ${lib.optionalString (job.preRun != "") ''
         (cd "$PI_JOB_DIR" && ${step "pre-run" job.preRun})
+        if [ -e "$PI_JOB_DIR/skip" ]; then
+          echo "Skipped: $(${pkgs.coreutils}/bin/cat "$PI_JOB_DIR/skip")"
+          exit 0
+        fi
       ''}
       ${lib.optionalString (job.sessionDir != null) ''
         ${pkgs.coreutils}/bin/mkdir -p ${lib.escapeShellArg job.sessionDir}
@@ -311,6 +315,9 @@ let
     runtimeInputs = [
       pkgs.coreutils
       pkgs.findutils
+      pkgs.glow
+      pkgs.gnused
+      pkgs.jq
     ];
     text = ''
       pi=${piPackage}/bin/pi
@@ -330,19 +337,23 @@ let
   jobCompletions =
     let
       names = jobs: lib.escapeShellArg (lib.concatStringsSep " " (lib.attrNames jobs));
+      sessionJobs = lib.filterAttrs (_: job: job.sessionDir != null) enabledJobs;
+      answerJobs = lib.filterAttrs (_: job: job.notify || job.sessionDir != null) enabledJobs;
+      words = n: "test (count (commandline -opc)) -eq ${toString n}";
     in
     ''
       complete -c pi-job -f
       complete -c pi-job -n __fish_use_subcommand -a list -d 'List jobs and their state'
-      complete -c pi-job -n __fish_use_subcommand -a open -d 'Open the newest session in Pi'
-      complete -c pi-job -n __fish_use_subcommand -a show -d 'Print the latest answer'
+      complete -c pi-job -n __fish_use_subcommand -a history -d 'List the runs of a job'
+      complete -c pi-job -n __fish_use_subcommand -a open -d 'Open the session of a run in Pi'
+      complete -c pi-job -n __fish_use_subcommand -a show -d 'Print the answer of a run'
       complete -c pi-job -n __fish_use_subcommand -a run -d 'Start the job now'
       complete -c pi-job -n __fish_use_subcommand -a log -d 'Show the job journal'
-      complete -c pi-job -n '__fish_seen_subcommand_from open; and test (count (commandline -opc)) -eq 2' -a ${
-        names (lib.filterAttrs (_: job: job.sessionDir != null) enabledJobs)
-      }
-      complete -c pi-job -n '__fish_seen_subcommand_from show; and test (count (commandline -opc)) -eq 2' -a ${names notifyJobs}
-      complete -c pi-job -n '__fish_seen_subcommand_from run log; and test (count (commandline -opc)) -eq 2' -a ${names enabledJobs}
+      complete -c pi-job -n '__fish_seen_subcommand_from history open; and ${words 2}' -a ${names sessionJobs}
+      complete -c pi-job -n '__fish_seen_subcommand_from show; and ${words 2}' -a ${names answerJobs}
+      complete -c pi-job -n '__fish_seen_subcommand_from run log; and ${words 2}' -a ${names enabledJobs}
+      # The run number, described by when it started.
+      complete -c pi-job -n '__fish_seen_subcommand_from open show; and ${words 3}' -k -a '(pi-job __complete-runs (commandline -opc)[3])'
     '';
 
   # Builtins only, no subprocess, so every new shell stays fast.
@@ -873,6 +884,13 @@ in
                   passed to Pi with a relative {option}`attachments` entry. Runs
                   with `set -euo pipefail`, and a failure ends the run before Pi
                   starts.
+
+                  Writing a file named `skip` in `$PI_JOB_DIR` ends the run
+                  successfully without Pi, for a run with nothing to do. Its
+                  contents go to the journal as the reason. Nothing else
+                  happens: no answer is written, {option}`postRun` does not
+                  run, and a {option}`notify` job keeps its previous answer and
+                  is not marked unread.
                 '';
               };
 
