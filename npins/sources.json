@@ -9,9 +9,9 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "6d491811023d7af2c96a7fab274935922b29ed01",
-      "url": "https://github.com/anthropics/claude-plugins-official/archive/6d491811023d7af2c96a7fab274935922b29ed01.tar.gz",
-      "hash": "sha256-XpTGr1XD9qgJKkPSe3nz/A/zM6E+eTpE4mN1l4zbxSw="
+      "revision": "0fbfda5a91f4adc311daca25acc99132f40f0b6e",
+      "url": "https://github.com/anthropics/claude-plugins-official/archive/0fbfda5a91f4adc311daca25acc99132f40f0b6e.tar.gz",
+      "hash": "sha256-J9pxacOMDz6wEHJHo5d0JhLfR/95hhJwUz1RmHqRvcI="
     },
     "home-manager": {
       "type": "Git",
@@ -22,9 +22,9 @@
       },
       "branch": "release-26.05",
       "submodules": false,
-      "revision": "5643e73425b85ac359ba2aaf83deae8ce1cd7968",
-      "url": "https://github.com/nix-community/home-manager/archive/5643e73425b85ac359ba2aaf83deae8ce1cd7968.tar.gz",
-      "hash": "sha256-Qkh6uNyMsic61gfyOO8VXnC+HEBdti6Xe2kKiMf66O0="
+      "revision": "6480d7d8533b88c78cc6dcda395ab89cd546e450",
+      "url": "https://github.com/nix-community/home-manager/archive/6480d7d8533b88c78cc6dcda395ab89cd546e450.tar.gz",
+      "hash": "sha256-XYoMPsqRFZ6jOaYI1KAAu8fzqif4tkCX8mhEKrViDXQ="
     },
     "nixGL": {
       "type": "Git",
@@ -48,9 +48,9 @@
       },
       "branch": "release-26.05",
       "submodules": false,
-      "revision": "15d029bfe5a74464bb0d3bd9b6414cd3dec91bce",
-      "url": "https://github.com/NixOS/nixpkgs/archive/15d029bfe5a74464bb0d3bd9b6414cd3dec91bce.tar.gz",
-      "hash": "sha256-yOAmgGGB1kgMEFL3a9S95i8i02ZqOz1/118PYaN+OrA="
+      "revision": "7215a943a60f13c3a62e75bdd0bc512cbb71ea55",
+      "url": "https://github.com/NixOS/nixpkgs/archive/7215a943a60f13c3a62e75bdd0bc512cbb71ea55.tar.gz",
+      "hash": "sha256-Hp03CZASZybB6jKpo80h2o9QbV1fJg+Z3c12ogB1d+k="
     },
     "nixpkgs-unstable": {
       "type": "Git",
@@ -61,9 +61,9 @@
       },
       "branch": "nixos-unstable",
       "submodules": false,
-      "revision": "04906337b6d53e8bb0eaf0470ae9f070a4d4eb55",
-      "url": "https://github.com/NixOS/nixpkgs/archive/04906337b6d53e8bb0eaf0470ae9f070a4d4eb55.tar.gz",
-      "hash": "sha256-lME2lHoDHAaSHP3/okgiVoJ0icVEvsQH8LeU3We7tcc="
+      "revision": "2786a2a72088ecf32aea5b3ec52099e6a7cff78f",
+      "url": "https://github.com/NixOS/nixpkgs/archive/2786a2a72088ecf32aea5b3ec52099e6a7cff78f.tar.gz",
+      "hash": "sha256-f/VVvxf5RsQgWVhUtefoca5ktVg0DA2bnkMOcmSnozo="
     },
     "paseo": {
       "type": "GitRelease",
@@ -76,10 +76,10 @@
       "version_upper_bound": null,
       "release_prefix": null,
       "submodules": false,
-      "version": "v0.17.4",
-      "revision": "a583aec723d0bbd99ba1b3f42cf07b2ab7c3705c",
-      "url": "https://api.github.com/repos/getpaseo/paseo/tarball/refs/tags/v0.17.4",
-      "hash": "sha256-KELKb9ZE+f0VApAObUd8iFxlkdvEOsOKuokTWmhHcJY="
+      "version": "v0.17.5",
+      "revision": "366c9d028b732296fb624101af7ee1e02dda712f",
+      "url": "https://api.github.com/repos/getpaseo/paseo/tarball/refs/tags/v0.17.5",
+      "hash": "sha256-JnfKWg/ti8Jyfbh0SQUTqFXhLI7A9T9NUyEkRAkPe9k="
     },
     "pi-subagents": {
       "type": "GitRelease",
@@ -92,10 +92,10 @@
       "version_upper_bound": null,
       "release_prefix": null,
       "submodules": false,
-      "version": "v0.89.0",
-      "revision": "0e404fa749120a85bb9722d8b82011db1768553d",
-      "url": "https://api.github.com/repos/nicobailon/pi-subagents/tarball/refs/tags/v0.89.0",
-      "hash": "sha256-DTe0j9JQfsXD3O9eeu/Tz7cnvsdM2bjtn63wqHYphu8="
+      "version": "v0.90.0",
+      "revision": "f6aadec2d069dabd61af55ef89dc1e6cbf3baf02",
+      "url": "https://api.github.com/repos/nicobailon/pi-subagents/tarball/refs/tags/v0.90.0",
+      "hash": "sha256-I8vK89gZ2o6nTL3N0vvE2/BHJVGJMS4m/VspBlsGYvE="
     },
     "pi-web-access": {
       "type": "GitRelease",
