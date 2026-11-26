@@ -1,5 +1,6 @@
 {
   config,
+  options,
   lib,
   pkgs,
   ...
@@ -120,11 +121,40 @@ let
     lib.attrNames cfg.jobs
   );
 
-  modellessJobs = lib.attrNames (lib.filterAttrs (_: job: job.model == null) enabledJobs);
+  # The window trigger job is left out: its own assertion names the option to
+  # set, and its model never falls back to `pi.model`.
+  modellessJobs = lib.attrNames (
+    lib.filterAttrs (
+      name: job: job.model == null && !(cfg.windowTrigger.enable && name == "window-trigger")
+    ) enabledJobs
+  );
+
+  # A definition counts unless every branch of it is a false `mkIf`, so a
+  # consumer's `mkIf` that is off on this host does not trip the assertion.
+  isLiveDefinition =
+    value:
+    if value._type or "" == "merge" then
+      lib.any isLiveDefinition value.contents
+    else if value._type or "" == "if" then
+      value.condition && isLiveDefinition value.content
+    else if value._type or "" == "override" then
+      isLiveDefinition value.content
+    else
+      true;
+
+  # Every module definition of `pi.jobs.window-trigger`, this module's
+  # included. `attrsOf` merges definitions of one name silently, so more than
+  # one while the trigger is enabled means a consumer's job is mixed into it.
+  windowTriggerDefinitions = lib.filter (
+    def:
+    lib.isAttrs def.value && def.value ? window-trigger && isLiveDefinition def.value.window-trigger
+  ) options.pi.jobs.definitionsWithLocations;
 
   # Shared by every scheduled run: one-shot, and none of the resources that
   # only matter interactively. Tools, MCP, skills, context files and whether
-  # the session is kept are per job.
+  # the session is kept are per job. Extensions stay loaded because a provider
+  # package in `pi.packages` can decide how a request is authenticated and
+  # billed.
   jobArgs =
     job:
     [
@@ -509,6 +539,8 @@ in
 
     # A provider's usage window starts at the first request after the last
     # one expired. A one-word prompt on a schedule opens it before work begins.
+    # Enabling it defines the `window-trigger` entry of `pi.jobs`, so the unit
+    # is `pi-job-window-trigger`. The name is reserved while it is enabled.
     windowTrigger = {
       enable = lib.mkEnableOption "scheduled one-word Pi prompts that open a provider's usage window";
 
@@ -532,10 +564,10 @@ in
       };
     };
 
-    # `windowTrigger` is one fixed job: a one-word prompt that opens a usage
-    # window. This is the general form, for any number of prompts on their own
-    # schedules. Nothing is declared here: what is worth reading on a schedule
-    # is a deployment's choice, not this repo's.
+    # Any number of prompts on their own schedules. The only job this module
+    # defines is `window-trigger`, from `pi.windowTrigger`. Every other job is a
+    # deployment's choice, because what is worth reading on a schedule is not
+    # this repo's to decide.
     jobs = lib.mkOption {
       type = lib.types.attrsOf (
         lib.types.submodule {
@@ -813,6 +845,15 @@ in
         '';
       }
       {
+        assertion = !cfg.windowTrigger.enable || lib.length windowTriggerDefinitions <= 1;
+        message = ''
+          pi.windowTrigger is enabled, and it defines pi.jobs.window-trigger, but
+          that job is also defined elsewhere, so the two would merge into one.
+          Rename the other job, or disable pi.windowTrigger. Definitions:
+          ${lib.concatMapStringsSep "\n" (def: "  - ${def.file}") windowTriggerDefinitions}
+        '';
+      }
+      {
         assertion = modellessJobs == [ ];
         message = ''
           pi.jobs has enabled jobs with no model to run: ${lib.concatStringsSep ", " modellessJobs}.
@@ -941,63 +982,47 @@ in
       };
     };
 
-    systemd.user = {
-      services =
-        lib.optionalAttrs cfg.windowTrigger.enable {
-          pi-window-trigger = {
-            Unit.Description = "Open a provider usage window with a Pi prompt";
-            Service = {
-              Type = "oneshot";
-              # Extensions stay loaded because a provider package in `pi.packages`
-              # can decide how the request is authenticated and billed. Everything
-              # else that would add tokens or startup work is off.
-              ExecStart = pkgs.writeShellScript "pi-window-trigger" ''
-                exec ${piPackage}/bin/pi --print \
-                  --model ${lib.escapeShellArg cfg.windowTrigger.model} \
-                  --system-prompt "" --thinking off --no-session --no-tools \
-                  --no-mcp --no-skills --no-context-files --no-prompt-templates --no-themes \
-                  hi
-              '';
-            };
-          };
-        }
-        // lib.mapAttrs' (
-          name: job:
-          lib.nameValuePair "pi-job-${name}" {
-            Unit.Description = "Scheduled Pi job: ${name}";
-            Service = {
-              Type = "oneshot";
-              ExecStart = mkJobScript name job;
-            }
-            // lib.optionalAttrs (job.workingDirectory != null) {
-              WorkingDirectory = job.workingDirectory;
-            };
-          }
-        ) enabledJobs;
+    # The job defaults already leave out tools, MCP, skills, context files,
+    # prompt templates, themes, thinking and the session. An empty system
+    # prompt removes the last tokens the request does not need. The model is
+    # passed as set, so a null one stays null and never becomes `pi.model`.
+    pi.jobs.window-trigger = lib.mkIf cfg.windowTrigger.enable {
+      enable = true;
+      inherit (cfg.windowTrigger) schedule model;
+      prompt = "hi";
+      extraArgs = [
+        "--system-prompt"
+        ""
+      ];
+    };
 
-      timers =
-        lib.optionalAttrs cfg.windowTrigger.enable {
-          pi-window-trigger = {
-            Unit.Description = "Pi usage window trigger timer";
-            Timer = {
-              OnCalendar = cfg.windowTrigger.schedule;
-              Persistent = true;
-            };
-            Install.WantedBy = [ "timers.target" ];
+    systemd.user = {
+      services = lib.mapAttrs' (
+        name: job:
+        lib.nameValuePair "pi-job-${name}" {
+          Unit.Description = "Scheduled Pi job: ${name}";
+          Service = {
+            Type = "oneshot";
+            ExecStart = mkJobScript name job;
+          }
+          // lib.optionalAttrs (job.workingDirectory != null) {
+            WorkingDirectory = job.workingDirectory;
           };
         }
-        // lib.mapAttrs' (
-          name: job:
-          lib.nameValuePair "pi-job-${name}" {
-            Unit.Description = "Pi job timer: ${name}";
-            Timer = {
-              OnCalendar = job.schedule;
-              # Catches up a run missed while the machine was off.
-              Persistent = true;
-            };
-            Install.WantedBy = [ "timers.target" ];
-          }
-        ) (lib.filterAttrs (_: job: job.schedule != [ ]) enabledJobs);
+      ) enabledJobs;
+
+      timers = lib.mapAttrs' (
+        name: job:
+        lib.nameValuePair "pi-job-${name}" {
+          Unit.Description = "Pi job timer: ${name}";
+          Timer = {
+            OnCalendar = job.schedule;
+            # Catches up a run missed while the machine was off.
+            Persistent = true;
+          };
+          Install.WantedBy = [ "timers.target" ];
+        }
+      ) (lib.filterAttrs (_: job: job.schedule != [ ]) enabledJobs);
     };
   };
 }

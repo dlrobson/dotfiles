@@ -27,12 +27,13 @@ in
   # Exercises pi.nix: the package, all three JSON files, the shipped skill built by
   # `authoredSkills`, the shipped agents built by `authoredAgents`,
   # consumer-supplied `agents`, `skills` and `context` entries, the always-on
-  # reply prompt wiring, the window trigger service and timer, the general
-  # `jobs` service and timer (inline and file prompts, tool allowlists, output
-  # redirection, a working directory, the MCP/skills/context-file opt-ins,
-  # every attachment form, `path`, both run steps, a kept session and a
-  # disabled entry), and the passing branches of the `auth requires provider`,
-  # `trigger requires model`, `jobs require model` and job-name assertions.
+  # reply prompt wiring, the window trigger as the `window-trigger` job (its
+  # service and timer), the general `jobs` service and timer (inline and file
+  # prompts, tool allowlists, output redirection, a working directory, the
+  # MCP/skills/context-file opt-ins, every attachment form, `path`, both run
+  # steps, a kept session and a disabled entry), and the passing branches of
+  # the `auth requires provider`, `trigger requires model`, `trigger job
+  # defined once`, `jobs require model` and job-name assertions.
   pi = {
     enable = true;
     provider = "opencode-go";
