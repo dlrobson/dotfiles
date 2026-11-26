@@ -150,6 +150,13 @@ let
     lib.isAttrs def.value && def.value ? window-trigger && isLiveDefinition def.value.window-trigger
   ) options.pi.jobs.definitionsWithLocations;
 
+  # Where `notify` jobs keep their latest answer, their sessions by default,
+  # and the `unread` and `failed` markers that `pi-job` and the shell notice
+  # read.
+  jobsStateRoot = "${config.xdg.stateHome}/pi-jobs";
+  jobStateDir = name: "${jobsStateRoot}/${name}";
+  notifyJobs = lib.filterAttrs (_: job: job.notify) enabledJobs;
+
   # Shared by every scheduled run: one-shot, and none of the resources that
   # only matter interactively. Tools, MCP, skills, context files and whether
   # the session is kept are per job. Extensions stay loaded because a provider
@@ -270,7 +277,91 @@ let
       ${lib.optionalString (job.postRun != "") ''
         (cd "$PI_JOB_DIR" && ${step "post-run" job.postRun})
       ''}
+      ${lib.optionalString job.notify ''
+        state=${lib.escapeShellArg (jobStateDir name)}
+        ${pkgs.coreutils}/bin/mkdir -p "$state"
+        ${pkgs.coreutils}/bin/cp "$PI_JOB_ANSWER" "$state/answer.md.tmp"
+        ${pkgs.coreutils}/bin/mv -f "$state/answer.md.tmp" "$state/answer.md"
+        ${pkgs.coreutils}/bin/rm -f "$state/failed"
+        ${pkgs.coreutils}/bin/date -Is > "$state/unread"
+      ''}
     '';
+
+  # Written by `OnFailure=` rather than by the job script, so a run killed by
+  # a signal or a timeout is still reported.
+  markFailed = pkgs.writeShellScript "pi-job-failed" ''
+    set -eu
+    state=${lib.escapeShellArg jobsStateRoot}/"$1"
+    ${pkgs.coreutils}/bin/mkdir -p "$state"
+    ${pkgs.coreutils}/bin/date -Is > "$state/failed"
+  '';
+
+  # Bash arrays describing the jobs, read by ./pi/pi-job.bash.
+  bashArray = values: "(" + lib.concatMapStringsSep " " lib.escapeShellArg values + ")";
+  bashMap =
+    attrs:
+    "("
+    + lib.concatStringsSep " " (
+      lib.mapAttrsToList (name: value: "[${lib.escapeShellArg name}]=${lib.escapeShellArg value}") attrs
+    )
+    + ")";
+
+  piJob = pkgs.writeShellApplication {
+    name = "pi-job";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.findutils
+    ];
+    text = ''
+      pi=${piPackage}/bin/pi
+      state_root=${lib.escapeShellArg jobsStateRoot}
+      jobs=${bashArray (lib.attrNames enabledJobs)}
+      declare -A notify=${bashMap (lib.mapAttrs (_: _: "1") notifyJobs)}
+      declare -A sessions=${
+        bashMap (
+          lib.mapAttrs (_: job: job.sessionDir) (lib.filterAttrs (_: job: job.sessionDir != null) enabledJobs)
+        )
+      }
+
+      ${builtins.readFile ./pi/pi-job.bash}
+    '';
+  };
+
+  jobCompletions =
+    let
+      names = jobs: lib.escapeShellArg (lib.concatStringsSep " " (lib.attrNames jobs));
+    in
+    ''
+      complete -c pi-job -f
+      complete -c pi-job -n __fish_use_subcommand -a list -d 'List jobs and their state'
+      complete -c pi-job -n __fish_use_subcommand -a open -d 'Open the newest session in Pi'
+      complete -c pi-job -n __fish_use_subcommand -a show -d 'Print the latest answer'
+      complete -c pi-job -n __fish_use_subcommand -a run -d 'Start the job now'
+      complete -c pi-job -n __fish_use_subcommand -a log -d 'Show the job journal'
+      complete -c pi-job -n '__fish_seen_subcommand_from open; and test (count (commandline -opc)) -eq 2' -a ${
+        names (lib.filterAttrs (_: job: job.sessionDir != null) enabledJobs)
+      }
+      complete -c pi-job -n '__fish_seen_subcommand_from show; and test (count (commandline -opc)) -eq 2' -a ${names notifyJobs}
+      complete -c pi-job -n '__fish_seen_subcommand_from run log; and test (count (commandline -opc)) -eq 2' -a ${names enabledJobs}
+    '';
+
+  # Builtins only, no subprocess, so every new shell stays fast.
+  jobNotice = ''
+    begin
+        set -l ready
+        set -l failed
+        for name in ${lib.escapeShellArgs (lib.attrNames notifyJobs)}
+            test -e ${lib.escapeShellArg jobsStateRoot}/$name/unread; and set -a ready $name
+            test -e ${lib.escapeShellArg jobsStateRoot}/$name/failed; and set -a failed $name
+        end
+        if set -q ready[1]
+            echo "Pi jobs ready: "(string join ', ' $ready)". Run 'pi-job open <name>'."
+        end
+        if set -q failed[1]
+            echo "Pi jobs failed: "(string join ', ' $failed)". Run 'pi-job log <name>'."
+        end
+    end
+  '';
 
   # A way in when the installed Pi will not start. What usually breaks is a file
   # this module generates or a package it installs, and repairing that can need
@@ -570,249 +661,275 @@ in
     # this repo's to decide.
     jobs = lib.mkOption {
       type = lib.types.attrsOf (
-        lib.types.submodule {
-          options = {
-            enable = lib.mkEnableOption "this scheduled Pi job";
+        lib.types.submodule (
+          { name, config, ... }:
+          {
+            options = {
+              enable = lib.mkEnableOption "this scheduled Pi job";
 
-            schedule = lib.mkOption {
-              type = lib.types.listOf lib.types.str;
-              default = [ ];
-              example = [ "*-*-* 07:00:00 America/New_York" ];
-              description = ''
-                `OnCalendar` entries for the job's timer, in systemd's calendar
-                syntax. An empty list creates the service without a timer, so
-                `systemctl --user start pi-job-<name>` still runs it on demand.
-              '';
+              notify = lib.mkOption {
+                type = lib.types.bool;
+                default = false;
+                description = ''
+                  Whether to keep the job's results for `pi-job` and announce
+                  them in new fish shells. Each successful run saves its answer
+                  to {file}`$XDG_STATE_HOME/pi-jobs/<name>/answer.md` and marks
+                  it unread, and a failed run is marked failed. New interactive
+                  fish shells list the unread and failed jobs until
+                  `pi-job open`, `pi-job show` or `pi-job log` clears them.
+
+                  Also keeps the session by default, under
+                  {file}`$XDG_STATE_HOME/pi-jobs/<name>/sessions`, so
+                  `pi-job open <name>` can carry on from the answer. It reopens
+                  the session with every tool enabled, not the job's
+                  {option}`tools`, because the run is over and a person is now
+                  asking the questions.
+                '';
+              };
+
+              schedule = lib.mkOption {
+                type = lib.types.listOf lib.types.str;
+                default = [ ];
+                example = [ "*-*-* 07:00:00 America/New_York" ];
+                description = ''
+                  `OnCalendar` entries for the job's timer, in systemd's calendar
+                  syntax. An empty list creates the service without a timer, so
+                  `systemctl --user start pi-job-<name>` still runs it on demand.
+                '';
+              };
+
+              prompt = lib.mkOption {
+                type = lib.types.either lib.types.lines lib.types.path;
+                example = "Summarise today's top five stories in one paragraph each.";
+                description = ''
+                  Prompt passed to `pi --print`, as inline text or a path to a
+                  file. The file is read when the configuration is built, so the
+                  prompt is part of the unit rather than a path the service has
+                  to find at run time.
+
+                  The job runs unattended, so the prompt is the whole
+                  instruction. There is no conversation to correct it.
+                '';
+              };
+
+              model = lib.mkOption {
+                type = lib.types.nullOr lib.types.str;
+                default = cfg.model;
+                defaultText = lib.literalExpression "config.pi.model";
+                example = "opencode-go/deepseek-v4.1-flash";
+                description = ''
+                  Model the job prompts, as `provider/id`, passed to `pi --model`.
+                  Defaults to {option}`pi.model`, so a deployment sets this only
+                  for a job that should use a different one.
+                '';
+              };
+
+              thinking = lib.mkOption {
+                type = lib.types.enum [
+                  "off"
+                  "minimal"
+                  "low"
+                  "medium"
+                  "high"
+                  "xhigh"
+                  "max"
+                ];
+                default = "off";
+                description = ''
+                  Reasoning level, passed to `pi --thinking`. Off by default
+                  because nobody is watching the run: raise it for a job whose
+                  answer needs reasoning rather than retrieval.
+                '';
+              };
+
+              tools = lib.mkOption {
+                type = lib.types.listOf lib.types.str;
+                default = [ ];
+                example = [
+                  "web_search"
+                  "fetch_content"
+                ];
+                description = ''
+                  Tools the job may call, passed to `pi --tools` as a
+                  comma-separated allowlist. Empty disables every tool with
+                  `--no-tools`, the default: a scheduled run reads and writes
+                  nothing unless the job names what it needs.
+
+                  Extension tools count, so `pi-web-access`'s `web_search`,
+                  `source_check`, `fetch_content` and `get_search_content` are
+                  available to a job that lists them.
+
+                  MCP tools are filtered only once an entry starts with `mcp__`.
+                  A list with no such entry leaves every MCP tool enabled when
+                  {option}`mcp` is on, so name them, e.g.
+                  `mcp__slack__slack_search_public`.
+                '';
+              };
+
+              mcp = lib.mkOption {
+                type = lib.types.bool;
+                default = false;
+                description = ''
+                  Whether the job connects the servers in {option}`pi.mcpServers`.
+                  Off by default, because starting those servers is startup work
+                  a scheduled run rarely needs.
+                '';
+              };
+
+              skills = lib.mkOption {
+                type = lib.types.bool;
+                default = false;
+                description = ''
+                  Whether the job loads installed skills. Off by default, because
+                  a prompt that depends on a skill is better written to say so.
+                '';
+              };
+
+              contextFiles = lib.mkOption {
+                type = lib.types.bool;
+                default = false;
+                description = ''
+                  Whether Pi discovers `AGENTS.md` and `CLAUDE.md` from the
+                  working directory. Off by default, so a job's behaviour comes
+                  from its prompt rather than from whichever repository it runs
+                  in.
+                '';
+              };
+
+              workingDirectory = lib.mkOption {
+                type = lib.types.nullOr lib.types.str;
+                default = null;
+                example = "/home/daniel/src/notes";
+                description = ''
+                  Directory the job runs in, as the unit's `WorkingDirectory`.
+                  Null leaves systemd's default, the user's home directory. Pi
+                  resolves project configuration and relative paths from it.
+                '';
+              };
+
+              output = lib.mkOption {
+                type = lib.types.nullOr lib.types.str;
+                default = null;
+                example = "/home/daniel/notes/news.md";
+                description = ''
+                  File the final answer is written to, replacing what was there.
+                  Its parent directory is created if missing, and the write goes
+                  through a temporary file, so a failed run leaves the previous
+                  answer intact.
+
+                  Null sends the answer to the journal instead, readable with
+                  `journalctl --user -u pi-job-<name>`. It must be a string, not
+                  a Nix path literal: a path literal names a read-only store
+                  location.
+                '';
+              };
+
+              attachments = lib.mkOption {
+                type = lib.types.listOf (lib.types.either lib.types.path lib.types.str);
+                default = [ ];
+                example = lib.literalExpression ''
+                  [
+                    ./weekly/format.md
+                    "activity.json"
+                  ]
+                '';
+                description = ''
+                  Files whose contents are added to the prompt, passed to Pi as
+                  `@file` ahead of it. A job given its input this way needs no
+                  `read` tool to see it.
+
+                  A path literal is copied to the store when the configuration
+                  is built. An absolute string is read at run time. A relative
+                  string names a file in `$PI_JOB_DIR`, the run's own directory,
+                  which is how a file written by {option}`preRun` reaches the
+                  prompt.
+                '';
+              };
+
+              path = lib.mkOption {
+                type = lib.types.listOf (lib.types.either lib.types.package lib.types.str);
+                default = [ ];
+                example = lib.literalExpression "[ pkgs.jq pkgs.glab ]";
+                description = ''
+                  Packages whose {file}`bin` directories go at the front of
+                  `PATH` for the whole run: {option}`preRun`, Pi and its tools,
+                  and {option}`postRun`. A string names a prefix such as
+                  `config.home.profileDirectory`, whose {file}`bin` is added the
+                  same way. A systemd user service otherwise sees only the
+                  user manager's `PATH`, which on a non-NixOS host leaves out
+                  the Nix profile.
+                '';
+              };
+
+              preRun = lib.mkOption {
+                type = lib.types.lines;
+                default = "";
+                example = ''
+                  curl -fsS https://example.com/status.json > status.json
+                '';
+                description = ''
+                  Shell commands run before Pi, in `$PI_JOB_DIR`, a fresh
+                  directory deleted when the run ends. Files written there can be
+                  passed to Pi with a relative {option}`attachments` entry. Runs
+                  with `set -euo pipefail`, and a failure ends the run before Pi
+                  starts.
+                '';
+              };
+
+              postRun = lib.mkOption {
+                type = lib.types.lines;
+                default = "";
+                example = ''
+                  cp "$PI_JOB_ANSWER" "$HOME/archive/$(date +%F).md"
+                '';
+                description = ''
+                  Shell commands run after Pi succeeds, in `$PI_JOB_DIR`.
+                  `$PI_JOB_ANSWER` names the file holding the answer:
+                  {option}`output` when it is set, otherwise a file in
+                  `$PI_JOB_DIR`. Runs with `set -euo pipefail`, and a failure
+                  fails the unit. Not run when Pi or {option}`preRun` fails.
+                '';
+              };
+
+              sessionDir = lib.mkOption {
+                type = lib.types.nullOr lib.types.str;
+                default = if config.notify then "${jobStateDir name}/sessions" else null;
+                defaultText = lib.literalExpression ''
+                  if notify then "''${config.xdg.stateHome}/pi-jobs/<name>/sessions" else null
+                '';
+                example = "/home/daniel/.local/state/pi-jobs/news";
+                description = ''
+                  Directory the run's session is saved in, passed to
+                  `pi --session-dir`. Null runs with `--no-session`, so nothing
+                  is kept.
+
+                  `pi-job open <name>` reopens the newest session to carry on
+                  from the answer. Outside `pi-job`, use
+                  `pi --session <file>`: session file names start with their
+                  creation time, so the last in sort order is the newest.
+                  `pi --continue` finds it only when run from the job's
+                  {option}`workingDirectory`, because it looks only at sessions
+                  started in the current directory. The directory is not
+                  pruned, so each run adds a session to it.
+                '';
+              };
+
+              extraArgs = lib.mkOption {
+                type = lib.types.listOf lib.types.str;
+                default = [ ];
+                example = [
+                  "--no-approve"
+                  "--offline"
+                ];
+                description = ''
+                  Extra arguments passed to `pi` after the generated ones and
+                  ahead of the prompt, for anything the options above do not
+                  cover.
+                '';
+              };
             };
-
-            prompt = lib.mkOption {
-              type = lib.types.either lib.types.lines lib.types.path;
-              example = "Summarise today's top five stories in one paragraph each.";
-              description = ''
-                Prompt passed to `pi --print`, as inline text or a path to a
-                file. The file is read when the configuration is built, so the
-                prompt is part of the unit rather than a path the service has
-                to find at run time.
-
-                The job runs unattended, so the prompt is the whole
-                instruction. There is no conversation to correct it.
-              '';
-            };
-
-            model = lib.mkOption {
-              type = lib.types.nullOr lib.types.str;
-              default = cfg.model;
-              defaultText = lib.literalExpression "config.pi.model";
-              example = "opencode-go/deepseek-v4.1-flash";
-              description = ''
-                Model the job prompts, as `provider/id`, passed to `pi --model`.
-                Defaults to {option}`pi.model`, so a deployment sets this only
-                for a job that should use a different one.
-              '';
-            };
-
-            thinking = lib.mkOption {
-              type = lib.types.enum [
-                "off"
-                "minimal"
-                "low"
-                "medium"
-                "high"
-                "xhigh"
-                "max"
-              ];
-              default = "off";
-              description = ''
-                Reasoning level, passed to `pi --thinking`. Off by default
-                because nobody is watching the run: raise it for a job whose
-                answer needs reasoning rather than retrieval.
-              '';
-            };
-
-            tools = lib.mkOption {
-              type = lib.types.listOf lib.types.str;
-              default = [ ];
-              example = [
-                "web_search"
-                "fetch_content"
-              ];
-              description = ''
-                Tools the job may call, passed to `pi --tools` as a
-                comma-separated allowlist. Empty disables every tool with
-                `--no-tools`, the default: a scheduled run reads and writes
-                nothing unless the job names what it needs.
-
-                Extension tools count, so `pi-web-access`'s `web_search`,
-                `source_check`, `fetch_content` and `get_search_content` are
-                available to a job that lists them.
-
-                MCP tools are filtered only once an entry starts with `mcp__`.
-                A list with no such entry leaves every MCP tool enabled when
-                {option}`mcp` is on, so name them, e.g.
-                `mcp__slack__slack_search_public`.
-              '';
-            };
-
-            mcp = lib.mkOption {
-              type = lib.types.bool;
-              default = false;
-              description = ''
-                Whether the job connects the servers in {option}`pi.mcpServers`.
-                Off by default, because starting those servers is startup work
-                a scheduled run rarely needs.
-              '';
-            };
-
-            skills = lib.mkOption {
-              type = lib.types.bool;
-              default = false;
-              description = ''
-                Whether the job loads installed skills. Off by default, because
-                a prompt that depends on a skill is better written to say so.
-              '';
-            };
-
-            contextFiles = lib.mkOption {
-              type = lib.types.bool;
-              default = false;
-              description = ''
-                Whether Pi discovers `AGENTS.md` and `CLAUDE.md` from the
-                working directory. Off by default, so a job's behaviour comes
-                from its prompt rather than from whichever repository it runs
-                in.
-              '';
-            };
-
-            workingDirectory = lib.mkOption {
-              type = lib.types.nullOr lib.types.str;
-              default = null;
-              example = "/home/daniel/src/notes";
-              description = ''
-                Directory the job runs in, as the unit's `WorkingDirectory`.
-                Null leaves systemd's default, the user's home directory. Pi
-                resolves project configuration and relative paths from it.
-              '';
-            };
-
-            output = lib.mkOption {
-              type = lib.types.nullOr lib.types.str;
-              default = null;
-              example = "/home/daniel/notes/news.md";
-              description = ''
-                File the final answer is written to, replacing what was there.
-                Its parent directory is created if missing, and the write goes
-                through a temporary file, so a failed run leaves the previous
-                answer intact.
-
-                Null sends the answer to the journal instead, readable with
-                `journalctl --user -u pi-job-<name>`. It must be a string, not
-                a Nix path literal: a path literal names a read-only store
-                location.
-              '';
-            };
-
-            attachments = lib.mkOption {
-              type = lib.types.listOf (lib.types.either lib.types.path lib.types.str);
-              default = [ ];
-              example = lib.literalExpression ''
-                [
-                  ./weekly/format.md
-                  "activity.json"
-                ]
-              '';
-              description = ''
-                Files whose contents are added to the prompt, passed to Pi as
-                `@file` ahead of it. A job given its input this way needs no
-                `read` tool to see it.
-
-                A path literal is copied to the store when the configuration
-                is built. An absolute string is read at run time. A relative
-                string names a file in `$PI_JOB_DIR`, the run's own directory,
-                which is how a file written by {option}`preRun` reaches the
-                prompt.
-              '';
-            };
-
-            path = lib.mkOption {
-              type = lib.types.listOf (lib.types.either lib.types.package lib.types.str);
-              default = [ ];
-              example = lib.literalExpression "[ pkgs.jq pkgs.glab ]";
-              description = ''
-                Packages whose {file}`bin` directories go at the front of
-                `PATH` for the whole run: {option}`preRun`, Pi and its tools,
-                and {option}`postRun`. A string names a prefix such as
-                `config.home.profileDirectory`, whose {file}`bin` is added the
-                same way. A systemd user service otherwise sees only the
-                user manager's `PATH`, which on a non-NixOS host leaves out
-                the Nix profile.
-              '';
-            };
-
-            preRun = lib.mkOption {
-              type = lib.types.lines;
-              default = "";
-              example = ''
-                curl -fsS https://example.com/status.json > status.json
-              '';
-              description = ''
-                Shell commands run before Pi, in `$PI_JOB_DIR`, a fresh
-                directory deleted when the run ends. Files written there can be
-                passed to Pi with a relative {option}`attachments` entry. Runs
-                with `set -euo pipefail`, and a failure ends the run before Pi
-                starts.
-              '';
-            };
-
-            postRun = lib.mkOption {
-              type = lib.types.lines;
-              default = "";
-              example = ''
-                cp "$PI_JOB_ANSWER" "$HOME/archive/$(date +%F).md"
-              '';
-              description = ''
-                Shell commands run after Pi succeeds, in `$PI_JOB_DIR`.
-                `$PI_JOB_ANSWER` names the file holding the answer:
-                {option}`output` when it is set, otherwise a file in
-                `$PI_JOB_DIR`. Runs with `set -euo pipefail`, and a failure
-                fails the unit. Not run when Pi or {option}`preRun` fails.
-              '';
-            };
-
-            sessionDir = lib.mkOption {
-              type = lib.types.nullOr lib.types.str;
-              default = null;
-              example = "/home/daniel/.local/state/pi-jobs/news";
-              description = ''
-                Directory the run's session is saved in, passed to
-                `pi --session-dir`. Null runs with `--no-session`, the default,
-                so nothing is kept.
-
-                A kept session can be reopened to carry on from the answer with
-                `pi --session <file>`. Session file names start with their
-                creation time, so the last in sort order is the newest.
-                `pi --session-dir <dir> --continue` finds it only when run from
-                the job's {option}`workingDirectory`, the home directory by
-                default, because `--continue` looks only at sessions started
-                in the current directory. The directory is not pruned, so each
-                run adds a session to it.
-              '';
-            };
-
-            extraArgs = lib.mkOption {
-              type = lib.types.listOf lib.types.str;
-              default = [ ];
-              example = [
-                "--no-approve"
-                "--offline"
-              ];
-              description = ''
-                Extra arguments passed to `pi` after the generated ones and
-                ahead of the prompt, for anything the options above do not
-                cover.
-              '';
-            };
-          };
-        }
+          }
+        )
       );
       default = { };
       example = lib.literalExpression ''
@@ -890,7 +1007,8 @@ in
       packages = [
         piPackage
         fallback
-      ];
+      ]
+      ++ lib.optional (enabledJobs != { }) piJob;
 
       file = {
         # Pi's global rules are AGENTS.md in the agent directory, which it loads
@@ -996,20 +1114,41 @@ in
       ];
     };
 
+    xdg.configFile = lib.optionalAttrs (enabledJobs != { }) {
+      "fish/completions/pi-job.fish".text = jobCompletions;
+    };
+
+    programs.fish.interactiveShellInit = lib.mkIf (notifyJobs != { }) jobNotice;
+
     systemd.user = {
-      services = lib.mapAttrs' (
-        name: job:
-        lib.nameValuePair "pi-job-${name}" {
-          Unit.Description = "Scheduled Pi job: ${name}";
-          Service = {
-            Type = "oneshot";
-            ExecStart = mkJobScript name job;
-          }
-          // lib.optionalAttrs (job.workingDirectory != null) {
-            WorkingDirectory = job.workingDirectory;
+      services =
+        lib.optionalAttrs (notifyJobs != { }) {
+          "pi-job-failed@" = {
+            Unit.Description = "Mark Pi job %i as failed";
+            Service = {
+              Type = "oneshot";
+              ExecStart = "${markFailed} %i";
+            };
           };
         }
-      ) enabledJobs;
+        // lib.mapAttrs' (
+          name: job:
+          lib.nameValuePair "pi-job-${name}" {
+            Unit = {
+              Description = "Scheduled Pi job: ${name}";
+            }
+            // lib.optionalAttrs job.notify {
+              OnFailure = [ "pi-job-failed@${name}.service" ];
+            };
+            Service = {
+              Type = "oneshot";
+              ExecStart = mkJobScript name job;
+            }
+            // lib.optionalAttrs (job.workingDirectory != null) {
+              WorkingDirectory = job.workingDirectory;
+            };
+          }
+        ) enabledJobs;
 
       timers = lib.mapAttrs' (
         name: job:

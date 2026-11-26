@@ -31,9 +31,10 @@ in
   # service and timer), the general `jobs` service and timer (inline and file
   # prompts, tool allowlists, output redirection, a working directory, the
   # MCP/skills/context-file opt-ins, every attachment form, `path`, both run
-  # steps, a kept session and a disabled entry), and the passing branches of
-  # the `auth requires provider`, `trigger requires model`, `trigger job
-  # defined once`, `jobs require model` and job-name assertions.
+  # steps, a kept session, a `notify` job with its `pi-job` command, notice
+  # and failure unit, and a disabled entry), and the passing branches of the
+  # `auth requires provider`, `trigger requires model`, `trigger job defined
+  # once`, `jobs require model` and job-name assertions.
   pi = {
     enable = true;
     provider = "opencode-go";
@@ -54,6 +55,8 @@ in
           "fetch_content"
         ];
         output = "${homeDirectory}/notes/news.md";
+        # `sessionDir` left to its `notify` default.
+        notify = true;
       };
       # No schedule: the service exists, the timer does not. Every opt-in and
       # the file-prompt branch are on, so both shapes are built.
