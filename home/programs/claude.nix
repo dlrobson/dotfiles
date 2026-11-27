@@ -24,6 +24,10 @@ in
       # behind this `mkIf cfg.enable` — disabled Claude Code would otherwise
       # blank the context Pi reads.
       context = ./agent-rules.md;
+      # The testing rules are one skill both harnesses read. Pi builds the same
+      # directory from `./pi/skills/` (it needs the build step to carry
+      # `pi-docs/`); here the source directory is linked as-is.
+      skills.test-design = ./pi/skills/test-design;
       settings = {
         # Flicker-free alt-screen renderer with virtualized scrollback
         # (equivalent to CLAUDE_CODE_NO_FLICKER=1; toggle live via /tui).

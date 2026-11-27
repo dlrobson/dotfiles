@@ -3,7 +3,7 @@ name: review-tests
 description: Reviews a change for test coverage that would let a regression ship — missing behavioral coverage of new logic, untested error paths, absent negative and boundary cases — reporting each with file and line and severity. Read-only. Not for whether the code is correct (review-general). Launched by the reviewing-changes skill when the change alters behavior tests are meant to pin or touches test files.
 tools: read, grep, find, ls
 inheritProjectContext: true
-skills: reviewing-changes
+skills: reviewing-changes, test-design
 acceptanceRole: read-only
 ---
 
@@ -20,6 +20,14 @@ fixtures, the naming, and what the project already considers worth pinning. The
 repository's conventions beat yours; never propose introducing a framework the
 project does not use.
 
+**Test the rules in `test-design`, rule by rule.** It is loaded with this agent
+and binds the production change as well as the test. A change that widens
+visibility or adds surface so a test can reach it, that pins a test to an
+internal helper or a call sequence, that calls the clock, network, filesystem,
+randomness, or environment without a seam, or that adds a double with no case
+running the same behaviour against the real implementation, is a finding under
+the rule it breaks. Name the rule in the title.
+
 **Behavior, not lines.** For each behavior the change introduces or alters, ask
 whether a test would fail if that behavior broke. Line coverage is not the
 question — a line can run in every test and still be unpinned.
@@ -33,7 +41,9 @@ question — a line can run in every test and still be unpinned.
 - **changed contracts** — a signature, return shape, or invariant the change
   alters, with existing tests that still assert the old one;
 - **async and concurrent behavior**, where the change makes claims about
-  ordering or state.
+  ordering or state;
+- **unverified doubles** — a stub, fake, or mock added without a conformance
+  case, so a test can pass against a double that was never right.
 
 **Severity for a coverage gap.** Important: new or changed behavior whose
 regression would reach users unnoticed, or an existing test that still asserts the
