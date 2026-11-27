@@ -138,7 +138,8 @@ test. One with its own behaviour, such as an in-memory fake of an API, does.
 Write one behaviour suite and run it against two subjects — the real
 implementation and the double. Where the real one cannot run in a test (a paid
 API, a USB device), run the suite against a recording or a stated
-expectation of real output, and say what the evidence was.
+expectation of real output, and name the evidence in the test or the commit
+message.
 
 If the conformance suite would outgrow the change, do not write the fake. Use a
 double that only returns what the test hands it, or the real dependency in an
@@ -165,7 +166,8 @@ summary.
 
 When an existing test goes red after your change, first decide whether the
 behaviour was meant to change. If it was, update the assertion and say so in
-your summary. If not, fix the code. Never loosen an assertion, re-record a
+your summary and the commit message, so a review can see the change was meant.
+If not, fix the code. Never loosen an assertion, re-record a
 snapshot, or skip or ignore a test only to get green.
 
 When you can run the tests, watch a load-bearing test fail once. For a bug fix,
@@ -173,7 +175,9 @@ write the regression test before the fix and run it against the old code. For
 new code, break the line the test covers, see it go red, then restore it. When
 you cannot run the tests, skip this; do not ask the user to do it.
 
-Where the repository has a mutation tool, commit the change, then run the tool
-on the change only (`git diff <base>... > /tmp/change.diff && cargo mutants --in-diff
-/tmp/change.diff`, Stryker `--mutate <files>`) and read survivors as
-holes. A run over the whole crate or package can take hours.
+Where a mutation tool is configured in the repository, run it on the change
+only, and never over the whole crate or package, which can take hours. Rust:
+`git add -N <new files>` so they show, then `git diff <base> > /tmp/change.diff &&
+cargo mutants --in-diff /tmp/change.diff`. Stryker: `--mutate <files>`. A
+survivor is a hole only when you can name the regression it lets through; close
+those and leave the rest.
