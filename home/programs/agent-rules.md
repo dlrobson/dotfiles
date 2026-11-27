@@ -7,6 +7,19 @@ output (e.g. GitHub's "Create a pull request" hint line), not just on the first 
 ## Safety
 Never run `sudo`. Ask the user to run the privileged command themselves.
 
+## Tests
+
+Before writing or changing a test, or changing production code so a test can
+reach it, read the `test-design` skill and follow it.
+
+## Repetition
+
+Prefer one copy of a *fact* — a constant, a name, a format, an ordering — and
+derive the rest. Ask what change would have to be made in both places: name it,
+unify. If you cannot name it, the two are not repetition, and merging them earns
+a helper whose parameter means "which caller am I". A second copy can stay; the
+third is the signal.
+
 ## Comments
 
 A comment explains the code as it stands, to someone who never saw the previous
