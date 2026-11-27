@@ -15,6 +15,8 @@ concurrency:
 permissions:
   contents: write
   pull-requests: write
+  # Dispatching ci.yml needs actions: write.
+  actions: write
 
 jobs:
   update-pins:
@@ -37,10 +39,7 @@ jobs:
             git --no-pager diff -- npins/sources.json
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
-      # Validated here rather than by the pull request's own CI: a pull request
-      # opened with GITHUB_TOKEN triggers no workflows, so its CI would stay
-      # empty. Running the checks before opening also keeps an unbuildable bump
-      # from reaching a pull request at all.
+      # Gate: an unbuildable bump fails here and never reaches a pull request.
       - name: Check
         if: steps.diff.outputs.changed == 'true'
         run: nix-shell shell.nix --run check
@@ -75,3 +74,14 @@ jobs:
           gh pr create --base main --head "$branch" \
             --title "chore(deps): update pins" \
             --body "Scheduled \`update-pins\` run (\`npins upgrade && npins update\`). \`check\` and \`run-tests\` passed in the workflow run that opened this pull request."
+
+      # A pull request opened with GITHUB_TOKEN raises a pull_request event that
+      # GitHub holds as action_required, so the pull request's own CI would sit
+      # unapproved. workflow_dispatch is the exception: GITHUB_TOKEN can trigger
+      # it, and the run reports its checks on the branch's commit.
+      - name: Run CI on the branch
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run ci.yml --ref npins-update
