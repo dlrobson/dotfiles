@@ -1,6 +1,3 @@
 [
   ".direnv"
-  ".claude/settings.local.json"
-  ".claude/worktrees"
-  "CLAUDE.local.md"
 ]
