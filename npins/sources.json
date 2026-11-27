@@ -26,6 +26,19 @@
       "url": "https://github.com/nix-community/home-manager/archive/6480d7d8533b88c78cc6dcda395ab89cd546e450.tar.gz",
       "hash": "sha256-XYoMPsqRFZ6jOaYI1KAAu8fzqif4tkCX8mhEKrViDXQ="
     },
+    "mblode-agent-skills": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "mblode",
+        "repo": "agent-skills"
+      },
+      "branch": "main",
+      "submodules": false,
+      "revision": "f0b5cd4fc28a3598ecc01a8e480ea64c8a92d0c3",
+      "url": "https://github.com/mblode/agent-skills/archive/f0b5cd4fc28a3598ecc01a8e480ea64c8a92d0c3.tar.gz",
+      "hash": "sha256-yDwzbUKjo3GpPPuSpemiU8skU7Nx9IYb7jfN6OTk8oI="
+    },
     "nixGL": {
       "type": "Git",
       "repository": {

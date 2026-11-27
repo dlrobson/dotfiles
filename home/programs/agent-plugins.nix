@@ -47,7 +47,6 @@ in
     };
 
     enabled = [
-      "claude-md-management@claude-plugins-official-mirror"
       "claude-code-setup@claude-plugins-official-mirror"
       "plugin-dev@claude-plugins-official-mirror"
       "pr-review-toolkit@claude-plugins-official-mirror"

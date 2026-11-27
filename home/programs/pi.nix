@@ -57,12 +57,22 @@ let
     lib.filterAttrs (_: type: type == "directory") (builtins.readDir authoredSkillsDir)
   );
 
-  # Authored skills plus whatever a consuming deployment adds. Merged rather
-  # than replaced so a consumer cannot drop the shared ones by setting the
-  # option. Each is symlinked into Pi's conventional `<agent-dir>/skills/`,
+  # Third-party skills, linked straight from their pins. Pi stops descending at
+  # the first directory holding `SKILL.md`, so anything a skill ships below its
+  # root (`agents-md` keeps eval fixtures with their own `SKILL.md` files there)
+  # is never discovered as a separate skill.
+  vendoredSkills = {
+    # Audits and refactors AGENTS.md files against the repo: verifies commands
+    # and paths, holds a size budget, and cuts lines that prevent no mistake.
+    agents-md = "${sources.mblode-agent-skills}/skills/agents-md";
+  };
+
+  # Authored and vendored skills plus whatever a consuming deployment adds.
+  # Merged rather than replaced so a consumer cannot drop the shared ones by
+  # setting the option. Each is symlinked into Pi's conventional `<agent-dir>/skills/`,
   # which makes `home.file` the GC root of the generation, rather than listing
   # store paths in `settings.json`.
-  allSkills = authoredSkills // cfg.skills;
+  allSkills = authoredSkills // vendoredSkills // cfg.skills;
 
   # Agent definitions for the `pi-subagents` extension, authored under
   # `./pi/agents/` as flat Markdown files. Flat rather than a directory per
