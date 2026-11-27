@@ -1,19 +1,18 @@
 ---
 name: test-design
-description: Decide what to test and how — what a test may reach, what to double, and when to stop adding tests. Use when writing or changing tests, making code testable, adding a call to the clock, network, filesystem, environment, randomness or another process, choosing what to mock, stub or fake, or fixing a flaky test. Not for running a suite or debugging a CI failure.
+description: Decide what to test and how — what a test may reach, what to double, and when to stop adding tests. Use when writing or changing tests, making code testable, adding a call to the clock, network, filesystem, environment, randomness or another process, choosing what to mock, stub or fake, or fixing a flaky test. Not for running a suite or debugging a CI failure that is not flakiness.
 ---
 
 # Test design
-
-These rules bind the test and the production change that makes it possible. The
-temptation is to break them from the production side, so start there.
 
 ## Ask before testing grows the change
 
 Tests that fit the change go with it, without asking. Ask the user first when
 good testing would cost more than the change itself:
 
-- production code needs a new seam or a redesign before it can be tested;
+- production code needs a new seam or a redesign before it can be tested, in
+  code the change does not otherwise touch (a clock or client parameter on the
+  function you are writing is part of the change);
 - the right test needs infrastructure the repository lacks, such as an
   integration harness or a conformance suite;
 - the code the change touches has no tests, and pinning it first is worth it.
@@ -42,24 +41,26 @@ public API. Reach the code without widening it, in this order:
 
 1. **Use what is already public.** Arrange and observe through an entry point
    real callers use.
-2. **Reach it from inside.** A unit test in the same package or module sees what
-   the file sees, with no visibility change: Rust `#[cfg(test)] mod`, Go
-   same-package `_test.go`. TypeScript has no same-package test scope, so a
-   separate test file sees only exports. Test through the public interface, put
-   the test in the module file, or change the design. Do not export for the
-   test.
+2. **Reach it from inside.** A test inside the module may call the module's
+   internal interface: unexported items that other code in the module calls.
+   Rust: a `#[cfg(test)] mod` in the same file. TypeScript has no module-private
+   test scope, so a separate test file sees only exports. Where the repository
+   uses Vitest, an in-source test (`if (import.meta.vitest)`, stripped from the
+   build by `define`) is inside the module. Under Jest or `node:test` a test in
+   the module file ships with it, so test through the public interface instead.
 3. **Change the design.** If neither works, the seam is in the wrong place. Move
    the seam; do not publish it. A redesign grows the change, so ask first.
 
 A build tag or feature flag that exports the code only to tests is still a
-second API, maintained and unversioned. It counts as widening.
+second API, maintained and unversioned. It counts as widening. So does a
+production branch that checks for a test run (`cfg!(test)`,
+`NODE_ENV === 'test'`).
 
 ## Test through the public interface of the module under test
 
 A test names a behaviour and asserts on what a caller observes. It does not name
-a private helper, a call sequence, or an internal field. A refactor that keeps
-behaviour keeps the test passing. If a rename or a split turns the test red, the
-test was pinned to the implementation and has to be rewritten for nothing.
+a helper only one function calls, a call sequence, or an internal field. A
+refactor that keeps behaviour keeps the test passing.
 
 Interaction assertions are implementation tests unless the interaction *is* the
 contract (a record written exactly once, a payment sent once). When it is the
@@ -93,9 +94,9 @@ The seam is that interface, not a patched library global: a patched global
 doubles every user of it and hides the dependency from the type.
 
 Declare the interface your code needs, not the library's API. A port that copies
-`httpx.Client` or `pgx.Conn` buys the boilerplate without the decoupling, and
-still drifts when the library changes. One operation with your own types is the
-usual size, and it is worth declaring only where you were about to double
+`httpx.Client` or `reqwest::Client` buys the boilerplate without the decoupling,
+and still drifts when the library changes. One operation with your own types is
+the usual size, and it is worth declaring only where you were about to double
 something anyway.
 
 If a double of an external dependency is not obvious to write, do not write it.
@@ -106,10 +107,8 @@ with none of its tests. Do not double the thing under test.
 
 ## A double with behaviour owes a conformance test
 
-A double claims to behave like the real thing, and nothing tests the claim. Drift
-is then silent in both directions: the double keeps the test green while
-production changes underneath it, or the test passes against a fake that was
-never right.
+Nothing tests a double's claim to behave like the real thing, so drift is
+silent.
 
 A double that only returns what the test hands it — a fixed clock, a seeded
 random source, a canned response — claims nothing, so it needs no conformance
@@ -122,12 +121,9 @@ expectation of real output, and say what the evidence was.
 
 ## Each test owns its state
 
-A test that depends on another test's leftovers is flaky by construction.
-
 - Create the owned dependencies the test needs — a temp directory, a fresh
-  database, a new fake — and remove them in teardown, even when the test fails.
-- Reset or recreate mutable globals and singletons per test rather than sharing
-  them between tests.
+  database — and any fakes, and remove them in teardown, even when the test
+  fails.
 - Poll for the condition, or advance the clock seam, instead of sleeping for a
   fixed time. A test that waits 100 ms fails on a slow machine.
 - A flaky test is a bug. Find the variance (time, randomness, shared state,
@@ -140,8 +136,14 @@ holds whatever the code does — a tautology, an assertion on the stub you just
 configured, a snapshot nobody reads — reports safety that is not there, and is
 worse than no test. Delete it or fix it.
 
+When an existing test goes red after your change, first decide whether the
+behaviour was meant to change. If it was, update the assertion and say so in
+your summary. If not, fix the code. Never loosen an assertion, re-record a
+snapshot, or skip or ignore a test only to get green.
+
 For a load-bearing test, make it fail once on purpose: break the code, watch it
 go red.
 
-Where the repository has a mutation tool (`cargo-mutants`, Stryker, PIT, mutmut),
-run it on the changed files and read survivors as holes.
+Where the repository has a mutation tool, run it on the change only
+(`cargo mutants --in-diff`, Stryker `--mutate <files>`) and read survivors as
+holes. A run over the whole crate or package can take hours.

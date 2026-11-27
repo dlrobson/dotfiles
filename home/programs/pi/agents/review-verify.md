@@ -3,7 +3,7 @@ name: review-verify
 description: Verifies the findings of a change review against the change itself — that the claimed failure can actually occur, that cited lines exist and say what is claimed, and that quoted repository rules are real — returning a verdict per finding. Read-only, and not for finding new defects. Launched by the reviewing-changes skill, one verifier per finding, or per file when there are many, once the review passes have merged. Receives only Critical and Important findings.
 tools: read, grep, find, ls
 inheritProjectContext: true
-skills: reviewing-changes
+skills: reviewing-changes, test-design
 acceptanceRole: read-only
 ---
 
@@ -59,7 +59,8 @@ anchored to the change. Spend your effort below.
 - **Does the cited line say what the finding claims?** A real defect described at
   the wrong line sends the reader to the wrong place. Correct it.
 - **Does the quoted rule say what the finding claims?** Read it in the
-  repository's `AGENTS.md` or `CLAUDE.md`. A rule that says something narrower
+  repository's `AGENTS.md` or `CLAUDE.md`, or, for a `[tests]` finding, in the
+  `test-design` skill loaded with you. A rule that says something narrower
   refutes the part of the finding resting on it.
 - **Is the severity right?** Severity is impact. A real defect needing conditions
   nothing can produce is not Critical, and a rule the repository states
