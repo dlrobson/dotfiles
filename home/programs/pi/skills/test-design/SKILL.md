@@ -5,21 +5,24 @@ description: Decide what to test and how — what a test may reach, what to doub
 
 # Test design
 
-## Ask before testing grows the change
+## Do the testing; propose what outgrows the change
 
-Tests that fit the change go with it, without asking. Ask the user first when
-good testing would cost more than the change itself:
+Do the testing the change needs without asking. That includes a small seam that
+makes the code testable: a parameter with a default that leaves existing callers
+unchanged, such as `sleep=time.sleep` or `now = Date.now`. Do not stop to ask
+about testing with the change undone.
 
-- production code needs a new seam or a redesign before it can be tested, in
-  code the change does not otherwise touch (a clock or client parameter on the
-  function you are writing is part of the change);
-- the right test needs infrastructure the repository lacks, such as an
-  integration harness or a conformance suite;
-- the code the change touches has no tests, and pinning it first is worth it.
+Leave out testing that would cost more than the change itself, and propose it
+in your summary instead:
 
-Say what you would add, the regression it prevents, and roughly how large it is.
-If no one can answer (a non-interactive run), make the change without it and
-list the proposal in your summary.
+- redesigning code the change does not otherwise touch;
+- infrastructure the repository lacks, such as an integration harness or a
+  conformance suite;
+- pinning untested code the change touches, when that is larger than the
+  change.
+
+For each, say what you would add, the regression it prevents, and roughly how
+large it is.
 
 ## Start with a budget
 
@@ -49,12 +52,16 @@ public API. Reach the code without widening it, in this order:
    build by `define`) is inside the module. Under Jest or `node:test` a test in
    the module file ships with it, so test through the public interface instead.
 3. **Change the design.** If neither works, the seam is in the wrong place. Move
-   the seam; do not publish it. A redesign grows the change, so ask first.
+   the seam; do not publish it. A redesign of code the change does not
+   otherwise touch outgrows the change, so propose it instead.
 
 A build tag or feature flag that exports the code only to tests is still a
 second API, maintained and unversioned. It counts as widening. So does a
 production branch that checks for a test run (`cfg!(test)`,
 `NODE_ENV === 'test'`).
+
+When the user explicitly asks to widen ("just export it"), do it. Mention in one
+line how the code could be tested without widening.
 
 ## Test through the public interface of the module under test
 
