@@ -66,13 +66,6 @@ in
             "Skill(code-review)"
             "Skill(simplify)"
             "Skill(verify)"
-            "Skill(pr-review-toolkit:review-pr)"
-            "Agent(pr-review-toolkit:code-reviewer)"
-            "Agent(pr-review-toolkit:code-simplifier)"
-            "Agent(pr-review-toolkit:comment-analyzer)"
-            "Agent(pr-review-toolkit:pr-test-analyzer)"
-            "Agent(pr-review-toolkit:silent-failure-hunter)"
-            "Agent(pr-review-toolkit:type-design-analyzer)"
           ];
         };
         attribution = {
@@ -99,14 +92,11 @@ in
             SessionStart = direnvExport;
             CwdChanged = direnvExport;
           };
-        # Declared in `agent-plugins.nix`.
-        enabledPlugins = lib.genAttrs config.agentPlugins.enabled (_: true);
       };
-      inherit (config.agentPlugins) marketplaces;
     };
 
     home = {
-      # These three are all fully derived from settings above, so always
+      # These two are fully derived from settings above, so always
       # overwrite rather than backing up (avoids "would be clobbered"
       # failures when a stale real file/.backup already exists — this bit
       # settings.json specifically: a pre-existing real file at that path,
@@ -116,7 +106,6 @@ in
       # home-manager-admin.service journal) instead of failing loudly, so
       # config changes there never actually took effect).
       file = {
-        "${config.programs.claude-code.configDir}/plugins/known_marketplaces.json".force = true;
         "${config.home.homeDirectory}/.claude/CLAUDE.md".force = true;
         "${config.home.homeDirectory}/.claude/settings.json".force = true;
       };

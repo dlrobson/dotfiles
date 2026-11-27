@@ -1,18 +1,5 @@
 {
   "pins": {
-    "claude-plugins-official": {
-      "type": "Git",
-      "repository": {
-        "type": "GitHub",
-        "owner": "anthropics",
-        "repo": "claude-plugins-official"
-      },
-      "branch": "main",
-      "submodules": false,
-      "revision": "0fbfda5a91f4adc311daca25acc99132f40f0b6e",
-      "url": "https://github.com/anthropics/claude-plugins-official/archive/0fbfda5a91f4adc311daca25acc99132f40f0b6e.tar.gz",
-      "hash": "sha256-J9pxacOMDz6wEHJHo5d0JhLfR/95hhJwUz1RmHqRvcI="
-    },
     "home-manager": {
       "type": "Git",
       "repository": {
