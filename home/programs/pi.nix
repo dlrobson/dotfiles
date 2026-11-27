@@ -94,9 +94,9 @@ let
   allAgents = authoredAgents // cfg.agents;
 
   # MCP servers this repo ships, always present in `mcp.json`. `mcp-nixos` is
-  # the same server the Claude Code `nix` plugin runs, but taken from nixpkgs
-  # rather than launched through `uvx`, so it needs no `uv`, Python or network
-  # at runtime and no `PATH` entry — the store path is the command. Unstable,
+  # the same server `claude.nix` gives Claude Code, taken from nixpkgs rather
+  # than launched through `uvx`, so it needs no `uv`, Python or network at
+  # runtime and no `PATH` entry — the store path is the command. Unstable,
   # like Pi itself: the server moves quickly and the stable channel lags it by a
   # major version.
   #

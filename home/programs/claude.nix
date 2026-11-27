@@ -1,6 +1,5 @@
 {
   config,
-  pkgs,
   lib,
   ...
 }:
@@ -24,6 +23,11 @@ in
       # behind this `mkIf cfg.enable` — disabled Claude Code would otherwise
       # blank the context Pi reads.
       context = ./agent-rules.md;
+      # The same `mcp-nixos` server Pi ships, from nixpkgs rather than `uvx`, so
+      # it needs no `uv`, Python or network at runtime. Home Manager serves
+      # these servers from a generated `claude-code-home-manager` plugin, which
+      # is why its tools are named `mcp__plugin_claude-code-home-manager_*`.
+      mcpServers.nixos.command = lib.getExe config.unstablePkgs.mcp-nixos;
       settings = {
         # Flicker-free alt-screen renderer with virtualized scrollback
         # (equivalent to CLAUDE_CODE_NO_FLICKER=1; toggle live via /tui).
@@ -53,7 +57,7 @@ in
           allow = [
             "Bash(git fetch *)"
             "Bash(git pull *)"
-            "mcp__plugin_nix_mcp-nixos__nix"
+            "mcp__plugin_claude-code-home-manager_nixos__nix"
             "WebFetch(domain:tailscale.com)"
             "WebFetch(domain:mynixos.com)"
             "WebFetch(domain:codeload.github.com)"
@@ -76,6 +80,25 @@ in
           pr = "";
           sessionUrl = false;
         };
+        # Loads the project's direnv environment into every Bash command,
+        # re-exported on a directory change so it follows `cd`.
+        hooks =
+          let
+            direnvExport = [
+              {
+                hooks = [
+                  {
+                    type = "command";
+                    command = ''${lib.getExe config.programs.direnv.package} export bash > "$CLAUDE_ENV_FILE"'';
+                  }
+                ];
+              }
+            ];
+          in
+          {
+            SessionStart = direnvExport;
+            CwdChanged = direnvExport;
+          };
         # Declared in `agent-plugins.nix`.
         enabledPlugins = lib.genAttrs config.agentPlugins.enabled (_: true);
       };
@@ -116,15 +139,6 @@ in
         "${config.home.homeDirectory}/.claude/CLAUDE.md".force = true;
         "${config.home.homeDirectory}/.claude/settings.json".force = true;
       };
-
-      # Runtime deps for the `nix` plugin's mcp-nixos server, which launches
-      # via `UV_PYTHON=$(which python3) uvx mcp-nixos`
-      # (see plugin-marketplace/plugins/nix/.mcp.json). uvx runs the server;
-      # python3 is the interpreter uv builds its environment against.
-      packages = [
-        pkgs.uv
-        pkgs.python3
-      ];
 
       sessionPath = [
         "${config.home.homeDirectory}/.npm-global/bin"

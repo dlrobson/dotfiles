@@ -1,10 +1,6 @@
 { lib, ... }:
 let
   sources = import ../../pins.nix;
-  pluginMarketplace = sources.plugin-marketplace;
-  localMarketplaceManifest = builtins.fromJSON (
-    builtins.readFile "${pluginMarketplace}/.claude-plugin/marketplace.json"
-  );
 in
 {
   # Single declaration site for the Claude Code plugin marketplaces and the
@@ -43,17 +39,12 @@ in
       # set (exact string match, not a substring/pattern check) works.
       # https://github.com/anthropics/claude-code/issues/18329
       claude-plugins-official-mirror = sources.claude-plugins-official;
-      dlrobson-plugins = pluginMarketplace;
     };
 
     enabled = [
       "claude-code-setup@claude-plugins-official-mirror"
       "plugin-dev@claude-plugins-official-mirror"
       "pr-review-toolkit@claude-plugins-official-mirror"
-    ]
-    # Enable every plugin listed in the local marketplace's manifest
-    # automatically, so new plugins added to that repo don't need listing here
-    # by hand.
-    ++ map (plugin: "${plugin.name}@dlrobson-plugins") localMarketplaceManifest.plugins;
+    ];
   };
 }
