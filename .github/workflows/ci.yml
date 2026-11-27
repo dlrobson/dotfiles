@@ -2,7 +2,16 @@ name: CI
 on:
   push:
     branches: [main]
+    # A pin bump names only npins/sources.json, and the npins update job runs
+    # these same commands before it merges. Its own push creates no workflow run
+    # (GITHUB_TOKEN), and it dispatches this workflow after merging instead.
+    paths-ignore:
+      - npins/sources.json
   pull_request:
+    # Same file, same reason: the bump pull request is merged by the job that
+    # opened it, so a run here would start against a branch that is already gone.
+    paths-ignore:
+      - npins/sources.json
   workflow_dispatch:
 
 jobs:
