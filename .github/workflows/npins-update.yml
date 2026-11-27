@@ -18,6 +18,8 @@ concurrency:
 permissions:
   contents: write
   pull-requests: write
+  # Dispatching ci.yml needs actions: write.
+  actions: write
 
 jobs:
   update-pins:
@@ -93,8 +95,7 @@ jobs:
 
           # Merge here rather than through auto-merge: main requires no status
           # checks, so auto-merge would merge before anything had run. The check
-          # and test steps above are the gate, and the push to main runs ci.yml
-          # on the merged commit.
+          # and test steps above are the gate.
           #
           # Mergeability is computed asynchronously after the push, so the first
           # attempt can fail on a pull request that is still being evaluated.
@@ -106,3 +107,13 @@ jobs:
           done
           echo "Could not merge $pr." >&2
           exit 1
+
+      # A merge made with GITHUB_TOKEN creates no workflow run, so the push that
+      # landed above would leave main's tip untested. workflow_dispatch is the
+      # one event GITHUB_TOKEN is allowed to raise.
+      - name: Run CI on main
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run ci.yml --ref main
