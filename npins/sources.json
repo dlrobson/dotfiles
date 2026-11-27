@@ -48,9 +48,9 @@
       },
       "branch": "release-26.05",
       "submodules": false,
-      "revision": "65a254931dad3198577698c6bf74275948e2b13c",
-      "url": "https://github.com/NixOS/nixpkgs/archive/65a254931dad3198577698c6bf74275948e2b13c.tar.gz",
-      "hash": "sha256-moGjRrJBzV6TPoA3CPoyeZTSUltGom0TR4ilJXNPJk0="
+      "revision": "2ced669bc364aaadc953d5891c0d3edb6f521a00",
+      "url": "https://github.com/NixOS/nixpkgs/archive/2ced669bc364aaadc953d5891c0d3edb6f521a00.tar.gz",
+      "hash": "sha256-Gja9/QSid9d+cZFxkfouWo1V75Sm04sSFXQ9ZpwERXs="
     },
     "nixpkgs-unstable": {
       "type": "Git",
@@ -76,10 +76,10 @@
       "version_upper_bound": null,
       "release_prefix": null,
       "submodules": false,
-      "version": "v0.17.5",
-      "revision": "366c9d028b732296fb624101af7ee1e02dda712f",
-      "url": "https://api.github.com/repos/getpaseo/paseo/tarball/refs/tags/v0.17.5",
-      "hash": "sha256-JnfKWg/ti8Jyfbh0SQUTqFXhLI7A9T9NUyEkRAkPe9k="
+      "version": "v0.17.6",
+      "revision": "514c69da158e7bf293252991b1e635c96cf6cb17",
+      "url": "https://api.github.com/repos/getpaseo/paseo/tarball/refs/tags/v0.17.6",
+      "hash": "sha256-B6dRub4s10yF7o7pAEIMXh3F3xWwJi5Z64xICkmhWg0="
     },
     "pi-subagents": {
       "type": "GitRelease",
