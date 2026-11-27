@@ -71,6 +71,11 @@ let
   # daemon reads it, so the desktop derivation does not take this patch.
   daemonPatches = [ ./patches/paseo-inject-mcp-flag.patch ];
 
+  # The lock without the optional platform binaries for other hosts, which
+  # importNpmLock would otherwise fetch and carry in `npmDeps`. See that file
+  # for the rule and why it needs no maintenance.
+  npmLock = config.unstablePkgs.callPackage ./paseo-npm-lock.nix { };
+
   paseo =
     (config.unstablePkgs.callPackage "${sources.paseo}/nix/package.nix" {
       buildNpmPackage =
@@ -82,6 +87,7 @@ let
             npmDeps = config.unstablePkgs.importNpmLock {
               npmRoot = args.src;
               package = npmPackage args.src;
+              packageLock = npmLock args.src;
             };
             inherit (config.unstablePkgs.importNpmLock) npmConfigHook;
           }
