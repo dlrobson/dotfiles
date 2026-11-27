@@ -28,6 +28,10 @@ in
       # these servers from a generated `claude-code-home-manager` plugin, which
       # is why its tools are named `mcp__plugin_claude-code-home-manager_*`.
       mcpServers.nixos.command = lib.getExe config.unstablePkgs.mcp-nixos;
+      # The testing rules are one skill both harnesses read. Pi builds the same
+      # directory from `./pi/skills/` (it needs the build step to carry
+      # `pi-docs/`); here the source directory is linked as-is.
+      skills.test-design = ./pi/skills/test-design;
       settings = {
         # Flicker-free alt-screen renderer with virtualized scrollback
         # (equivalent to CLAUDE_CODE_NO_FLICKER=1; toggle live via /tui).
