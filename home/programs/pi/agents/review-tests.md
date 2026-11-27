@@ -62,9 +62,8 @@ question — a line can run in every test and still be unpinned.
 - **async and concurrent behavior**, where the change makes claims about
   ordering or state.
 
-**Severity.** A broken `test-design` rule is a repository rule. "Never widen the
-production API for a test" and "A test must be able to fail" are Critical; every
-other `test-design` rule is Important. A coverage gap is Important when a regression in that
+**Severity.** A broken `test-design` rule is a repository rule, graded as the
+shared contract says for `test-design`. A coverage gap is Important when a regression in that
 behaviour would reach users unnoticed, or when an existing test still asserts
 the old contract. Any other gap is a Suggestion.
 

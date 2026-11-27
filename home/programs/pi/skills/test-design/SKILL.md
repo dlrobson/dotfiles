@@ -72,13 +72,14 @@ is the seam *Ambient dependencies* asks for, not widening. Widening exposes
 internals — a helper, a field, state — so a test can reach them.
 
 When the user explicitly asks to widen ("just export it"), do it. Mention in one
-line how the code could be tested without widening, and note the request in the
-commit message, where a review will see it.
+line how the code could be tested without widening, and note the request in
+your summary and the commit message, so a review can see it was asked for.
 
 ## Test through the public interface of the module under test
 
 A test names a behaviour and asserts on what a caller observes. It does not name
-a helper only one function calls, a call sequence, or an internal field. A
+a helper only one function calls, a call sequence, or an internal field. A seam
+that takes a dependency, such as `foo_with(clock)`, is not a helper. A
 refactor that keeps behaviour keeps the test passing.
 
 Interaction assertions are implementation tests unless the interaction *is* the
@@ -121,8 +122,9 @@ something anyway.
 If a double of an external dependency is not obvious to write, do not write it.
 Test against the real one in an integration test instead.
 
-Do not double your own code. A double of your own module is a copy of its logic
-with none of its tests.
+Do not double your own logic. A double of your own module is a copy of its
+logic with none of its tests. A double of an interface you declared for an
+external dependency, such as a fake `Clock`, is the exception.
 
 ## A double with behaviour owes a conformance test
 
@@ -137,6 +139,10 @@ Write one behaviour suite and run it against two subjects — the real
 implementation and the double. Where the real one cannot run in a test (a paid
 API, a USB device), run the suite against a recording or a stated
 expectation of real output, and say what the evidence was.
+
+If the conformance suite would outgrow the change, do not write the fake. Use a
+double that only returns what the test hands it, or the real dependency in an
+integration test.
 
 ## Each test owns its state
 
@@ -162,10 +168,12 @@ behaviour was meant to change. If it was, update the assertion and say so in
 your summary. If not, fix the code. Never loosen an assertion, re-record a
 snapshot, or skip or ignore a test only to get green.
 
-For a load-bearing test, make it fail once on purpose: break the code, watch it
-go red.
+When you can run the tests, watch a load-bearing test fail once. For a bug fix,
+write the regression test before the fix and run it against the old code. For
+new code, break the line the test covers, see it go red, then restore it. When
+you cannot run the tests, skip this; do not ask the user to do it.
 
-Where the repository has a mutation tool, run it on the change only
-(`git diff <base>... > /tmp/change.diff && cargo mutants --in-diff
+Where the repository has a mutation tool, commit the change, then run the tool
+on the change only (`git diff <base>... > /tmp/change.diff && cargo mutants --in-diff
 /tmp/change.diff`, Stryker `--mutate <files>`) and read survivors as
 holes. A run over the whole crate or package can take hours.
