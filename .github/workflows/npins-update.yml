@@ -56,16 +56,32 @@ jobs:
           set -euo pipefail
 
           branch=npins-update
-          git config user.email "actions@github.com"
-          git config user.name "GitHub Actions"
-          git checkout -B "$branch"
-          git add npins/sources.json
-          git commit -m "chore(deps): update pins"
-          git push origin "$branch" --force
+          path=npins/sources.json
 
-          # One branch per bump, force-pushed, so a run that lands while a
-          # previous pull request is still open updates that pull request rather
-          # than failing on the push.
+          # The branch is moved to main's tip and the bumped file committed
+          # through the contents API. An equivalent `git push` is refused with
+          # "refusing to allow a GitHub App to create or update workflow
+          # .github/workflows/npins-update.yml without workflows permission":
+          # this token is a GitHub App, and `workflows` is not a permission it
+          # can be granted. The API commit names one path, so no workflow file
+          # is part of the change.
+          main_sha="$(gh api "repos/$GH_REPO/git/ref/heads/main" --jq .object.sha)"
+          if gh api "repos/$GH_REPO/git/ref/heads/$branch" >/dev/null 2>&1; then
+            gh api -X PATCH "repos/$GH_REPO/git/refs/heads/$branch" \
+              -f sha="$main_sha" -F force=true >/dev/null
+          else
+            gh api -X POST "repos/$GH_REPO/git/refs" \
+              -f ref="refs/heads/$branch" -f sha="$main_sha" >/dev/null
+          fi
+
+          gh api -X PUT "repos/$GH_REPO/contents/$path" \
+            -f message="chore(deps): update pins" \
+            -f content="$(base64 -w0 "$path")" \
+            -f branch="$branch" \
+            -f sha="$(gh api "repos/$GH_REPO/contents/$path?ref=$branch" --jq .sha)" >/dev/null
+
+          # One branch per bump, so a run that lands while a previous pull
+          # request is still open updates that pull request.
           pr="$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')"
           if [ -n "$pr" ]; then
             echo "Updated the existing open pull request #$pr."
