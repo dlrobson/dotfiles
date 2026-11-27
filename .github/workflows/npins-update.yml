@@ -26,9 +26,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # No `nix_path`: `shell.nix` resolves every input through `pins.nix`, so
+      # a stray `<nixpkgs>` lookup fails here instead of resolving to whatever
+      # channel the action installed.
       - uses: cachix/install-nix-action@v27
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
       - name: Update pins
         run: nix-shell shell.nix --run update-pins
       - name: Detect pin changes
