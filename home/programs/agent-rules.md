@@ -9,9 +9,18 @@ Never run `sudo`. Ask the user to run the privileged command themselves.
 
 ## Tests
 
-Before writing or changing a test, changing production code so a test can reach
-it, or adding a call to an ambient dependency (anything code reaches without
-being passed it), read the `test-design` skill and follow it.
+Before fixing a bug, writing or changing a test, changing production code so a
+test can reach it, or adding a call to an ambient dependency (anything code
+reaches without being passed it), read the `test-design` skill and follow it.
+
+## Build the minimum
+
+Everything you expose is something users can depend on and you must keep
+supporting: a public function, a field, a flag, a config option, an endpoint.
+Build and expose only what the request needs now. Do not add options,
+parameters, or extension points for needs nobody has stated; a seam the
+`test-design` skill asks for is a stated need. If you expect one will be
+needed, say so in your summary instead.
 
 ## Repetition
 
