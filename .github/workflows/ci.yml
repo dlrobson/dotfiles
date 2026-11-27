@@ -37,11 +37,11 @@ jobs:
       - uses: cachix/install-nix-action@v27
       # cache.nixos.org has neither the unfree packages (vscode, claude-code)
       # nor the npm tarballs paseo pulls in, so every run without this built
-      # 1726 derivations: a measured 17m37s for the Test step, against 70s when
+      # 1726 derivations: a measured 17m37s for the Test step, against 50s when
       # those paths come from a cache. Keyed on the pins, because they are what
       # moves those derivations; a code-only commit restores the same snapshot,
       # and a pin bump restores the previous one by prefix and builds the churn.
-      # A snapshot runs to 7.6GB and GitHub allows 10GB per repo, so main saves.
+      # A snapshot is 5.5GB of the 10GB GitHub allows per repo, so main saves.
       - name: Restore the Nix store
         uses: nix-community/cache-nix-action@v7
         with:
