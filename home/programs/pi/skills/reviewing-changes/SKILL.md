@@ -70,7 +70,7 @@ Mechanically, from the change itself:
 | Approach | `review-approach` | The change adds a mechanism rather than fixing one: a new module, abstraction, or file; new public surface (an exported API, config option, CLI flag, module option); a new dependency or pin; or it is large relative to the purpose it states. Skip for fixes, edits to existing behavior, renames, version bumps, and docs. |
 | General | `review-general` | Always. It also covers comments that contradict the code. |
 | Silent failures | `review-silent` | The change contains runtime logic: it adds or alters a branch, loop, early exit, handler, default, cap, or filter, updates state, or reads a value from input or configuration. Not docs, comments, formatting, dependency pins, or test-only changes. |
-| Tests | `review-tests` | The change alters behavior tests are meant to pin — logic, branches, validation, output — touches test files, or adds or changes a call to an ambient dependency (clock, network, filesystem, randomness, environment, another process). Not docs, comments, formatting, dependency pins, or config values. |
+| Tests | `review-tests` | The change alters behavior tests are meant to pin — logic, branches, validation, output — touches test files, or adds or changes a call to an ambient dependency (as the `test-design` skill defines it). Not docs, comments, formatting, dependency pins, or config values. |
 
 Judge behavior by reading the diff, not by matching file extensions or assuming
 a language.
