@@ -28,8 +28,9 @@ binds the production change as well as the test. Each of its rules the change
 breaks is a finding; name the rule's heading in the title. Judge only what the
 diff shows:
 
-- Skip "Ask before testing grows the change": it governs the conversation,
-  which you cannot see.
+- Skip "Do the testing; propose what outgrows the change": it governs the
+  agent's summary, which you cannot see.
+- A widening the task says the user asked for is not a finding.
 - From "A test must be able to fail", judge whether an assertion can fail. You
   cannot see whether the test was run red or mutated.
 
