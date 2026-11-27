@@ -9,10 +9,9 @@ Never run `sudo`. Ask the user to run the privileged command themselves.
 
 ## Tests
 
-Before a non-trivial change, or before writing or changing a test, or changing
-production code so a test can reach it, or adding a call that leaves the process
-(clock, network, filesystem, randomness, environment, another process), read the
-`test-design` skill and follow it.
+Before writing or changing a test, changing production code so a test can reach
+it, or adding a call to an ambient dependency (anything code reaches without
+being passed it), read the `test-design` skill and follow it.
 
 ## Repetition
 

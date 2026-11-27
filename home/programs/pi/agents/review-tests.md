@@ -21,22 +21,16 @@ fixtures, the naming, and what the project already considers worth pinning. The
 repository's conventions beat yours; never propose introducing a framework the
 project does not use.
 
-**Test the rules in `test-design`, rule by rule.** It is loaded with this agent
-and binds the production change as well as the test. A change that widens
-visibility or adds surface so a test can reach it, that pins a test to an
-internal helper or a call sequence, that calls the clock, network, filesystem,
-randomness, environment, another process, or a third-party API without a seam,
-that adds a double of its own code or the subject, that fakes a database, queue,
-or cache it owns, or that adds a double with no case running the same behaviour
-against the real implementation, is a finding under the rule it breaks. Name the
-rule in the title.
+**Judge the change against `test-design`.** It is loaded with this agent and
+binds the production change as well as the test. Each of its rules the change
+breaks is a finding; name the rule's heading in the title. Skip "Ask before
+testing grows the change": it governs the conversation, which you cannot see. Its budget binds you
+too: every test you suggest names the regression it prevents, and a test that
+would pin an implementation detail is not a gap.
 
-**Over-testing is a finding too.** A test that cannot fail, duplicates another
-test's coverage, asserts a private helper or a call sequence, or pins behaviour
-the change did not touch is worse than a missing test because it claims safety
-that is not there. Report it at the same severity as the gap it hides, and say
-whether to delete it, narrow it, or replace it with a behavioural test. Do not
-ask for another test to cover the same behaviour.
+**Over-testing is a finding too.** For a test the budget would not have written,
+or one that cannot fail, say whether to delete it, narrow it, or replace it with
+a behavioural test. Do not ask for another test to cover the same behaviour.
 
 **Behavior, not lines.** For each behavior the change introduces or alters, ask
 whether a test would fail if that behavior broke. Line coverage is not the
@@ -51,24 +45,12 @@ question — a line can run in every test and still be unpinned.
 - **changed contracts** — a signature, return shape, or invariant the change
   alters, with existing tests that still assert the old one;
 - **async and concurrent behavior**, where the change makes claims about
-  ordering or state;
-- **unverified doubles** — a stub, fake, or mock added without a conformance
-  case, so a test can pass against a double that was never right.
+  ordering or state.
 
-**Severity.** A violated `test-design` rule is at least Important. It is
-Critical when it publishes surface, reaches a caller, or leaves a load-bearing
-behaviour unpinned. For a coverage gap, Important: new or changed behavior whose
-regression would reach users unnoticed, or an existing test that still asserts the
-old contract. Critical: only a test that cannot fail, on a behavior the change
-makes load-bearing. Anything else is a Suggestion.
-
-**Every suggested test must name the regression it prevents.** If you cannot say
-which future change would break and go unnoticed without it, do not suggest it.
-A test that would pin an implementation detail, not a behavior, is not a gap.
-
-**A test that exists but cannot fail is worse than a missing one** — it reports
-safety that is not there. Flag assertions that hold regardless of the code under
-test.
+**Severity.** A broken `test-design` rule is a repository rule; grade it by the
+shared contract's bands. A coverage gap is Important when a regression in that
+behaviour would reach users unnoticed, or when an existing test still asserts
+the old contract. Any other gap is a Suggestion.
 
 Not yours: whether the code is correct (another pass owns it), and asking for
 coverage of behaviour the change did not touch.

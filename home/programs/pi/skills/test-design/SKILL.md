@@ -1,6 +1,6 @@
 ---
 name: test-design
-description: Rules for when a test is worth writing, what it may reach, what must be doubled, and what a double must prove — a budget and a pre-code plan, no widening production visibility for a test, tests through the public interface, seams for the outside world, and a conformance test for every double. Use when adding or changing tests, when production code is about to change so a test can reach it, or when deciding what to fake, stub, or mock.
+description: Decide what to test and how — what a test may reach, what to double, and when to stop adding tests. Use when writing or changing tests, making code testable, adding a call to the clock, network, filesystem, environment, randomness or another process, choosing what to mock, stub or fake, or fixing a flaky test. Not for running a suite or debugging a CI failure.
 ---
 
 # Test design
@@ -8,40 +8,37 @@ description: Rules for when a test is worth writing, what it may reach, what mus
 These rules bind the test and the production change that makes it possible. The
 temptation is to break them from the production side, so start there.
 
-## Plan before the code
+## Ask before testing grows the change
 
-For a non-trivial change, write the test plan before the first production edit,
-in three lines:
+Tests that fit the change go with it, without asking. Ask the user first when
+good testing would cost more than the change itself:
 
-1. The behaviours the change adds or alters.
-2. The failure cases each behaviour needs.
-3. What you will not test, and why.
+- production code needs a new seam or a redesign before it can be tested;
+- the right test needs infrastructure the repository lacks, such as an
+  integration harness or a conformance suite;
+- the code the change touches has no tests, and pinning it first is worth it.
 
-Show the plan to the user. A reviewer can correct three lines faster than a diff.
-If the plan names no failure case, the change may not need a test. If it names
-ten, the change is too large. Split it, then plan again.
+Say what you would add, the regression it prevents, and roughly how large it is.
+If no one can answer (a non-interactive run), make the change without it and
+list the proposal in your summary.
 
 ## Start with a budget
 
 A test is worth its maintenance. Name the regression it prevents: the future
-change that would break and go unnoticed without it. If you cannot name one, do
-not write the test.
+change that would break and go unnoticed without it. If you cannot name one, the
+test is not worth writing.
 
 - One test per behaviour. A bug fix gets one regression test that fails on the
   old code. A new branch or error path gets a success case and a failure case.
-- A test that asserts five unrelated behaviours hides which one broke. Split it,
-  or name the one behaviour it pins.
-- No unit test for docs, comments, formatting, dependency bumps, generated code,
-  or wiring with no branch of its own. Wiring is covered once, end to end, where
-  the composition is the risk.
-- Coverage is not the goal. A line that runs in every test can still be
-  unpinned, and a test nobody would miss is maintenance with no return.
+- Docs, comments, formatting, dependency bumps, generated code, and wiring with
+  no branch of its own get no unit test. Wiring is covered once, end to end,
+  where the composition is the risk.
 
 ## Never widen the production API for a test
 
-A test is not a caller. Making something public so a test can see it publishes it
-to every real caller and has to be supported from then on. A method with one
-caller is still public API. Reach the code without widening it, in this order:
+Making something public so a test can see it publishes it to every real caller,
+and it has to be supported from then on. A method with one caller is still
+public API. Reach the code without widening it, in this order:
 
 1. **Use what is already public.** Arrange and observe through an entry point
    real callers use.
@@ -52,12 +49,10 @@ caller is still public API. Reach the code without widening it, in this order:
    the test in the module file, or change the design. Do not export for the
    test.
 3. **Change the design.** If neither works, the seam is in the wrong place. Move
-   the seam; do not publish it.
+   the seam; do not publish it. A redesign grows the change, so ask first.
 
 A build tag or feature flag that exports the code only to tests is still a
-second API, maintained and unversioned. Do not add one for this.
-
-"There was no other way" is a finding about the design, not a reason.
+second API, maintained and unversioned. It counts as widening.
 
 ## Test through the public interface of the module under test
 
@@ -75,16 +70,27 @@ point multiplies paths together and the suite becomes unaffordable, so each
 module is tested through its own interface and composed only where composition
 is the risk.
 
-## Double the outside world at a named seam
+## Ambient dependencies
 
-Anything whose behaviour leaves your system — the clock, the network, the
-filesystem, randomness, the environment, another process, a third-party API —
-appears in a unit test only as a double.
+An ambient dependency is anything code reaches without being passed it: the
+clock, randomness, the environment, the filesystem, the network, a database,
+another process. Which kind it is decides what the test does with it:
 
-Production code takes each through an interface it declares (a `Clock`, a
-`Store`, a client with a narrow surface) and the test supplies the double. The
-seam is that interface, not a patched library global: a patched global doubles
-every user of it and hides the dependency from the type.
+- **Owned** — your system owns it, and a test can create it, put it in a known
+  state, and throw it away: a database, queue, or cache only your system uses;
+  a directory the test creates. Use the real one. Its semantics (constraints,
+  isolation, locking) are what fakes get wrong, and faking it means asserting
+  the fake. Test that layer against the real engine in an integration test, and
+  keep the logic above it free of the dependency.
+- **External** — everything else: the clock, randomness, environment variables
+  (process-wide, so parallel tests see each other's), a third-party API, a
+  service or file another system owns. A unit test reaches it only through a
+  double, at a seam.
+
+Production code takes each external dependency through an interface it declares
+(a `Clock`, a client with a narrow surface) and the test supplies the double.
+The seam is that interface, not a patched library global: a patched global
+doubles every user of it and hides the dependency from the type.
 
 Declare the interface your code needs, not the library's API. A port that copies
 `httpx.Client` or `pgx.Conn` buys the boilerplate without the decoupling, and
@@ -92,47 +98,38 @@ still drifts when the library changes. One operation with your own types is the
 usual size, and it is worth declaring only where you were about to double
 something anyway.
 
-Double what leaves your system, not what leaves the process. A database, queue,
-or cache you own is out-of-process and internal, so its behaviour is yours to
-assert directly. Faking it means asserting the fake, and its semantics
-(constraints, isolation, locking) are what fakes get wrong. Test that layer
-against the real engine in an integration test and keep the logic above it clear
-of the dependency.
-
-If the fake is not obvious to write, do not write it. Geospatial queries,
-full-text search, and transaction isolation belong in integration tests.
+If a double of an external dependency is not obvious to write, do not write it.
+Test against the real one in an integration test instead.
 
 Do not double your own code. A double of your own module is a copy of its logic
 with none of its tests. Do not double the thing under test.
 
-## Every double owes a conformance test
+## A double with behaviour owes a conformance test
 
 A double claims to behave like the real thing, and nothing tests the claim. Drift
 is then silent in both directions: the double keeps the test green while
 production changes underneath it, or the test passes against a fake that was
 never right.
 
+A double that only returns what the test hands it — a fixed clock, a seeded
+random source, a canned response — claims nothing, so it needs no conformance
+test. One with its own behaviour, such as an in-memory fake of an API, does.
+
 Write one behaviour suite and run it against two subjects — the real
 implementation and the double. Where the real one cannot run in a test (a paid
-API, a USB device, a wall clock), run the suite against a recording or a stated
+API, a USB device), run the suite against a recording or a stated
 expectation of real output, and say what the evidence was.
-
-Keep doubles enumerable, one file or directory per seam, and add a test that
-fails when a double has no conformance case. A double nobody verifies is a stub
-with a good reputation.
 
 ## Each test owns its state
 
 A test that depends on another test's leftovers is flaky by construction.
 
-- Create what the test needs: a temp directory, a fresh database, a new fake.
-  Remove it in teardown, even when the test fails.
-- Do not share mutable globals, singletons, or a database between tests. Reset
-  or recreate them per test.
-- Do not depend on order. A test that passes alone and fails in the suite is a
-  bug in the test, not in the runner.
-- Never sleep for a fixed time. Poll for the condition, or advance the clock
-  seam. A test that waits 100 ms fails on a slow machine.
+- Create the owned dependencies the test needs — a temp directory, a fresh
+  database, a new fake — and remove them in teardown, even when the test fails.
+- Reset or recreate mutable globals and singletons per test rather than sharing
+  them between tests.
+- Poll for the condition, or advance the clock seam, instead of sleeping for a
+  fixed time. A test that waits 100 ms fails on a slow machine.
 - A flaky test is a bug. Find the variance (time, randomness, shared state,
   order, network) and remove it. Do not retry it green, and do not delete it.
 
@@ -144,26 +141,7 @@ configured, a snapshot nobody reads — reports safety that is not there, and is
 worse than no test. Delete it or fix it.
 
 For a load-bearing test, make it fail once on purpose: break the code, watch it
-go red. That is the cheapest proof, and it needs no tool.
+go red.
 
 Where the repository has a mutation tool (`cargo-mutants`, Stryker, PIT, mutmut),
-run it on the changed files and read survivors as holes. Keep full runs on a
-schedule.
-
-## Make a rule stick
-
-Prose persuades one turn. When a rule here keeps being broken, move that one into
-a mechanism:
-
-- **Visibility** — a public-API snapshot diff in CI (Rust `cargo public-api`, TS
-  API Extractor) turns new public surface into a reviewed change rather than a
-  side effect of a test.
-- **Ambient calls** — ban them at the call site: clippy `disallowed-methods` in
-  `clippy.toml` for `SystemTime::now`, `std::env::var`,
-  `TcpStream::connect`; eslint `no-restricted-globals` or `no-restricted-syntax`
-  for `fetch` and `Date.now`. The code then cannot compile or lint without the
-  seam.
-- **Reaching inward** — an import boundary (eslint `no-restricted-imports`,
-  dependency-cruiser) so a test cannot import an internal module. In Rust this
-  is already true: `tests/` sees only the public API.
-- **Unverified doubles** — the enumeration test above.
+run it on the changed files and read survivors as holes.
