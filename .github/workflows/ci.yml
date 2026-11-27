@@ -14,14 +14,22 @@ on:
       - npins/sources.json
   workflow_dispatch:
 
+# A superseded push has nothing left to prove, and these jobs hold a runner for
+# twenty minutes each.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # No `nix_path`. `shell.nix` resolves every input through `pins.nix` and
+      # the profiles are passed an explicit `-I nixpkgs=`, so nothing needs
+      # `<nixpkgs>`. Leaving NIX_PATH unset makes a stray lookup fail loudly
+      # instead of resolving to whatever channel the action installed.
       - uses: cachix/install-nix-action@v27
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
       - name: Check
         run: nix-shell shell.nix --run "check"
       - name: Test
