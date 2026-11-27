@@ -105,25 +105,6 @@ in
       inherit (config.agentPlugins) marketplaces;
     };
 
-    # Benchmark scores from https://artificialanalysis.ai (Intelligence
-    # Index | cost per task, evaluated with fallback enabled). Lives here
-    # rather than fish.nix since the `claude` binary these abbreviations
-    # invoke is only on PATH when Claude Code is enabled.
-    programs.fish.shellAbbrs = {
-      # AA: 34 | $0.05/task
-      claude-haiku-medium = "claude --model claude-haiku-5-5 --effort medium";
-      # AA: 43 | $0.21/task
-      claude-haiku-max = "claude --model claude-haiku-5-5 --effort max";
-      # AA: 47 | $0.88/task
-      claude-sonnet-high = "claude --model claude-sonnet-5-5 --effort high";
-      # AA: 51 | $1.34/task
-      claude-opus-medium = "claude --model claude-opus-5-5 --effort medium";
-      # AA: 54 | $1.82/task
-      claude-opus-high = "claude --model claude-opus-5-5 --effort high";
-      # AA: 56 | $3.46/task
-      claude-opus-xhigh = "claude --model claude-opus-5-5 --effort xhigh";
-    };
-
     home = {
       # These three are all fully derived from settings above, so always
       # overwrite rather than backing up (avoids "would be clobbered"

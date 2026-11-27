@@ -1146,7 +1146,28 @@ in
       "fish/completions/pi-job.fish".text = jobCompletions;
     };
 
-    programs.fish.interactiveShellInit = lib.mkIf (notifyJobs != { }) jobNotice;
+    programs.fish = {
+      interactiveShellInit = lib.mkIf (notifyJobs != { }) jobNotice;
+
+      # Benchmark scores from https://artificialanalysis.ai (Intelligence
+      # Index | cost per task, evaluated with fallback enabled). Lives here
+      # rather than fish.nix since the `pi` binary these abbreviations invoke
+      # is only on PATH when Pi is enabled.
+      shellAbbrs = {
+        # AA: 34 | $0.05/task
+        claude-haiku-medium = "pi --model claude-haiku-5-5 --thinking medium";
+        # AA: 43 | $0.21/task
+        claude-haiku-max = "pi --model claude-haiku-5-5 --thinking max";
+        # AA: 47 | $0.88/task
+        claude-sonnet-high = "pi --model claude-sonnet-5-5 --thinking high";
+        # AA: 51 | $1.34/task
+        claude-opus-medium = "pi --model claude-opus-5-5 --thinking medium";
+        # AA: 54 | $1.82/task
+        claude-opus-high = "pi --model claude-opus-5-5 --thinking high";
+        # AA: 56 | $3.46/task
+        claude-opus-xhigh = "pi --model claude-opus-5-5 --thinking xhigh";
+      };
+    };
 
     systemd.user = {
       services =
