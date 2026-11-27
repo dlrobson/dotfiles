@@ -64,6 +64,10 @@ it may be omitted when it would repeat `What's wrong:`.
   contradicts the code) or an improvement worth making, not a matter of taste.
   Suggestions are not verified; the report says so.
 
+For a `test-design` rule, only "Never widen the production API for a test" and
+"A test must be able to fail" are Critical; every other `test-design` rule is
+Important, whatever its wording.
+
 There is no confidence, score or floor. Rank findings by severity only; nothing
 is left out for seeming unimportant or unlikely.
 

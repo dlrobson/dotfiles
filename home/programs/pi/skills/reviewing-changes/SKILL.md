@@ -45,7 +45,8 @@ diff produces a confident "nothing found", which is worse than an error.
 
 **Then find the intent.** The approach pass judges the change against the
 problem it claims to solve, and cannot do that without knowing the problem. In
-order: what the request says; the commit messages under review (`git log`); the
+order: what the request says, including any API widening or behaviour change
+the user asked for; the commit messages under review (`git log`); the
 pull request description, if there is one (`gh pr view`, when available); and
 any issue those reference. Quote what you find and say where it came from.
 
