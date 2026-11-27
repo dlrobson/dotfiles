@@ -15,7 +15,9 @@ holding the whole repository will otherwise audit code nobody asked about.
 and `CLAUDE.md`, plus any nested ones, define the conventions that count. Where
 they speak they beat your defaults. On conventions and style, where they are
 silent, so are you; a defect needs no rule behind it. Never import conventions
-from another project — the repository's own files are the only authority.
+from another project — the repository's own files, and a skill your agent
+loads for its pass (such as `test-design` for the tests pass), are the only
+authority.
 
 **Every finding must be grounded.** Read the code that makes the claim true; if
 the claim rests on nothing you read, drop it. Within your remit, report real

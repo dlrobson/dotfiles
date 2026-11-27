@@ -158,8 +158,8 @@ judgment.
 - Does the cited line exist? If not, the finding is refuted: this is not a close
   call. A refuted Critical or Important finding is counted and listed under
   `## Refuted` with what you checked; a refuted Suggestion is dropped.
-- Does a quoted repository rule appear in `AGENTS.md` or `CLAUDE.md`? Search for
-  the wording rather than trusting the paraphrase. If it is not there, strike the
+- Does a quoted repository rule appear in `AGENTS.md` or `CLAUDE.md`, or, for a
+  `[tests]` finding, in the `test-design` skill? Search for the wording rather than trusting the paraphrase. If it is not there, strike the
   rule from the finding. If the defect stands without it, keep the finding at the
   band it earns without the rule; refute it only when nothing else supports it.
 

@@ -19,14 +19,22 @@ that contract; nothing overrides it.
 **Read the existing tests before judging.** They tell you the framework, the
 fixtures, the naming, and what the project already considers worth pinning. The
 repository's conventions beat yours; never propose introducing a framework the
-project does not use.
+project does not use. Where the repository's `AGENTS.md` or `CLAUDE.md`
+contradicts `test-design`, they win. A pattern that only appears in existing
+tests does not.
 
 **Judge the change against `test-design`.** It is loaded with this agent and
 binds the production change as well as the test. Each of its rules the change
-breaks is a finding; name the rule's heading in the title. Skip "Ask before
-testing grows the change": it governs the conversation, which you cannot see. Its budget binds you
-too: every test you suggest names the regression it prevents, and a test that
-would pin an implementation detail is not a gap.
+breaks is a finding; name the rule's heading in the title. Judge only what the
+diff shows:
+
+- Skip "Ask before testing grows the change": it governs the conversation,
+  which you cannot see.
+- From "A test must be able to fail", judge whether an assertion can fail. You
+  cannot see whether the test was run red or mutated.
+
+Its budget binds you too: every test you suggest names the regression it
+prevents, and a test that would pin an implementation detail is not a gap.
 
 **Over-testing is a finding too.** For a test the budget would not have written,
 or one that cannot fail, say whether to delete it, narrow it, or replace it with
@@ -40,15 +48,17 @@ question — a line can run in every test and still be unpinned.
 
 - **error paths** — the failure branch of new logic, especially where it is
   swallowed or converted into a default;
-- **boundaries** — empty, zero, one, maximum, and the value just past each;
+- **boundaries** — a boundary the change's own logic draws (a limit it
+  introduces), and the value just past it;
 - **negative cases** — invalid input the change is meant to reject;
 - **changed contracts** — a signature, return shape, or invariant the change
   alters, with existing tests that still assert the old one;
 - **async and concurrent behavior**, where the change makes claims about
   ordering or state.
 
-**Severity.** A broken `test-design` rule is a repository rule; grade it by the
-shared contract's bands. A coverage gap is Important when a regression in that
+**Severity.** A broken `test-design` rule is a repository rule. "Never widen the
+production API for a test" and "A test must be able to fail" are Critical; every
+other `test-design` rule is Important. A coverage gap is Important when a regression in that
 behaviour would reach users unnoticed, or when an existing test still asserts
 the old contract. Any other gap is a Suggestion.
 
