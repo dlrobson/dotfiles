@@ -1,12 +1,41 @@
 ---
 name: test-design
-description: Rules for what a test may reach, what must be doubled, and what a double must prove — no widening production visibility for a test, tests through the public interface, seams for the outside world, and a conformance test for every double. Use when adding or changing tests, when production code is about to change so a test can reach it, or when deciding what to fake, stub, or mock.
+description: Rules for when a test is worth writing, what it may reach, what must be doubled, and what a double must prove — a budget and a pre-code plan, no widening production visibility for a test, tests through the public interface, seams for the outside world, and a conformance test for every double. Use when adding or changing tests, when production code is about to change so a test can reach it, or when deciding what to fake, stub, or mock.
 ---
 
 # Test design
 
 These rules bind the test and the production change that makes it possible. The
 temptation is to break them from the production side, so start there.
+
+## Plan before the code
+
+For a non-trivial change, write the test plan before the first production edit,
+in three lines:
+
+1. The behaviours the change adds or alters.
+2. The failure cases each behaviour needs.
+3. What you will not test, and why.
+
+Show the plan to the user. A reviewer can correct three lines faster than a diff.
+If the plan names no failure case, the change may not need a test. If it names
+ten, the change is too large. Split it, then plan again.
+
+## Start with a budget
+
+A test is worth its maintenance. Name the regression it prevents: the future
+change that would break and go unnoticed without it. If you cannot name one, do
+not write the test.
+
+- One test per behaviour. A bug fix gets one regression test that fails on the
+  old code. A new branch or error path gets a success case and a failure case.
+- A test that asserts five unrelated behaviours hides which one broke. Split it,
+  or name the one behaviour it pins.
+- No unit test for docs, comments, formatting, dependency bumps, generated code,
+  or wiring with no branch of its own. Wiring is covered once, end to end, where
+  the composition is the risk.
+- Coverage is not the goal. A line that runs in every test can still be
+  unpinned, and a test nobody would miss is maintenance with no return.
 
 ## Never widen the production API for a test
 
@@ -16,9 +45,12 @@ caller is still public API. Reach the code without widening it, in this order:
 
 1. **Use what is already public.** Arrange and observe through an entry point
    real callers use.
-2. **Reach it from inside.** A unit test in the same module (Rust
-   `#[cfg(test)] mod`, Go same-package `_test.go`, a TS test importing the
-   module) sees what the file sees, with no visibility change.
+2. **Reach it from inside.** A unit test in the same package or module sees what
+   the file sees, with no visibility change: Rust `#[cfg(test)] mod`, Go
+   same-package `_test.go`. TypeScript has no same-package test scope, so a
+   separate test file sees only exports. Test through the public interface, put
+   the test in the module file, or change the design. Do not export for the
+   test.
 3. **Change the design.** If neither works, the seam is in the wrong place. Move
    the seam; do not publish it.
 
@@ -89,6 +121,21 @@ Keep doubles enumerable, one file or directory per seam, and add a test that
 fails when a double has no conformance case. A double nobody verifies is a stub
 with a good reputation.
 
+## Each test owns its state
+
+A test that depends on another test's leftovers is flaky by construction.
+
+- Create what the test needs: a temp directory, a fresh database, a new fake.
+  Remove it in teardown, even when the test fails.
+- Do not share mutable globals, singletons, or a database between tests. Reset
+  or recreate them per test.
+- Do not depend on order. A test that passes alone and fails in the suite is a
+  bug in the test, not in the runner.
+- Never sleep for a fixed time. Poll for the condition, or advance the clock
+  seam. A test that waits 100 ms fails on a slow machine.
+- A flaky test is a bug. Find the variance (time, randomness, shared state,
+  order, network) and remove it. Do not retry it green, and do not delete it.
+
 ## A test must be able to fail
 
 Before trusting a test, name the change that makes it red. An assertion that
@@ -97,12 +144,11 @@ configured, a snapshot nobody reads — reports safety that is not there, and is
 worse than no test. Delete it or fix it.
 
 For a load-bearing test, make it fail once on purpose: break the code, watch it
-go red. That is the cheapest proof.
+go red. That is the cheapest proof, and it needs no tool.
 
 Where the repository has a mutation tool (`cargo-mutants`, Stryker, PIT, mutmut),
-run it on the diff, not the whole tree, and read survivors as holes: a mutant that
-lives is a line the tests run without checking. A full run belongs on a schedule,
-because each mutant is a suite run and a push cannot afford thousands.
+run it on the changed files and read survivors as holes. Keep full runs on a
+schedule.
 
 ## Make a rule stick
 

@@ -1,6 +1,6 @@
 ---
 name: reviewing-changes
-description: Review pending changes — a diff, branch, or uncommitted work — before committing, pushing, or opening a PR. Judges whether the approach fits, then checks correctness, failures that leave no trace, and test coverage with parallel read-only passes, and has an independent verifier try to refute the serious findings. Invoke explicitly with /skill:reviewing-changes. Not for auditing a codebase with no change under review, and not for applying the fixes it finds.
+description: Review pending changes — a diff, branch, or uncommitted work — before committing, pushing, or opening a PR. Judges whether the approach fits, then checks correctness, failures that leave no trace, test coverage, and test design with parallel read-only passes, and has an independent verifier try to refute the serious findings. Invoke explicitly with /skill:reviewing-changes. Not for auditing a codebase with no change under review, and not for applying the fixes it finds.
 disable-model-invocation: true
 ---
 
@@ -70,7 +70,7 @@ Mechanically, from the change itself:
 | Approach | `review-approach` | The change adds a mechanism rather than fixing one: a new module, abstraction, or file; new public surface (an exported API, config option, CLI flag, module option); a new dependency or pin; or it is large relative to the purpose it states. Skip for fixes, edits to existing behavior, renames, version bumps, and docs. |
 | General | `review-general` | Always. It also covers comments that contradict the code. |
 | Silent failures | `review-silent` | The change contains runtime logic: it adds or alters a branch, loop, early exit, handler, default, cap, or filter, updates state, or reads a value from input or configuration. Not docs, comments, formatting, dependency pins, or test-only changes. |
-| Tests | `review-tests` | The change alters behavior tests are meant to pin — logic, branches, validation, output — or touches test files. Not docs, comments, formatting, dependency pins, or config values. |
+| Tests | `review-tests` | The change alters behavior tests are meant to pin — logic, branches, validation, output — touches test files, or adds or changes a call to an ambient dependency (clock, network, filesystem, randomness, environment, another process). Not docs, comments, formatting, dependency pins, or config values. |
 
 Judge behavior by reading the diff, not by matching file extensions or assuming
 a language.
