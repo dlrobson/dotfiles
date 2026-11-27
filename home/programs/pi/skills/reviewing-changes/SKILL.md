@@ -40,6 +40,9 @@ that yields a non-empty diff:
    common case; find them with `git status --porcelain`.
 3. The branch against its base — `git diff <base>...HEAD` — for committed work.
 
+Pass `--no-ext-diff` to every `git diff` that writes a file, so an external
+diff tool such as difftastic does not replace the patch.
+
 **If all three are empty, stop and say so**, naming what you checked. An empty
 diff produces a confident "nothing found", which is worse than an error.
 

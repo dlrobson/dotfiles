@@ -34,7 +34,8 @@ test is not worth writing.
 
 - One test per behaviour. A bug fix gets one regression test that fails on the
   old code. A new branch or error path gets a success case and a failure case.
-- Docs, comments, formatting, dependency bumps, generated code, and wiring with
+- Docs, comments, formatting, typo and lint fixes that change no behaviour,
+  dependency bumps, generated code, and wiring with
   no branch of its own get no unit test. Wiring is covered once, end to end,
   where the composition is the risk.
 
@@ -175,7 +176,9 @@ you cannot run the tests, skip this; do not ask the user to do it.
 
 Where a mutation tool is configured in the repository, run it on the change
 only, and never over the whole crate or package, which can take hours. Rust:
-`git add -N <new files>` so they show, then `git diff <base> > /tmp/change.diff &&
-cargo mutants --in-diff /tmp/change.diff`. Stryker: `--mutate <files>`. A
+`git add -N <new files>` so they show, then
+`git diff --no-ext-diff $(git merge-base HEAD <base>) > /tmp/change.diff &&
+cargo mutants --in-diff /tmp/change.diff`. `--no-ext-diff` keeps an external
+diff tool such as difftastic from replacing the patch. Stryker: `--mutate <files>`. A
 survivor is a hole only when you can name the regression it lets through; close
 those and leave the rest.
