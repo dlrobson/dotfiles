@@ -42,9 +42,7 @@ test is not worth writing.
 
 Making something public so a test can see it publishes it to every real caller,
 and it has to be supported from then on. A method with one caller is still
-public API. Make an item public only when code outside the module calls it
-today, not for a caller you expect later. Reach the code without widening it,
-in this order:
+public API. Reach the code without widening it, in this order:
 
 1. **Use what is already public.** Arrange and observe through an entry point
    real callers use.
