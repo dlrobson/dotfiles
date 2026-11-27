@@ -9,8 +9,10 @@ description: Decide what to test and how — what a test may reach, what to doub
 
 Do the testing the change needs without asking. That includes a small seam that
 makes the code testable: a parameter with a default that leaves existing callers
-unchanged, such as `sleep=time.sleep` or `now = Date.now`. Do not stop to ask
-about testing with the change undone.
+unchanged, such as `sleep=time.sleep` or `now = Date.now`. Rust has no default
+parameters: a private `fn foo_with(clock: &impl Clock)` that the public `foo`
+calls with the real clock, tested from the in-file `#[cfg(test)] mod`. Do not
+stop to ask about testing and leave the change unmade.
 
 Leave out testing that would cost more than the change itself, and propose it
 in your summary instead:
@@ -40,17 +42,22 @@ test is not worth writing.
 
 Making something public so a test can see it publishes it to every real caller,
 and it has to be supported from then on. A method with one caller is still
-public API. Reach the code without widening it, in this order:
+public API. Make an item public only when code outside the module calls it
+today, not for a caller you expect later. Reach the code without widening it,
+in this order:
 
 1. **Use what is already public.** Arrange and observe through an entry point
    real callers use.
 2. **Reach it from inside.** A test inside the module may call the module's
    internal interface: unexported items that other code in the module calls.
    Rust: a `#[cfg(test)] mod` in the same file. TypeScript has no module-private
-   test scope, so a separate test file sees only exports. Where the repository
-   uses Vitest, an in-source test (`if (import.meta.vitest)`, stripped from the
-   build by `define`) is inside the module. Under Jest or `node:test` a test in
-   the module file ships with it, so test through the public interface instead.
+   test scope, so a separate test file sees only exports. Where the Vitest
+   config already sets `includeSource` and the build defines
+   `import.meta.vitest` as `undefined`, an in-source test
+   (`if (import.meta.vitest)`) is inside the module. Otherwise test through the
+   public interface; setting that up is infrastructure to propose. Python: a
+   test file may import the module's `_private` names; do not drop the
+   underscore for it.
 3. **Change the design.** If neither works, the seam is in the wrong place. Move
    the seam; do not publish it. A redesign of code the change does not
    otherwise touch outgrows the change, so propose it instead.
@@ -60,8 +67,13 @@ second API, maintained and unversioned. It counts as widening. So does a
 production branch that checks for a test run (`cfg!(test)`,
 `NODE_ENV === 'test'`).
 
+Taking an external dependency as a defaulted parameter or constructor argument
+is the seam *Ambient dependencies* asks for, not widening. Widening exposes
+internals — a helper, a field, state — so a test can reach them.
+
 When the user explicitly asks to widen ("just export it"), do it. Mention in one
-line how the code could be tested without widening.
+line how the code could be tested without widening, and note the request in the
+commit message, where a review will see it.
 
 ## Test through the public interface of the module under test
 
@@ -110,7 +122,7 @@ If a double of an external dependency is not obvious to write, do not write it.
 Test against the real one in an integration test instead.
 
 Do not double your own code. A double of your own module is a copy of its logic
-with none of its tests. Do not double the thing under test.
+with none of its tests.
 
 ## A double with behaviour owes a conformance test
 
@@ -133,15 +145,17 @@ expectation of real output, and say what the evidence was.
   fails.
 - Poll for the condition, or advance the clock seam, instead of sleeping for a
   fixed time. A test that waits 100 ms fails on a slow machine.
-- A flaky test is a bug. Find the variance (time, randomness, shared state,
+- A flaky test you were asked about, or one your change touches, is a bug. Find the variance (time, randomness, shared state,
   order, network) and remove it. Do not retry it green, and do not delete it.
 
 ## A test must be able to fail
 
 Before trusting a test, name the change that makes it red. An assertion that
 holds whatever the code does — a tautology, an assertion on the stub you just
-configured, a snapshot nobody reads — reports safety that is not there, and is
-worse than no test. Delete it or fix it.
+configured, an expected value computed by the code's own formula, a snapshot
+nobody reads — reports safety that is not there, and is worse than no test. One
+you write or change: delete it or fix it. One you only read: mention it in your
+summary.
 
 When an existing test goes red after your change, first decide whether the
 behaviour was meant to change. If it was, update the assertion and say so in
@@ -152,5 +166,6 @@ For a load-bearing test, make it fail once on purpose: break the code, watch it
 go red.
 
 Where the repository has a mutation tool, run it on the change only
-(`cargo mutants --in-diff`, Stryker `--mutate <files>`) and read survivors as
+(`git diff <base>... > /tmp/change.diff && cargo mutants --in-diff
+/tmp/change.diff`, Stryker `--mutate <files>`) and read survivors as
 holes. A run over the whole crate or package can take hours.
