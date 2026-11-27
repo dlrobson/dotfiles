@@ -28,6 +28,23 @@ let
   # Named away from `references/` so an authored skill can still ship its own.
   piDocs = "${piPackage}/lib/node_modules/pi-monorepo/docs";
 
+  # Sourced before every Bash command (`shellCommandPrefix`), so each one runs
+  # in its directory's direnv environment. Pi starts every command in a fresh
+  # shell at the session's working directory, so nothing carries over between
+  # commands. direnv logs every load to stderr, and each tool result would carry
+  # that into the context, so stderr is shown only when the export fails —
+  # e.g. a blocked `.envrc`, which explains why the project's tools are missing.
+  direnvPrefix = pkgs.writeText "pi-direnv-prefix.bash" ''
+    __pi_direnv_err=$(mktemp)
+    if __pi_direnv_env=$(${lib.getExe config.programs.direnv.package} export bash 2>"$__pi_direnv_err"); then
+      eval "$__pi_direnv_env"
+    else
+      cat "$__pi_direnv_err" >&2
+    fi
+    rm -f "$__pi_direnv_err"
+    unset __pi_direnv_err __pi_direnv_env
+  '';
+
   # The reply-style rules are written to APPEND_SYSTEM.md and reused by the
   # `/plain` prompt template, so the two cannot drift. Both files are installed
   # whenever Pi is enabled.
@@ -1090,6 +1107,8 @@ in
             # Hide reasoning blocks in the transcript. Reasoning still runs — this
             # only stops it being rendered, and `/thinking` can reveal the level.
             hideThinkingBlock = true;
+            # Matches the direnv hooks in `claude.nix`; see `direnvPrefix`.
+            shellCommandPrefix = ". ${direnvPrefix}";
             # Web search/fetch, GitHub cloning, PDF and video extraction. The
             # version comes from the `pi-web-access` npins pin, so `update-pins`
             # bumps it (and its hash) without editing this file; Pi compares the
