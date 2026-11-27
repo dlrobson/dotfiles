@@ -1,6 +1,6 @@
 name: npins update
 
-# Bumps npins/sources.json and opens a pull request when something moved.
+# Bumps npins/sources.json and merges the result when something moved.
 # Renovate cannot do this job: its nix manager only understands flake.lock, and
 # this repo pins every dependency with npins instead.
 on:
@@ -18,8 +18,6 @@ concurrency:
 permissions:
   contents: write
   pull-requests: write
-  # Dispatching ci.yml needs actions: write.
-  actions: write
 
 jobs:
   update-pins:
@@ -49,7 +47,7 @@ jobs:
       - name: Test
         if: steps.diff.outputs.changed == 'true'
         run: nix-shell shell.nix --run run-tests
-      - name: Open pull request
+      - name: Open and merge the pull request
         if: steps.diff.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -65,26 +63,30 @@ jobs:
           git commit -m "chore(deps): update pins"
           git push origin "$branch" --force
 
-          # One branch per bump, force-pushed, so a run that lands while the
+          # One branch per bump, force-pushed, so a run that lands while a
           # previous pull request is still open updates that pull request rather
           # than failing on the push.
-          open_prs="$(gh pr list --head "$branch" --state open --json number --jq length)"
-          if [ "$open_prs" != "0" ]; then
-            echo "Updated the existing open pull request for $branch."
-            exit 0
+          pr="$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')"
+          if [ -n "$pr" ]; then
+            echo "Updated the existing open pull request #$pr."
+          else
+            pr="$(gh pr create --base main --head "$branch" \
+              --title "chore(deps): update pins" \
+              --body "Scheduled \`update-pins\` run (\`npins upgrade && npins update\`). \`check\` and \`run-tests\` passed in this workflow run.")"
           fi
 
-          gh pr create --base main --head "$branch" \
-            --title "chore(deps): update pins" \
-            --body "Scheduled \`update-pins\` run (\`npins upgrade && npins update\`). \`check\` and \`run-tests\` passed in the workflow run that opened this pull request."
-
-      # A pull request opened with GITHUB_TOKEN raises a pull_request event that
-      # GitHub holds as action_required, so the pull request's own CI would sit
-      # unapproved. workflow_dispatch is the exception: GITHUB_TOKEN can trigger
-      # it, and the run reports its checks on the branch's commit.
-      - name: Run CI on the branch
-        if: steps.diff.outputs.changed == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: gh workflow run ci.yml --ref npins-update
+          # Merge here rather than through auto-merge: main requires no status
+          # checks, so auto-merge would merge before anything had run. The check
+          # and test steps above are the gate, and the push to main runs ci.yml
+          # on the merged commit.
+          #
+          # Mergeability is computed asynchronously after the push, so the first
+          # attempt can fail on a pull request that is still being evaluated.
+          for _ in $(seq 1 12); do
+            if gh pr merge "$pr" --rebase --delete-branch; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Could not merge $pr." >&2
+          exit 1
