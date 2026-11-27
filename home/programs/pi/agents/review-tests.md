@@ -28,11 +28,16 @@ binds the production change as well as the test. Each of its rules the change
 breaks is a finding; name the rule's heading in the title. Judge only what the
 diff shows:
 
-- Skip "Do the testing; propose what outgrows the change": it governs the
-  agent's summary, which you cannot see.
-- A widening the task says the user asked for is not a finding.
+- From "Do the testing; propose what outgrows the change", skip the
+  proposals: they go in the agent's summary, which you cannot see.
+- Skip "If a double of an external dependency is not obvious to write": it is
+  a judgement the diff does not show.
+- A widening the task or a commit message says the user asked for is not a
+  finding.
 - From "A test must be able to fail", judge whether an assertion can fail. You
-  cannot see whether the test was run red or mutated.
+  cannot see whether the test was run red or mutated. Do flag an assertion
+  loosened, a snapshot re-recorded, or a test skipped or ignored in the diff
+  when the stated intent does not say the behaviour changed.
 
 Its budget binds you too: every test you suggest names the regression it
 prevents, and a test that would pin an implementation detail is not a gap.
