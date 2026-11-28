@@ -22,9 +22,9 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "f0b5cd4fc28a3598ecc01a8e480ea64c8a92d0c3",
-      "url": "https://github.com/mblode/agent-skills/archive/f0b5cd4fc28a3598ecc01a8e480ea64c8a92d0c3.tar.gz",
-      "hash": "sha256-yDwzbUKjo3GpPPuSpemiU8skU7Nx9IYb7jfN6OTk8oI="
+      "revision": "56bf97e8f6078bfada4c91c23fcf7c14b6e84a07",
+      "url": "https://github.com/mblode/agent-skills/archive/56bf97e8f6078bfada4c91c23fcf7c14b6e84a07.tar.gz",
+      "hash": "sha256-fXaBcQjJ2QitsS43rSSaODcjVmJuX/RqP+CpC374CLs="
     },
     "nixGL": {
       "type": "Git",
@@ -48,9 +48,9 @@
       },
       "branch": "release-26.05",
       "submodules": false,
-      "revision": "2ced669bc364aaadc953d5891c0d3edb6f521a00",
-      "url": "https://github.com/NixOS/nixpkgs/archive/2ced669bc364aaadc953d5891c0d3edb6f521a00.tar.gz",
-      "hash": "sha256-Gja9/QSid9d+cZFxkfouWo1V75Sm04sSFXQ9ZpwERXs="
+      "revision": "b9888df5728b266fb82d1d25b13f2630c91d3936",
+      "url": "https://github.com/NixOS/nixpkgs/archive/b9888df5728b266fb82d1d25b13f2630c91d3936.tar.gz",
+      "hash": "sha256-JCDLswI+JlHe6KvwXhps2E5JsI33n+hzVc5YpwJzpBU="
     },
     "nixpkgs-unstable": {
       "type": "Git",
@@ -61,9 +61,9 @@
       },
       "branch": "nixos-unstable",
       "submodules": false,
-      "revision": "2786a2a72088ecf32aea5b3ec52099e6a7cff78f",
-      "url": "https://github.com/NixOS/nixpkgs/archive/2786a2a72088ecf32aea5b3ec52099e6a7cff78f.tar.gz",
-      "hash": "sha256-f/VVvxf5RsQgWVhUtefoca5ktVg0DA2bnkMOcmSnozo="
+      "revision": "58d0d3e9d527ca7263be6a45d1f86eacdc700dab",
+      "url": "https://github.com/NixOS/nixpkgs/archive/58d0d3e9d527ca7263be6a45d1f86eacdc700dab.tar.gz",
+      "hash": "sha256-fD1nLSQM8tFob51/thCOr49JIAIjoqybAY27/+hwZQI="
     },
     "paseo": {
       "type": "GitRelease",
@@ -76,10 +76,10 @@
       "version_upper_bound": null,
       "release_prefix": null,
       "submodules": false,
-      "version": "v0.17.6",
-      "revision": "514c69da158e7bf293252991b1e635c96cf6cb17",
-      "url": "https://api.github.com/repos/getpaseo/paseo/tarball/refs/tags/v0.17.6",
-      "hash": "sha256-B6dRub4s10yF7o7pAEIMXh3F3xWwJi5Z64xICkmhWg0="
+      "version": "v0.18.1",
+      "revision": "d3f4161cb60f5eda671e9f7ab6063aed351d8948",
+      "url": "https://api.github.com/repos/getpaseo/paseo/tarball/refs/tags/v0.18.1",
+      "hash": "sha256-WUJIjIvTIKFgA42ypVdnw4c0p/tQTDVb7m6nIGAX0uk="
     },
     "pi-subagents": {
       "type": "GitRelease",
